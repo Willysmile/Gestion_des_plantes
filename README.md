@@ -14,90 +14,148 @@
 1. **`docs/preparation_projet/QUICK_REFERENCE.md`** - Vue d'ensemble en 1 page (5 min)
 2. **`docs/preparation_projet/CAHIER_DES_CHARGES_PYTHON.md`** - Specifications complètes (10 min)
 
-### 🟡 Importants (30 min)
+### 🟡 Importantes (30 min)
 3. **`docs/preparation_projet/PLAN_ACTION_PHASES.md`** - Roadmap 6 phases de développement (30 min)
+4. **`docs/preparation_projet/DECISIONS_LOG.md`** - Choix architecturaux & justifications (20 min)
 
 ### 🟢 Référence
 - `docs/preparation_projet/RESUME_TECHNIQUE_MIGRATION.md` - Comment on passe de Laravel à Python
-- `docs/preparation_projet/DECISIONS_LOG.md` - Pourquoi ces choix technologiques?
 - `docs/preparation_projet/INDEX_DOCUMENTATION.md` - Index complet des docs
+- `docs/preparation_projet/CONFIRMATION_FINALE.md` - Validations finales
 
 ---
 
 ## 🛠️ Tech Stack
 
 ```
-Backend:   FastAPI (Python) + SQLAlchemy ORM
+Backend:   FastAPI (Python 3.10+) + SQLAlchemy ORM + Pydantic
 Frontend:  PySimpleGUI (Python desktop UI)
-Database:  SQLite local (zero configuration)
-Storage:   Local filesystem (photos + exports)
-Deploy:    PyInstaller → Single .exe file
+Database:  SQLite local (zero configuration, ~10k plants max)
+Storage:   Local filesystem (photos/webp + exports/zip)
+Deploy:    PyInstaller → Single .exe file (Windows/Mac/Linux)
+ORM:       SQLAlchemy + Alembic (migrations)
+Validation: Pydantic schemas (45+ REST endpoints)
 ```
 
 ---
 
-## 🎯 Fonctionnalités
+## 🎯 Fonctionnalités Clés
 
-✅ CRUD complet pour plantes  
-✅ Gestion des photos (WebP conversion)  
-✅ 5 types d'historiques (arrosage, fertilisation, rempotage, maladies, notes)  
-✅ Tags & catégories  
-✅ Recherche & filtres avancés  
-✅ Export/Import en ZIP  
-✅ Statistiques & dashboard  
-✅ Audit logging  
-
----
-
-## 📅 Phases de développement
-
-| Phase | Durée | Focus |
-|-------|-------|-------|
-| 1 | Week 1 | Infrastructure (FastAPI + SQLite) |
-| 2 | Week 2-3 | CRUD Plantes |
-| 3 | Week 4 | Photos + Historiques |
-| 4 | Week 5 | Settings + Statistiques |
-| 5 | Week 6-7 | Export/Import + Polish |
-| 6 | Week 8 | Déploiement |
-| **TOTAL** | **5-8 semaines** | |
+✅ **CRUD plantes** - Création/édition/suppression/archivage  
+✅ **Gestion photos** - Upload, WebP conversion (quality=85), main photo  
+✅ **5 historiques** - Arrosage, fertilisation, rempotage, maladies, notes générales  
+✅ **Tags & catégories** - Organisation flexible  
+✅ **Recherche & filtres** - Par localisation, status, difficultés, etc.  
+✅ **Export/Import** - ZIP avec JSON + photos + metadata + checksum SHA256  
+✅ **Statistiques** - Plantes par localisation, arrosages prévus, KPIs  
+✅ **Audit logging** - Traçabilité CREATE/UPDATE/DELETE  
+✅ **Soft delete** - Suppression logique avec recovery possible  
+✅ **Offline-first** - Zéro connexion internet requise  
 
 ---
 
-## 🚀 Installation (à venir)
+## 📅 Phases de développement (6 semaines)
+
+| Phase | Durée | Focus | Status |
+|-------|-------|-------|--------|
+| 0 | Done | Documentation complète + decisions | ✅ DONE |
+| 1 | Week 1 | Infrastructure (FastAPI + SQLite + 15 models) | 🚀 NEXT |
+| 2 | Week 2-3 | CRUD Plantes + Pydantic schemas |  |
+| 3 | Week 4 | Photos + 5 historiques |  |
+| 4 | Week 5 | Settings + Statistiques |  |
+| 5 | Week 6 | Export/Import + Polish |  |
+| 6 | Week 7 | Déploiement (PyInstaller) |  |
+| **TOTAL** | **~6-7 semaines** | **5000+ LOC** |  |
+
+---
+
+## 🚀 Installation (Phase 1 en cours)
+
+### Development Setup
 
 ```bash
-# Phase 1: Setup
+# Backend (Terminal 1)
 cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
+# → http://localhost:8000/docs (Swagger API)
 
-# Terminal 2:
+# Frontend (Terminal 2)
 cd frontend
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 python app/main.py
 ```
 
+### Production Deployment (Phase 6)
+
+```bash
+# PyInstaller packaging
+pyinstaller --onefile --windowed app/main.py
+# → dist/plant_manager.exe (Windows)
+# → dist/plant_manager (Linux/Mac)
+```
+
 ---
 
-## 📂 Structure (à venir)
+## 📂 Structure du Projet
 
 ```
 Gestion_des_plantes/
 ├── docs/
-│   └── preparation_projet/     ← Cahier des charges & planning (Phase 0)
+│   └── preparation_projet/          ← Phase 0: Documentation
+│       ├── QUICK_REFERENCE.md       (Vue 1-page)
 │       ├── CAHIER_DES_CHARGES_PYTHON.md
 │       ├── PLAN_ACTION_PHASES.md
-│       ├── QUICK_REFERENCE.md
 │       ├── DECISIONS_LOG.md
 │       ├── RESUME_TECHNIQUE_MIGRATION.md
-│       ├── INDEX_DOCUMENTATION.md
 │       └── ...
-├── backend/                 ← FastAPI backend (Phase 1+)
+│
+├── backend/                         ← Phase 1+: FastAPI
 │   ├── app/
-│   │   ├── main.py
+│   │   ├── main.py                  (FastAPI app + routes)
+│   │   ├── config.py                (settings, DB URL)
 │   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── services/
+│   │   │   ├── plant.py             (Plant, Photo)
+│   │   │   ├── histories.py         (5 history models)
+│   │   │   ├── tags.py              (Tag, TagCategory)
+│   │   │   └── lookup.py            (Location, PurchasePlace, etc)
+│   │   ├── schemas/                 (Pydantic validation)
+│   │   ├── routes/                  (45+ endpoints)
+│   │   ├── services/                (Business logic)
+│   │   └── utils/
+│   ├── migrations/                  (Alembic)
+│   ├── tests/
+│   ├── requirements.txt
+│   └── venv/
+│
+├── frontend/                        ← Phase 1+: PySimpleGUI
+│   ├── app/
+│   │   ├── main.py                  (Entry point)
+│   │   ├── api_client.py            (HTTP wrapper)
+│   │   ├── config.py                (API base URL, etc)
+│   │   ├── windows/
+│   │   │   ├── main_window.py       (Plant list)
+│   │   │   ├── plant_form.py        (Create/edit)
+│   │   │   ├── plant_detail.py      (View + histories)
+│   │   │   ├── settings_window.py
+│   │   │   └── ...
+│   │   └── utils/
+│   ├── requirements.txt
+│   └── venv/
+│
+├── data/                            ← Created automatically
+│   ├── plants.db                    (SQLite database)
+│   ├── photos/                      (WebP images)
+│   └── exports/                     (ZIP backups)
+│
+├── .gitignore
+├── README.md
+├── DEVELOPMENT.md                   (Setup guide for devs)
+└── .github/workflows/               (CI/CD future)
 │   │   ├── routes/
 │   │   └── utils/
 │   └── requirements.txt
