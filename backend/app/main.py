@@ -5,6 +5,7 @@ from app.config import settings
 from app.utils.db import init_db, get_db
 from app.models import Base
 from app.routes.plants import router as plants_router
+from app.routes.photos import router as photos_router, files_router
 from app.scripts.seed_lookups import seed_all
 
 # Initialize database
@@ -26,6 +27,8 @@ app = FastAPI(
 
 # Include routers
 app.include_router(plants_router)
+app.include_router(photos_router)
+app.include_router(files_router)
 
 # Health check endpoint
 @app.get("/health")
