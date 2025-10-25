@@ -32,7 +32,8 @@ Backend:   FastAPI (Python 3.10+) + SQLAlchemy ORM + Pydantic
 Frontend:  PySimpleGUI (Python desktop UI)
 Database:  SQLite local (zero configuration, ~10k plants max)
 Storage:   Local filesystem (photos/webp + exports/zip)
-Deploy:    PyInstaller → Single .exe file (Windows/Mac/Linux)
+Dev Mode:  python app/main.py (simple, with auto-reload)
+Phase 6:   PyInstaller → Single .exe file (Windows/Mac/Linux)
 ORM:       SQLAlchemy + Alembic (migrations)
 Validation: Pydantic schemas (45+ REST endpoints)
 ```
@@ -69,35 +70,28 @@ Validation: Pydantic schemas (45+ REST endpoints)
 
 ---
 
-## 🚀 Installation (Phase 1 en cours)
+## 🚀 Quick Start (Développement)
 
-### Development Setup
-
+### Backend (Terminal 1)
 ```bash
-# Backend (Terminal 1)
 cd backend
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
-# → http://localhost:8000/docs (Swagger API)
+# → http://localhost:8000/docs (Swagger API docs)
+```
 
-# Frontend (Terminal 2)
+### Frontend (Terminal 2)
+```bash
 cd frontend
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python app/main.py
 ```
 
-### Production Deployment (Phase 6)
-
-```bash
-# PyInstaller packaging
-pyinstaller --onefile --windowed app/main.py
-# → dist/plant_manager.exe (Windows)
-# → dist/plant_manager (Linux/Mac)
-```
+**Note:** Pendant le développement (Phase 1-5), on utilise simplement `python app/main.py`. PyInstaller (exe packaging) est réservé à la Phase 6 (déploiement final).
 
 ---
 
