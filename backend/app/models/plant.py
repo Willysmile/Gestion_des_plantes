@@ -61,7 +61,9 @@ class Photo(BaseModel):
     
     plant_id = Column(Integer, ForeignKey("plants.id"), nullable=False)
     filename = Column(String(255), nullable=False)
+    file_size = Column(Integer, nullable=True)  # Size of the file in bytes
     description = Column(Text)
     is_main = Column(Boolean, default=False)
+    deleted_at = Column(DateTime, nullable=True)  # Soft delete
     
     plant = relationship("Plant", back_populates="photos")
