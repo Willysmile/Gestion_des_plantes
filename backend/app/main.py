@@ -4,9 +4,18 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.utils.db import init_db, get_db
 from app.models import Base
+from app.routes.plants import router as plants_router
+from app.scripts.seed_lookups import seed_all
 
 # Initialize database
 init_db()
+
+# Seed lookup tables at startup
+db = next(get_db())
+try:
+    seed_all(db)
+finally:
+    db.close()
 
 # Create FastAPI app
 app = FastAPI(
@@ -14,6 +23,9 @@ app = FastAPI(
     description="Desktop plant management application",
     version="0.1.0"
 )
+
+# Include routers
+app.include_router(plants_router)
 
 # Health check endpoint
 @app.get("/health")
