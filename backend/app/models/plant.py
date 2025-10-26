@@ -1,15 +1,8 @@
-from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text, DECIMAL, Table
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text, DECIMAL
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import BaseModel
-
-# Association table for many-to-many relationship between Plant and Tag
-plant_tag_association = Table(
-    'plant_tag',
-    BaseModel.metadata,
-    Column('plant_id', Integer, ForeignKey('plants.id'), primary_key=True),
-    Column('tag_id', Integer, ForeignKey('tags.id'), primary_key=True)
-)
+from app.models.tags import plant_tag_association
 
 class Plant(BaseModel):
     __tablename__ = "plants"
