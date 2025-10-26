@@ -2,7 +2,7 @@
 Pydantic schemas pour Plant CRUD (Pydantic v2 with model_validator)
 """
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -93,8 +93,7 @@ class PlantCreate(BaseModel):
                 raise ValueError("temperature_min doit être < temperature_max")
         return self
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PlantUpdate(PlantCreate):
@@ -145,8 +144,7 @@ class PlantResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PlantListResponse(BaseModel):
@@ -161,5 +159,4 @@ class PlantListResponse(BaseModel):
     is_archived: bool
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

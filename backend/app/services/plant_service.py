@@ -90,8 +90,8 @@ class PlantService:
             Plant: Plante créée avec ID
         """
         try:
-            # Convertir Pydantic model en dict
-            plant_dict = plant_data.dict(exclude_unset=True)
+            # Convertir Pydantic v2 model en dict
+            plant_dict = plant_data.model_dump(exclude_unset=True)
             
             # 1. Générer scientific_name si absent mais genus + species présents
             if (not plant_dict.get('scientific_name') and 
