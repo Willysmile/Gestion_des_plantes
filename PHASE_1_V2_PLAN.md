@@ -38,19 +38,33 @@
 ```python
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
 from app.database import engine
 from app.models.base import BaseModel
+import os
 
 # Create tables
 BaseModel.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Gestion des Plantes API")
+app = FastAPI(title="Gestion des Plantes API", version="2.0.0")
 
-# CORS for Tauri
+# CORS for Tauri (development + production)
+CORS_ORIGINS = [
+    "http://localhost:5173",        # Vite dev server (React)
+    "http://127.0.0.1:5173",        # Alternative localhost
+    "https://tauri.localhost",      # Tauri production (correct format)
+    "tauri://localhost",            # Legacy (fallback)
+]
+
+# Add localhost variations if in development
+if os.getenv("ENVIRONMENT") != "production":
+    CORS_ORIGINS.extend([
+        "http://localhost:8000",    # Backend health checks
+        "http://127.0.0.1:8000",
+    ])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "tauri://localhost"],  # Tauri dev + prod
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,12 +72,27 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "🌿 Gestion des Plantes API"}
+    return {
+        "message": "🌿 Gestion des Plantes API",
+        "version": "2.0.0",
+        "docs": "/docs"
+    }
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "service": "gestion-plantes-api",
+        "version": "2.0.0"
+    }
 ```
+
+**⚠️ CORS Clarification:**
+- `http://localhost:5173` ✅ Vite dev server (React development)
+- `https://tauri.localhost` ✅ Tauri production (correct format)
+- `tauri://localhost` ⚠️ Might not work in production (keep for compatibility)
+- Verify in Tauri config: `tauri.conf.json` → `build.withGlobalTauri`
+- Test in dev: `npm run tauri dev` will show actual origin in browser console
 
 ### 1.2 - Vérifier Models
 
@@ -189,28 +218,88 @@ alembic upgrade head
 **Structure:**
 ```
 backend/tests/
-├── conftest.py           # Fixtures (db, client, etc.)
-├── test_models.py        # Model tests
-├── test_plant_service.py # Service tests (reference generation, archive, etc.)
-└── test_routes.py        # API endpoint tests
+├── conftest.py                  # Fixtures (db, client, etc.)
+├── test_models.py               # Model tests
+├── test_plant_service.py        # Service tests
+├── test_routes.py               # API endpoint tests
+└── __init__.py
 ```
 
-**Coverage target:** 80%+
+**Coverage Target:** 80%+
+
+**What to test (priority):**
+```
+CRITICAL (must have):
+✅ PlantService.generate_reference() - all cases
+   - Format: FAMILY-NNN
+   - Uniqueness
+   - Error handling (empty family)
+   
+✅ PlantService.archive()/restore()
+   - Archive sets: is_archived, archived_date, archived_reason
+   - Restore clears: is_archived, archived_date, archived_reason
+   - Timestamps work correctly
+   
+✅ Plant model validation
+   - temperature_min < temperature_max
+   - soil_ph ∈ [0, 14]
+   - Cross-field validators work
+
+✅ CRUD routes (happy path + errors)
+   - GET /api/plants (list, pagination)
+   - GET /api/plants/{id} (found, not found)
+   - POST /api/plants (create with validation)
+   - PUT /api/plants/{id} (update)
+   - DELETE /api/plants/{id} (soft delete)
+   - PATCH /api/plants/{id}/archive
+   - PATCH /api/plants/{id}/restore
+
+✅ Auto-generated fields
+   - reference auto-generated on create
+   - scientific_name auto-generated if genus+species
+
+NICE-TO-HAVE:
+⚠️ Database transactions
+⚠️ Search/filter endpoints
+⚠️ Stats/KPI endpoints
+⚠️ Error messages clarity
+```
+
+**Test command:**
+```bash
+# Run all tests with coverage
+pytest tests/ -v --cov=app --cov-report=html
+
+# Run specific test file
+pytest tests/test_plant_service.py -v
+
+# Run with markers
+pytest -m "not slow" -v
+```
 
 ### 1.8 - Requirements.txt
 
-**Essential:**
+**Essential (minimalist):**
 ```
 fastapi==0.104.1
 uvicorn==0.24.0
 sqlalchemy==2.0.23
 pydantic==2.5.0
-pydantic-settings==2.1.0
 alembic==1.12.1
 python-dotenv==1.0.0
 pytest==7.4.3
 pytest-cov==4.1.0
 ```
+
+**Optional (if using env management):**
+```
+pydantic-settings==2.1.0  # Only if .env config is complex
+```
+
+**Why removed:**
+- ❌ `pydantic-settings` - Not needed if config in code or simple .env
+- ✅ Keep minimal: focus on core dependencies
+- ✅ Add later only if needed (YAGNI principle)
 
 ### 1.9 - Test Local
 
@@ -277,13 +366,93 @@ git commit -m "feat: Modernize backend FastAPI for v2
 
 ---
 
-## 📝 Notes
+## 🎯 Key Implementation Notes
 
-- Keep existing database structure
-- Migrate from PySimpleGUI API to REST API best practices
-- Add proper error handling + logging
-- Add request validation at routes level
-- Add response documentation (OpenAPI schema)
+### Architecture Decisions
+- **Database**: Keep SQLite (portable, no server needed for desktop app)
+- **ORM**: SQLAlchemy 2.0+ (modern, async-ready)
+- **Validation**: Pydantic v2 at routes + model_validator for cross-field
+- **Testing**: pytest + fixtures (standard Python testing)
+- **Migrations**: Alembic for schema versioning
+
+### Best Practices to Follow
+- ✅ Keep business logic in Service layer (easy to test)
+- ✅ Keep HTTP handling in routes layer (separation of concerns)
+- ✅ Use dependency injection (FastAPI get_db pattern)
+- ✅ Soft delete with `is_archived` flag (preserve data history)
+- ✅ Auto-generate immutable fields (reference, scientific_name) on create
+- ✅ Error handling with proper HTTP status codes
+- ✅ OpenAPI documentation (FastAPI auto-docs at /docs)
+
+### CORS Configuration
+**Critical for Tauri:**
+- ✅ `http://localhost:5173` - Vite dev server
+- ✅ `https://tauri.localhost` - Tauri production window
+- ❌ `tauri://` protocol may not work consistently
+- **Action**: Test both dev + production builds, add origin logging
+
+### Testing Coverage (80%+)
+**Must cover:**
+1. Reference generation (all edge cases)
+2. Archive/Restore workflow (state transitions)
+3. Validations (cross-field, boundaries)
+4. CRUD operations (happy path + errors)
+5. Auto-generated fields (immutability)
+
+**Run before commit:**
+```bash
+pytest tests/ -v --cov=app --cov-report=term-missing
+# Expect: 80%+ coverage (show missing lines)
+```
+
+---
+
+## 📝 Known Issues & Decisions
+
+### Issue 1: Pydantic v2 Migration
+- **Problem**: v1 used `@field_validator`, now requires `@model_validator` for cross-field
+- **Decision**: Use `@model_validator(mode='after')` for temperature_min < max validation
+- **Status**: ✅ Already tested in v1, working
+
+### Issue 2: Database Soft Delete
+- **Problem**: How to handle archived plants in queries?
+- **Decision**: Filter by `is_archived=False` by default in get_all()
+- **Alternative**: Could use SQLAlchemy hybrid properties (more advanced)
+- **Current**: Keep simple with explicit filtering
+
+### Issue 3: Reference Generation Uniqueness
+- **Problem**: FAMILY-NNN format, need to ensure uniqueness
+- **Decision**: Unique constraint in DB + index on reference column
+- **Testing**: Must test concurrent creation (edge case)
+- **Status**: ✅ Already implemented in v1
+
+### Issue 4: Scientific Name Auto-Generation
+- **Problem**: Should auto-generate from Genus + Species
+- **Decision**: Generate on Plant.__init__ if both present
+- **Edge case**: What if genus/species updated later? (accept as is for v2)
+- **Status**: ✅ Works in v1, copy as-is
+
+### Issue 5: Photo Relationships
+- **Problem**: Plant → Photos (one-to-many)
+- **Decision**: Keep relationships intact, add tests for cascade delete
+- **Cleanup**: If plant deleted, photos deleted too
+- **Status**: ✅ Configured in models
+
+---
+
+## ✅ Pre-Commit Checklist
+
+Before `git commit`:
+
+- [ ] All tests passing: `pytest tests/ -v`
+- [ ] Coverage 80%+: `pytest --cov`
+- [ ] Code formatted: `black app/` (if using)
+- [ ] API docs work: `http://localhost:8000/docs`
+- [ ] Health check works: `http://localhost:8000/api/health`
+- [ ] CORS tested (check browser console for errors)
+- [ ] Alembic migrations applied: `alembic upgrade head`
+- [ ] No import errors: `python -c "from app.main import app"`
+- [ ] Requirements.txt clean: only what's used
 
 **Status**: 🔄 Ready to start  
 **Next Phase**: Phase 2 - Frontend Tauri + React setup
