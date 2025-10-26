@@ -198,8 +198,8 @@ class PlantService:
             return None
         
         try:
-            # Préparer les données
-            update_data = plant_data.dict(exclude_unset=True)
+            # Préparer les données (Pydantic v2)
+            update_data = plant_data.model_dump(exclude_unset=True)
             
             # Empêcher modification de reference (immutable)
             if 'reference' in update_data:

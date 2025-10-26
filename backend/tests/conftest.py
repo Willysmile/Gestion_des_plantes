@@ -6,7 +6,7 @@ import os
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from httpx import Client
+from starlette.testclient import TestClient
 
 from app.main import app
 from app.utils.db import get_db
@@ -52,8 +52,8 @@ def client():
     # Create test database
     BaseModel.metadata.create_all(bind=engine)
     
-    # Create test client using httpx.Client directly
-    test_client = Client(app=app, base_url="http://test")
+    # Create test client using Starlette TestClient
+    test_client = TestClient(app)
     
     yield test_client
     
