@@ -1,8 +1,8 @@
 """
-Pydantic schemas pour Plant CRUD
+Pydantic schemas pour Plant CRUD (Pydantic v2 with model_validator)
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
 from datetime import datetime
 
@@ -85,18 +85,13 @@ class PlantCreate(BaseModel):
             raise ValueError("Le prix ne peut pas être négatif")
         return v
     
-    @field_validator("temperature_min", "temperature_max")
-    @classmethod
-    def validate_temperature_range(cls, values):
-        """Valide que temperature_min < temperature_max"""
-        temp_min = values.get("temperature_min")
-        temp_max = values.get("temperature_max")
-        
-        if temp_min is not None and temp_max is not None:
-            if temp_min >= temp_max:
+    @model_validator(mode='after')
+    def validate_temperature_range(self):
+        """Valide que temperature_min < temperature_max (cross-field validation)"""
+        if self.temperature_min is not None and self.temperature_max is not None:
+            if self.temperature_min >= self.temperature_max:
                 raise ValueError("temperature_min doit être < temperature_max")
-        
-        return values
+        return self
     
     class Config:
         from_attributes = True
