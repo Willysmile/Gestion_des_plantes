@@ -84,7 +84,7 @@ export default function PlantFormPage() {
         location_id: existingPlant.location_id || null,
         tags: existingPlant.tags?.map(tag => tag.id) || [],
       })
-```    }
+    }
   }, [id, existingPlant])
 
   // Load lookups
