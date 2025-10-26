@@ -79,15 +79,3 @@ class Plant(BaseModel):
         # Auto-generate scientific_name if genus and species are provided
         if self.genus and self.species and not self.scientific_name:
             self.scientific_name = self.generate_scientific_name()
-
-class Photo(BaseModel):
-    __tablename__ = "photos"
-    
-    plant_id = Column(Integer, ForeignKey("plants.id"), nullable=False)
-    filename = Column(String(255), nullable=False)
-    file_size = Column(Integer, nullable=True)  # Size of the file in bytes
-    description = Column(Text)
-    is_main = Column(Boolean, default=False)
-    deleted_at = Column(DateTime, nullable=True)  # Soft delete
-    
-    plant = relationship("Plant", back_populates="photos")

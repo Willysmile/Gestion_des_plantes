@@ -9,7 +9,7 @@ from sqlalchemy import desc
 from pathlib import Path
 import logging
 
-from app.database import get_db
+from app.utils.db import get_db
 from app.models.plant import Plant
 from app.models.photo import Photo as PhotoModel
 from app.schemas.photo_schema import PhotoResponse, PhotoUploadResponse

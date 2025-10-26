@@ -19,6 +19,7 @@ class Photo(Base):
     - is_primary: Whether this is the main photo
     """
     __tablename__ = "photos"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     plant_id = Column(Integer, ForeignKey("plants.id", ondelete="CASCADE"), nullable=False, index=True)
