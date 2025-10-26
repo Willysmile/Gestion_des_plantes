@@ -12,15 +12,17 @@ from app.routes.settings import router as settings_router
 from app.routes.statistics import router as statistics_router
 from app.routes.lookups import router as lookups_router
 from app.scripts.seed_lookups import seed_all
+from app.scripts.seed_plants import seed_plants
 import os
 
 # Initialize database
 init_db()
 
-# Seed lookup tables at startup
+# Seed lookup tables and sample plants at startup
 db = next(get_db())
 try:
     seed_all(db)
+    seed_plants(db)
 finally:
     db.close()
 
@@ -36,8 +38,12 @@ app = FastAPI(
 CORS_ORIGINS = [
     "http://localhost:5173",        # Vite dev server (React)
     "http://localhost:5174",        # Vite dev server alternative port
+    "http://localhost:5175",        # Vite dev server alternative port 2
+    "http://localhost:5176",        # Vite dev server alternative port 3
     "http://127.0.0.1:5173",        # Alternative localhost
     "http://127.0.0.1:5174",        # Alternative localhost alt port
+    "http://127.0.0.1:5175",        # Alternative localhost alt port 2
+    "http://127.0.0.1:5176",        # Alternative localhost alt port 3
     "https://tauri.localhost",      # Tauri production (correct format)
     "tauri://localhost",            # Legacy fallback (may not work)
 ]

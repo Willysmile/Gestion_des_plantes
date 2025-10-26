@@ -8,15 +8,20 @@ export function usePlants() {
 
   const fetch = useCallback(async (params = {}) => {
     try {
+      console.log('🌱 usePlants.fetch() starting...', params)
       setLoading(true)
       const response = await plantsAPI.getAll(params)
+      console.log('🌱 API response received:', response)
       setPlants(response.data || [])
       setError(null)
+      console.log('🌱 State updated, plants:', (response.data || []).length)
     } catch (err) {
+      console.error('🌱 Error in usePlants.fetch():', err)
       setError(err.message || 'Erreur lors du chargement des plantes')
       setPlants([])
     } finally {
       setLoading(false)
+      console.log('🌱 usePlants.fetch() completed')
     }
   }, [])
 
@@ -24,12 +29,14 @@ export function usePlants() {
     let isMounted = true
 
     const loadData = async () => {
+      console.log('🌱 useEffect: loadData() called')
       if (isMounted) await fetch()
     }
 
     loadData()
 
     return () => {
+      console.log('🌱 useEffect cleanup')
       isMounted = false
     }
   }, [fetch])

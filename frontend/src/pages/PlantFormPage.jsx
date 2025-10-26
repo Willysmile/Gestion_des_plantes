@@ -494,8 +494,31 @@ export default function PlantFormPage() {
 
                   <div>
                     <label className="block font-semibold mb-2">Référence (auto-générée)</label>
-                    <div className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100">
-                      <p className="text-gray-700">{formData.reference || 'À générer...'}</p>
+                    <div className="flex gap-2 items-center">
+                      <div className="flex-1 px-3 py-2 border border-gray-300 rounded bg-gray-100">
+                        <p className="text-gray-700 font-mono">{formData.reference || 'À générer...'}</p>
+                      </div>
+                      {id && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/plants/${id}/regenerate-reference`, {
+                                method: 'POST',
+                              })
+                              if (!res.ok) throw new Error('Erreur régénération')
+                              const updated = await res.json()
+                              setFormData(prev => ({ ...prev, reference: updated.reference }))
+                              alert('✅ Référence régénérée!')
+                            } catch (err) {
+                              alert('❌ Erreur: ' + err.message)
+                            }
+                          }}
+                          className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded font-semibold text-sm whitespace-nowrap"
+                        >
+                          🔄 Régénérer
+                        </button>
+                      )}
                     </div>
                   </div>
                 </>

@@ -83,15 +83,25 @@ async def upload_photo(
     
     logger.info(f"Photo {photo.id} créée pour la plante {plant_id}")
     
-    # Construire la réponse avec URLs
-    response = PhotoUploadResponse.model_validate(photo)
-    response.urls = {
-        'large': f'/api/photos/{plant_id}/{large_info["filename"]}',
-        'medium': f'/api/photos/{plant_id}/{result["files"]["medium"]["filename"]}',
-        'thumbnail': f'/api/photos/{plant_id}/{result["files"]["thumbnail"]["filename"]}'
+    # Construire la réponse avec URLs - utiliser model_dump et ajouter urls
+    response_data = {
+        'id': photo.id,
+        'plant_id': photo.plant_id,
+        'filename': large_info['filename'],
+        'file_size': large_info['file_size'],
+        'width': result['original_width'],
+        'height': result['original_height'],
+        'is_primary': photo.is_primary,
+        'created_at': photo.created_at,
+        'updated_at': photo.updated_at,
+        'urls': {
+            'large': f'/api/photos/{plant_id}/{large_info["filename"]}',
+            'medium': f'/api/photos/{plant_id}/{result["files"]["medium"]["filename"]}',
+            'thumbnail': f'/api/photos/{plant_id}/{result["files"]["thumbnail"]["filename"]}'
+        }
     }
     
-    return response
+    return response_data
 
 
 @router.get("/{plant_id}/photos", response_model=list[PhotoResponse])

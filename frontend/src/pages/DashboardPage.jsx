@@ -9,6 +9,9 @@ export default function DashboardPage() {
   const [filter, setFilter] = useState('')
   const [deletingId, setDeletingId] = useState(null)
 
+  // Debug logs
+  console.log('DashboardPage render:', { loading, error, plantsCount: plants.length })
+
   const handleDelete = useCallback(async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette plante ?')) {
       try {
@@ -39,12 +42,22 @@ export default function DashboardPage() {
     [plants, filter]
   )
 
-  if (loading) return <div className="text-center py-12">Chargement...</div>
-  if (error) return <div className="text-center py-12 text-red-600">{error}</div>
+  if (loading) return (
+    <div className="text-center py-12 space-y-4">
+      <p className="text-lg">⏳ Chargement...</p>
+      <p className="text-sm text-gray-500">Fetching plants from API...</p>
+    </div>
+  )
+  if (error) return (
+    <div className="text-center py-12 text-red-600 space-y-2">
+      <p className="text-lg">❌ Erreur</p>
+      <p>{error}</p>
+    </div>
+  )
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Mes Plantes</h1>
+      <h1 className="text-3xl font-bold mb-6">Mes Plantes ({plants.length})</h1>
 
       {/* Search & Filter */}
       <div className="mb-6">

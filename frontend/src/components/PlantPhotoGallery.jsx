@@ -60,7 +60,7 @@ export default function PlantPhotoGallery({ photos = [], plantId, onPhotoDeleted
     <>
       {/* Grille de photos */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {photos.map((photo, index) => (
+        {photos && photos.filter(p => p?.filename).map((photo, index) => (
           <div
             key={photo.id}
             onClick={() => handlePhotoClick(index)}

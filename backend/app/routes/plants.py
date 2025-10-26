@@ -193,6 +193,49 @@ async def delete_plant(
     return None
 
 
+@router.post("/{plant_id}/regenerate-reference", response_model=PlantResponse)
+async def regenerate_reference(
+    plant_id: int,
+    db: Session = Depends(get_db),
+):
+    """
+    Régénère la référence d'une plante existante
+    
+    Utilise la famille actuelle pour générer une nouvelle référence unique.
+    Remplace l'ancienne référence.
+    
+    Args:
+        plant_id: ID de la plante
+    
+    Returns:
+        Plant: Plante avec nouvelle référence
+    """
+    try:
+        plant = PlantService.get_by_id(db, plant_id)
+        if not plant:
+            raise HTTPException(status_code=404, detail="Plante non trouvée")
+        
+        if not plant.family:
+            raise HTTPException(
+                status_code=400, 
+                detail="La plante doit avoir une famille pour régénérer la référence"
+            )
+        
+        # Générer nouvelle référence
+        new_reference = PlantService.generate_reference(db, plant.family)
+        
+        # Mettre à jour la plante
+        plant.reference = new_reference
+        db.commit()
+        db.refresh(plant)
+        
+        return plant
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
 @router.post("/{plant_id}/archive", response_model=PlantResponse)
 async def archive_plant(
     plant_id: int,

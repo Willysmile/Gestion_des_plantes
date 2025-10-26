@@ -38,9 +38,13 @@ api.interceptors.response.use(
 export const plantsAPI = {
   getAll: async (params = {}) => {
     try {
-      return await api.get('/plants', { params })
+      console.log('📡 plantsAPI.getAll() called, params:', params)
+      console.log('📡 API_BASE:', API_BASE)
+      const response = await api.get('/plants', { params })
+      console.log('📡 plantsAPI.getAll() response:', response)
+      return response
     } catch (error) {
-      console.error('Error fetching plants:', error)
+      console.error('📡 Error fetching plants:', error)
       throw error
     }
   },
