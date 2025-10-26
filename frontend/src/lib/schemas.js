@@ -197,26 +197,20 @@ export const plantSchema = z.object({
     .transform(val => val === '' ? null : val),
 
   difficulty_level: z
-    .enum(['easy', 'medium', 'hard'], {
-      errorMap: (issue, ctx) => {
-        if (issue.code === 'invalid_enum_value') {
-          return { message: '* Le niveau de difficulté est obligatoire' }
-        }
-        return { message: 'Sélectionnez un niveau de difficulté valide' }
-      }
+    .string()
+    .min(1, '* Le niveau de difficulté est obligatoire')
+    .refine(val => ['easy', 'medium', 'hard'].includes(val), {
+      message: '* Le niveau de difficulté est obligatoire'
     })
     .nullable()
     .optional()
     .transform(val => val === '' ? null : val),
 
   growth_speed: z
-    .enum(['slow', 'medium', 'fast'], {
-      errorMap: (issue, ctx) => {
-        if (issue.code === 'invalid_enum_value') {
-          return { message: '* La vitesse de croissance est obligatoire' }
-        }
-        return { message: 'Sélectionnez une vitesse de croissance valide' }
-      }
+    .string()
+    .min(1, '* La vitesse de croissance est obligatoire')
+    .refine(val => ['slow', 'medium', 'fast'].includes(val), {
+      message: '* La vitesse de croissance est obligatoire'
     })
     .nullable()
     .optional()
@@ -252,13 +246,10 @@ export const plantSchema = z.object({
 
   // ===== SANTÉ =====
   health_status: z
-    .enum(HEALTH_STATUSES, {
-      errorMap: (issue, ctx) => {
-        if (issue.code === 'invalid_enum_value') {
-          return { message: '* L\'état de santé est obligatoire' }
-        }
-        return { message: 'Sélectionnez un état de santé valide' }
-      }
+    .string()
+    .min(1, '* L\'état de santé est obligatoire')
+    .refine(val => HEALTH_STATUSES.includes(val), {
+      message: '* L\'état de santé est obligatoire'
     })
     .nullable()
     .optional()
