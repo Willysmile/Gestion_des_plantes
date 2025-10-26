@@ -244,7 +244,29 @@ export default function PlantFormPage() {
       }
       navigate('/')
     } catch (err) {
-      setGlobalError(err.response?.data?.detail || err.message || 'Erreur lors de la sauvegarde')
+      // Extract error message safely
+      let errorMessage = 'Erreur lors de la sauvegarde'
+      
+      if (err.response?.data?.detail) {
+        // Handle Pydantic validation errors or FastAPI errors
+        const detail = err.response.data.detail
+        if (Array.isArray(detail)) {
+          // Pydantic validation error array
+          errorMessage = detail.map(e => 
+            typeof e === 'string' ? e : (e.msg || JSON.stringify(e))
+          ).join(', ')
+        } else if (typeof detail === 'string') {
+          errorMessage = detail
+        } else if (typeof detail === 'object' && detail.msg) {
+          errorMessage = detail.msg
+        } else {
+          errorMessage = JSON.stringify(detail)
+        }
+      } else if (err.message) {
+        errorMessage = err.message
+      }
+      
+      setGlobalError(errorMessage)
     } finally {
       setLoading(false)
     }
