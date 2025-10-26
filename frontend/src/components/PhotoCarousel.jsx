@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import { photosAPI } from '../lib/api'
 
@@ -7,6 +7,14 @@ export default function PhotoCarousel({ photos, initialIndex = 0, plantId, onClo
   const [isDeleting, setIsDeleting] = useState(false)
 
   const currentPhoto = photos[currentIndex]
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % photos.length)
+  }, [photos.length])
+
+  const goToPrevious = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)
+  }, [photos.length])
 
   // Navigation au clavier
   useEffect(() => {
@@ -18,15 +26,7 @@ export default function PhotoCarousel({ photos, initialIndex = 0, plantId, onClo
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentIndex])
-
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % photos.length)
-  }
-
-  const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)
-  }
+  }, [onClose, goToPrevious, goToNext])
 
   const handleDeletePhoto = async () => {
     if (!window.confirm('Supprimer cette photo?')) {
