@@ -1,312 +1,233 @@
-# 🌿 Gestion des Plantes - v2 (Tauri + React + FastAPI)# 🌱 Gestion des Plantes - Plant Manager v2 (Python)
+# 🌿 Gestion des Plantes - v2 (Tauri + React + FastAPI)
 
+Plant management application rebuilt from scratch with modern tech stack.
 
+---
 
-Plant management application rebuilt from scratch with modern tech stack.**Application desktop de gestion de collection de plantes.**
-
-
-
-## 📁 Project Structure**Status:** 📝 Préparation en cours (Phase 0 - Documentation complète)
-
-
-
-```---
-
-gestion-plantes/
-
-├── backend/                  # FastAPI + SQLAlchemy## 📚 Documentation
-
-│   ├── app/
-
-│   │   ├── main.py          # FastAPI app**Commencez par lire ces fichiers (dans `docs/preparation_projet/`):**
-
-│   │   ├── models/          # SQLAlchemy models
-
-│   │   ├── schemas/         # Pydantic schemas### 🔴 Essentiels (15 min)
-
-│   │   ├── routes/          # API endpoints1. **`docs/preparation_projet/QUICK_REFERENCE.md`** - Vue d'ensemble en 1 page (5 min)
-
-│   │   └── services/        # Business logic2. **`docs/preparation_projet/CAHIER_DES_CHARGES_PYTHON.md`** - Specifications complètes (10 min)
-
-│   ├── requirements.txt
-
-│   └── alembic/             # Database migrations### 🟡 Importantes (30 min)
-
-│3. **`docs/preparation_projet/PLAN_ACTION_PHASES.md`** - Roadmap 6 phases de développement (30 min)
-
-├── frontend/                # Tauri + React + TypeScript4. **`docs/preparation_projet/DECISIONS_LOG.md`** - Choix architecturaux & justifications (20 min)
-
-│   ├── src/
-
-│   │   ├── components/      # React components### 🟢 Référence
-
-│   │   ├── pages/           # Page components- `docs/preparation_projet/RESUME_TECHNIQUE_MIGRATION.md` - Comment on passe de Laravel à Python
-
-│   │   ├── hooks/           # Custom hooks- `docs/preparation_projet/INDEX_DOCUMENTATION.md` - Index complet des docs
-
-│   │   └── App.tsx- `docs/preparation_projet/CONFIRMATION_FINALE.md` - Validations finales
-
-│   ├── src-tauri/           # Tauri config
-
-│   └── package.json---
-
-│
-
-├── data/                    # SQLite database## 🛠️ Tech Stack
-
-│   └── plants.db
-
-│```
-
-├── docs-v1/                 # Archived v1 documentationBackend:   FastAPI (Python 3.10+) + SQLAlchemy ORM + Pydantic
-
-│   ├── README-v1.mdFrontend:  PySimpleGUI (Python desktop UI)
-
-│   ├── tests-v1/            # Old test filesDatabase:  SQLite local (zero configuration, ~10k plants max)
-
-│   ├── phases/              # Phase 1-6 reportsStorage:   Local filesystem (photos/webp + exports/zip)
-
-│   └── docs-preparation/    # Project prep docsDev Mode:  python app/main.py (simple, with auto-reload)
-
-│Phase 6:   PyInstaller → Single .exe file (Windows/Mac/Linux)
-
-└── README.mdORM:       SQLAlchemy + Alembic (migrations)
-
-```Validation: Pydantic schemas (45+ REST endpoints)
+## 📁 Project Structure
 
 ```
+gestion-plantes/
+├── docs/                    # v2 Documentation (Phase 1-2 planning)
+│   ├── INDEX.md             ← Start here (navigation hub)
+│   ├── PHASE_1_READY.md     ← Green light to code
+│   ├── PHASE_1_V2_PLAN.md   ← Backend detailed plan (1h 40min)
+│   ├── PHASE_2_V2_PLAN.md   ← Frontend detailed plan (1h 20min)
+│   ├── DECISION_LOG_V2.md   ← Architecture decisions + watch list
+│   └── RECAP_PHASE_1_V2.md  ← Summary of today's work
+│
+├── old-docs/                # Archived v1 documentation
+│   ├── README-v1.md         ← v1 overview
+│   ├── tests-v1/            ← Old test files (15 tests)
+│   ├── phases/              ← Phase 1-6 reports
+│   └── docs-preparation/    ← Project preparation
+│
+├── backend/                 # FastAPI + SQLAlchemy
+│   ├── app/
+│   │   ├── main.py          # FastAPI app
+│   │   ├── models/          # SQLAlchemy models (35 plant fields)
+│   │   ├── schemas/         # Pydantic schemas
+│   │   ├── routes/          # API endpoints (CRUD + archive)
+│   │   └── services/        # Business logic (PlantService)
+│   ├── migrations/          # Alembic migrations
+│   ├── tests/               # pytest tests (80%+ coverage)
+│   ├── requirements.txt
+│   └── alembic.ini
+│
+├── data/                    # Database
+│   ├── plants.db            # SQLite database
+│   ├── exports/             # Export files
+│   └── photos/              # Plant photos
+│
+├── .gitignore
+└── README.md                # This file
+```
+
+---
 
 ## 🚀 Quick Start
 
----
+### Documentation First
+
+```bash
+# 1. Read the index
+cat docs/INDEX.md
+
+# 2. Read Phase 1 ready checklist
+cat docs/PHASE_1_READY.md
+
+# 3. Read Phase 1 detailed plan
+cat docs/PHASE_1_V2_PLAN.md
+```
 
 ### Backend Setup
 
-## 🎯 Fonctionnalités Clés
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # or: venv\Scripts\activate on Windows
+pip install -r requirements.txt
+
+# Run backend
+uvicorn app.main:app --reload
+# Visit: http://localhost:8000/docs (FastAPI UI)
+```
+
+### Frontend Setup (Phase 2)
 
 ```bash
-
-cd backend✅ **CRUD plantes** - Création/édition/suppression/archivage  
-
-python -m venv venv✅ **Gestion photos** - Upload, WebP conversion (quality=85), main photo  
-
-source venv/bin/activate  # or: venv\Scripts\activate on Windows✅ **5 historiques** - Arrosage, fertilisation, rempotage, maladies, notes générales  
-
-pip install -r requirements.txt✅ **Tags & catégories** - Organisation flexible  
-
-```✅ **Recherche & filtres** - Par localisation, status, difficultés, etc.  
-
-✅ **Export/Import** - ZIP avec JSON + photos + metadata + checksum SHA256  
-
-### Frontend Setup✅ **Statistiques** - Plantes par localisation, arrosages prévus, KPIs  
-
-✅ **Audit logging** - Traçabilité CREATE/UPDATE/DELETE  
-
-```bash✅ **Soft delete** - Suppression logique avec recovery possible  
-
-cd frontend✅ **Offline-first** - Zéro connexion internet requise  
-
+# (After Phase 1 complete)
+cd frontend
 npm install
-
-npm run tauri dev  # Development with hot reload---
-
-npm run tauri build  # Build desktop app
-
-```## 📅 Phases de développement (6 semaines)
-
-
-
-## 📚 Previous Version (v1)| Phase | Durée | Focus | Status |
-
-|-------|-------|-------|--------|
-
-All Phase 1-6 documentation, tests, and PySimpleGUI implementation archived in `docs-v1/`:| 0 | Done | Documentation complète + decisions | ✅ DONE |
-
-- See `docs-v1/README-v1.md` for v1 overview| 1 | Week 1 | Infrastructure (FastAPI + SQLite + 15 models) | 🚀 NEXT |
-
-- See `docs-v1/phases/` for phase-by-phase reports| 2 | Week 2-3 | CRUD Plantes + Pydantic schemas |  |
-
-- See `docs-v1/tests-v1/` for all test files| 3 | Week 4 | Photos + 5 historiques |  |
-
-| 4 | Week 5 | Settings + Statistiques |  |
-
-## 🔄 Git Branches| 5 | Week 6 | Export/Import + Polish |  |
-
-| 6 | Week 7 | Déploiement (PyInstaller) |  |
-
-- **master**: Stable production-ready code (squashed Phase 1-6)| **TOTAL** | **~6-7 semaines** | **5000+ LOC** |  |
-
-- **v2-tauri-react**: Current development branch
-
----
-
-## 📋 Tech Stack
-
-## 🚀 Quick Start (Développement)
-
-- **Backend**: FastAPI, SQLAlchemy, Pydantic, Alembic
-
-- **Frontend**: Tauri, React, TypeScript, Tailwind CSS, shadcn/ui### Backend (Terminal 1)
-
-- **Database**: SQLite```bash
-
-- **API Client**: TanStack Query (React Query)cd backend
-
-- **Validation**: Zod (client-side)python -m venv venv
-
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-## ✨ Featurespip install -r requirements.txt
-
-python -m uvicorn app.main:app --reload
-
-- ✅ Plant CRUD operations# → http://localhost:8000/docs (Swagger API docs)
-
-- ✅ Reference generation (auto-format: FAMILY-NNN)```
-
-- ✅ Archive/restore workflow with timestamps
-
-- ✅ Dashboard with statistics### Frontend (Terminal 2)
-
-- ✅ Search and filtering```bash
-
-- ✅ Theme systemcd frontend
-
-- ✅ Responsive UIpython -m venv venv
-
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-## 📝 Licensepip install -r requirements.txt
-
-python app/main.py
-
-Private project - 2025```
-
-
-**Note:** Pendant le développement (Phase 1-5), on utilise simplement `python app/main.py`. PyInstaller (exe packaging) est réservé à la Phase 6 (déploiement final).
-
----
-
-## 📂 Structure du Projet
-
-```
-Gestion_des_plantes/
-├── docs/
-│   └── preparation_projet/          ← Phase 0: Documentation
-│       ├── QUICK_REFERENCE.md       (Vue 1-page)
-│       ├── CAHIER_DES_CHARGES_PYTHON.md
-│       ├── PLAN_ACTION_PHASES.md
-│       ├── DECISIONS_LOG.md
-│       ├── RESUME_TECHNIQUE_MIGRATION.md
-│       └── ...
-│
-├── backend/                         ← Phase 1+: FastAPI
-│   ├── app/
-│   │   ├── main.py                  (FastAPI app + routes)
-│   │   ├── config.py                (settings, DB URL)
-│   │   ├── models/
-│   │   │   ├── plant.py             (Plant, Photo)
-│   │   │   ├── histories.py         (5 history models)
-│   │   │   ├── tags.py              (Tag, TagCategory)
-│   │   │   └── lookup.py            (Location, PurchasePlace, etc)
-│   │   ├── schemas/                 (Pydantic validation)
-│   │   ├── routes/                  (45+ endpoints)
-│   │   ├── services/                (Business logic)
-│   │   └── utils/
-│   ├── migrations/                  (Alembic)
-│   ├── tests/
-│   ├── requirements.txt
-│   └── venv/
-│
-├── frontend/                        ← Phase 1+: PySimpleGUI
-│   ├── app/
-│   │   ├── main.py                  (Entry point)
-│   │   ├── api_client.py            (HTTP wrapper)
-│   │   ├── config.py                (API base URL, etc)
-│   │   ├── windows/
-│   │   │   ├── main_window.py       (Plant list)
-│   │   │   ├── plant_form.py        (Create/edit)
-│   │   │   ├── plant_detail.py      (View + histories)
-│   │   │   ├── settings_window.py
-│   │   │   └── ...
-│   │   └── utils/
-│   ├── requirements.txt
-│   └── venv/
-│
-├── data/                            ← Created automatically
-│   ├── plants.db                    (SQLite database)
-│   ├── photos/                      (WebP images)
-│   └── exports/                     (ZIP backups)
-│
-├── .gitignore
-├── README.md
-├── DEVELOPMENT.md                   (Setup guide for devs)
-└── .github/workflows/               (CI/CD future)
-│   │   ├── routes/
-│   │   └── utils/
-│   └── requirements.txt
-├── frontend/                ← PySimpleGUI UI (Phase 1+)
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── windows/
-│   │   ├── api_client.py
-│   │   └── config.py
-│   └── requirements.txt
-└── data/                    ← Local storage (created at runtime)
-    ├── plants.db
-    ├── photos/
-    └── exports/
+npm run tauri dev
 ```
 
 ---
 
-## 📖 Prochaines étapes
+## 📚 Documentation Files
 
-1. ✅ Documentation complète (Phase 0) **← FAIT**
-2. ⬜ Lire la documentation (`docs/preparation_projet/`)
-3. ⬜ Phase 1: Setup infrastructure
-4. ⬜ Phase 2-6: Développement itératif
-
-**Voir `docs/preparation_projet/PLAN_ACTION_PHASES.md` pour les détails.**
-
----
-
-## 📝 Cahier des charges
-
-**Voir `docs/preparation_projet/CAHIER_DES_CHARGES_PYTHON.md` pour:**
-- Modèles de données (15 models)
-- API endpoints (45+)
-- UI windows (10)
-- Features détaillées
+| File | Purpose | Read When |
+|------|---------|-----------|
+| **docs/INDEX.md** | Navigation hub + quick links | First thing |
+| **docs/PHASE_1_READY.md** | Ready to code checklist | Before Phase 1 |
+| **docs/PHASE_1_V2_PLAN.md** | Backend: 10 detailed items | Doing Phase 1 |
+| **docs/PHASE_2_V2_PLAN.md** | Frontend: 10 detailed items | After Phase 1 |
+| **docs/DECISION_LOG_V2.md** | Architecture decisions + watch list | Understanding why |
+| **docs/RECAP_PHASE_1_V2.md** | Today's summary (26 Oct 2025) | Project overview |
+| **old-docs/README-v1.md** | v1 overview | Learning from v1 |
 
 ---
 
-## 🤔 Questions?
+## 🎯 Quick Start for Phase 1
 
-**Comment j'utilise ça?**
-→ Lire `docs/preparation_projet/INDEX_DOCUMENTATION.md`
+```bash
+# 1. Read docs
+cat docs/INDEX.md
+cat docs/PHASE_1_READY.md
 
-**Pourquoi FastAPI et pas Django?**
-→ Lire `docs/preparation_projet/DECISIONS_LOG.md`
+# 2. Navigate
+cd backend
 
-**Combien de temps pour coder?**
-→ Lire `docs/preparation_projet/PLAN_ACTION_PHASES.md` (5-8 semaines)
+# 3. Create venv (if first time)
+python -m venv venv
+source venv/bin/activate
 
-**Ça vient d'où?**
-→ Lire `docs/preparation_projet/RESUME_TECHNIQUE_MIGRATION.md` (extraction du Laravel)
+# 4. Install deps
+pip install -r requirements.txt
+
+# 5. Open editor
+code app/main.py
+
+# 6. Start Phase 1 checklist item 1.1
+# (Modernize FastAPI main.py)
+```
+
+**Estimated Time**: 1h 40min
 
 ---
 
-**Status:** Documentation complète ✅  
-**Date:** 25 Octobre 2025  
-**Prêt à coder:** OUI 🚀
+## 🔑 Key Points
+
+### Business Logic ✅ Preserved from v1
+- **Reference Generation**: Auto-format FAMILY-NNN (unique)
+- **Archive/Restore**: With timestamps + reason
+- **Scientific Name**: Auto-generated from Genus + Species
+- **35 Plant Fields**: All present in models
+- **Cross-Field Validations**: temperature_min < max, soil_ph [0-14]
+- **KPI Metrics**: total, active, archived, healthy counts
+- **Soft Delete**: Preserve data history with `is_archived` flag
+
+### Tech Stack ✨ Modern & Professional
+- **Backend**: FastAPI + SQLAlchemy 2.0 + Pydantic v2
+- **Database**: SQLite (portable, no server needed)
+- **Testing**: pytest (80%+ coverage target)
+- **Frontend**: Tauri + React + TypeScript (Phase 2)
+- **Styling**: Tailwind CSS + shadcn/ui (Phase 2)
+
+### Architecture 🏗️ Clean & Maintainable
+- Service layer pattern (business logic separated)
+- REST API (standard HTTP, no Tauri invoke)
+- Dependency injection (FastAPI get_db pattern)
+- Alembic migrations (schema versioning)
+- TanStack Query (React data fetching + caching)
 
 ---
 
-*Application Python desktop de gestion de plantes.*  
-*Basée sur les specs du projet Laravel Plant Manager original.*
+## 📊 Development Timeline
+
+| Phase | Task | Time | Status |
+|-------|------|------|--------|
+| 0 | Planning | 3h | ✅ DONE |
+| 1 | Backend FastAPI | 1h 40min | 🔄 READY |
+| 2 | Frontend Tauri | 1h 20min | ⏳ NEXT |
+| 3 | Plants UI | 2h | ⏳ P3 |
+| 4 | Dashboard | 1h | ⏳ P4 |
+| 5 | Settings | 1h 30min | ⏳ P5 |
+| 6 | Testing | 2h | ⏳ P6 |
+| 7 | Build | 1h | ⏳ P7 |
+| **TOTAL** | | **~11h** | |
 
 ---
 
-**Créé par:** Willysmile  
-**Codé avec et par:** GitHub Copilot et Claude Haiku 4.5 (et autres suivant disponibilité des serveurs)
+## ⚠️ Watch List
+
+Before going to production, monitor these issues:
+
+| Issue | Risk | Action |
+|-------|------|--------|
+| CORS Tauri build | 🔴 HIGH | Test immediately after build |
+| Reference prefix collision | 🟡 MEDIUM | Document code, monitor for collisions |
+| SQLite 100k+ records | 🟢 LOW | Revisit if data grows |
+
+See `docs/DECISION_LOG_V2.md` for details.
+
+---
+
+## 📝 Branches
+
+- **master**: Stable (Phase 1-6 complete, squashed)
+- **v2-tauri-react**: Current development (THIS BRANCH)
+
+---
+
+## 🔗 Useful Links
+
+- **FastAPI**: https://fastapi.tiangolo.com/
+- **SQLAlchemy**: https://docs.sqlalchemy.org/
+- **Pydantic v2**: https://docs.pydantic.dev/latest/
+- **Tauri**: https://tauri.app/
+- **React**: https://react.dev/
+- **TanStack Query**: https://tanstack.com/query/
+- **shadcn/ui**: https://ui.shadcn.com/
+
+---
+
+## 📞 FAQ
+
+**Q: Where do I start?**  
+A: Read `docs/INDEX.md` then `docs/PHASE_1_READY.md`
+
+**Q: How long is Phase 1?**  
+A: ~1 hour 40 minutes (detailed 10-item checklist in `docs/PHASE_1_V2_PLAN.md`)
+
+**Q: What happened to v1?**  
+A: Archived in `old-docs/` (complete history preserved)
+
+**Q: Where are the decisions documented?**  
+A: `docs/DECISION_LOG_V2.md` (with rationale + alternatives)
+
+**Q: What could go wrong?**  
+A: Watch list in `docs/DECISION_LOG_V2.md` (CORS, collision, scalability)
+
+---
+
+## 📝 License
+
+Private project - 2025
+
+---
+
+**Status**: 🟢 **READY TO CODE PHASE 1**  
+**Branch**: `v2-tauri-react`  
+**Last Update**: 26 Oct 2025  
+**Next**: Start Phase 1 (Backend FastAPI)
