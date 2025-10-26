@@ -110,6 +110,54 @@ export default function PlantFormPage() {
     loadLookups()
   }, [])
 
+  /**
+   * Auto-correction des données selon les règles métier
+   * Applique les transformations taxonomiques automatiquement
+   */
+  const autoCorrectData = (data) => {
+    const corrected = { ...data }
+
+    // Genus: 1ère lettre majuscule, reste minuscule
+    if (corrected.genus && corrected.genus.trim()) {
+      corrected.genus = corrected.genus.trim().charAt(0).toUpperCase() + corrected.genus.trim().slice(1).toLowerCase()
+    }
+
+    // Species: tout en minuscule
+    if (corrected.species && corrected.species.trim()) {
+      corrected.species = corrected.species.trim().toLowerCase()
+    }
+
+    // Subspecies: minuscule + préfixe "subsp." si absent
+    if (corrected.subspecies && corrected.subspecies.trim()) {
+      let subsp = corrected.subspecies.trim().toLowerCase()
+      if (!subsp.startsWith('subsp.')) {
+        corrected.subspecies = `subsp. ${subsp}`
+      } else {
+        corrected.subspecies = subsp
+      }
+    }
+
+    // Variety: minuscule + préfixe "var." si absent
+    if (corrected.variety && corrected.variety.trim()) {
+      let var_value = corrected.variety.trim().toLowerCase()
+      if (!var_value.startsWith('var.')) {
+        corrected.variety = `var. ${var_value}`
+      } else {
+        corrected.variety = var_value
+      }
+    }
+
+    // Cultivar: entre guillemets simples si absent
+    if (corrected.cultivar && corrected.cultivar.trim()) {
+      let cult = corrected.cultivar.trim()
+      if (!cult.startsWith("'") || !cult.endsWith("'")) {
+        corrected.cultivar = `'${cult}'`
+      }
+    }
+
+    return corrected
+  }
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     setFormData(prev => ({
@@ -140,18 +188,22 @@ export default function PlantFormPage() {
     setGlobalError(null)
     setFieldErrors({})
 
-    // Valider avec Zod
-    const validation = validatePlant(formData, !!id)
-    if (!validation.success) {
-      setFieldErrors(validation.errors)
-      setGlobalError('Veuillez corriger les erreurs ci-dessous')
-      return
-    }
-
     setLoading(true)
     try {
+      // Auto-corriger les données selon les règles métier
+      let correctedData = autoCorrectData(formData)
+
+      // Valider avec Zod (validation légère: obligatoire/optionnel seulement)
+      const validation = validatePlant(correctedData, !!id)
+      if (!validation.success) {
+        setFieldErrors(validation.errors)
+        setGlobalError('Veuillez corriger les erreurs ci-dessous')
+        setLoading(false)
+        return
+      }
+
       // Préparer les données en excluant les champs auto-générés en création
-      let dataToSend = { ...formData }
+      let dataToSend = { ...correctedData }
       if (!id) {
         // En création, exclure reference et scientific_name (auto-générés par backend)
         delete dataToSend.reference
@@ -262,6 +314,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('genus')}
                   placeholder="Ex: Monstera"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: première lettre majuscule, reste minuscule</p>
                 {fieldErrors.genus && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.genus}</p>
                 )}
@@ -277,6 +330,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('species')}
                   placeholder="Ex: deliciosa"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: tout en minuscule</p>
                 {fieldErrors.species && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.species}</p>
                 )}
@@ -292,6 +346,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('subspecies')}
                   placeholder="Ex: borsigiana"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: préfixé par "subsp. " et minuscule</p>
                 {fieldErrors.subspecies && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.subspecies}</p>
                 )}
@@ -307,6 +362,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('variety')}
                   placeholder="Ex: variegata"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: préfixé par "var. " et minuscule</p>
                 {fieldErrors.variety && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.variety}</p>
                 )}
@@ -322,6 +378,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('cultivar')}
                   placeholder="Ex: Thai Constellation"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: entouré de guillemets simples</p>
                 {fieldErrors.cultivar && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.cultivar}</p>
                 )}

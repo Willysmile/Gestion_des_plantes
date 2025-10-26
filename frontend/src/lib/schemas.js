@@ -64,10 +64,6 @@ export const plantSchema = z.object({
   subfamily: z
     .string()
     .max(100, 'La sous-famille doit contenir au maximum 100 caractères')
-    .refine(
-      val => /^[a-z]/.test(val),
-      'La sous-famille doit commencer par une minuscule'
-    )
     .nullable()
     .optional()
     .transform(val => val === '' ? null : val),
@@ -75,10 +71,6 @@ export const plantSchema = z.object({
   genus: z
     .string()
     .max(100, 'Le genre doit contenir au maximum 100 caractères')
-    .refine(
-      val => /^[A-Z][a-z]*$/.test(val),
-      'Le genre doit commencer par une majuscule suivie de minuscules (ex: Phalaenopsis)'
-    )
     .nullable()
     .optional()
     .transform(val => val === '' ? null : val),
@@ -86,10 +78,6 @@ export const plantSchema = z.object({
   species: z
     .string()
     .max(100, 'L\'espèce doit contenir au maximum 100 caractères')
-    .refine(
-      val => /^[a-z]/.test(val),
-      'L\'espèce doit être entièrement minuscule (ex: amabilis)'
-    )
     .nullable()
     .optional()
     .transform(val => val === '' ? null : val),
@@ -97,48 +85,23 @@ export const plantSchema = z.object({
   subspecies: z
     .string()
     .max(100, 'La sous-espèce doit contenir au maximum 100 caractères')
-    .refine(
-      val => /^(subsp\.\s+)?[a-z]/.test(val),
-      'La sous-espèce doit être minuscule, optionnellement préfixée par "subsp. " (ex: subsp. rosenstromii ou rosenstromii)'
-    )
     .nullable()
     .optional()
-    .transform(val => {
-      if (val === '' || val === null || val === undefined) return null
-      // Ajouter le préfixe "subsp. " s'il manque
-      return val.startsWith('subsp.') ? val : `subsp. ${val}`
-    }),
+    .transform(val => val === '' ? null : val),
 
   variety: z
     .string()
     .max(100, 'La variété doit contenir au maximum 100 caractères')
-    .refine(
-      val => /^(var\.\s+)?[a-z]/.test(val),
-      'La variété doit être minuscule, optionnellement préfixée par "var. " (ex: var. alba ou alba)'
-    )
     .nullable()
     .optional()
-    .transform(val => {
-      if (val === '' || val === null || val === undefined) return null
-      // Ajouter le préfixe "var. " s'il manque
-      return val.startsWith('var.') ? val : `var. ${val}`
-    }),
+    .transform(val => val === '' ? null : val),
 
   cultivar: z
     .string()
     .max(100, 'Le cultivar doit contenir au maximum 100 caractères')
-    .refine(
-      val => /^['"]/.test(val) || /[a-zA-Z0-9\s\-']$/.test(val),
-      'Le cultivar doit être entre guillemets simples (ex: \'White Dream\')'
-    )
     .nullable()
     .optional()
-    .transform(val => {
-      if (val === '' || val === null || val === undefined) return null
-      // Ajouter les guillemets simples s'ils manquent
-      if (val.startsWith("'") && val.endsWith("'")) return val
-      return `'${val}'`
-    }),
+    .transform(val => val === '' ? null : val),
 
   reference: z
     .string()
