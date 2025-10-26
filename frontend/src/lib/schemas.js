@@ -331,7 +331,9 @@ export function validatePlant(data, isUpdate = false) {
       const errors = {}
       error.issues.forEach(issue => {
         const path = issue.path.join('.')
-        errors[path] = issue.message
+        // Ensure error message is a string
+        const message = typeof issue.message === 'string' ? issue.message : String(issue.message)
+        errors[path] = message
       })
       return {
         success: false,

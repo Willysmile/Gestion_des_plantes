@@ -211,7 +211,13 @@ export default function PlantFormPage() {
       // Valider avec Zod (validation légère: obligatoire/optionnel seulement)
       const validation = validatePlant(correctedData, !!id)
       if (!validation.success) {
-        setFieldErrors(validation.errors)
+        // Ensure all errors are strings (not objects)
+        const cleanErrors = {}
+        Object.keys(validation.errors).forEach(key => {
+          const val = validation.errors[key]
+          cleanErrors[key] = typeof val === 'string' ? val : String(val)
+        })
+        setFieldErrors(cleanErrors)
         setGlobalError('Veuillez corriger les erreurs ci-dessous')
         setLoading(false)
         return
