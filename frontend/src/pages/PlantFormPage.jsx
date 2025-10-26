@@ -244,6 +244,12 @@ export default function PlantFormPage() {
       }
       navigate('/')
     } catch (err) {
+      // Log error details for debugging
+      console.error('Full error:', err)
+      if (err.response?.data) {
+        console.error('Error response data:', err.response.data)
+      }
+      
       // Extract error message safely
       let errorMessage = 'Erreur lors de la sauvegarde'
       
