@@ -592,7 +592,9 @@ export default function PlantFormPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block font-semibold mb-2">Niveau de difficulté</label>
+                  <label className="block font-semibold mb-2">
+                    Niveau de difficulté <span className="text-red-500">*</span>
+                  </label>
                   <select
                     name="difficulty_level"
                     value={formData.difficulty_level || ''}
@@ -610,7 +612,9 @@ export default function PlantFormPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold mb-2">Vitesse de croissance</label>
+                  <label className="block font-semibold mb-2">
+                    Vitesse de croissance <span className="text-red-500">*</span>
+                  </label>
                   <select
                     name="growth_speed"
                     value={formData.growth_speed || ''}
@@ -718,7 +722,9 @@ export default function PlantFormPage() {
           <fieldset>
             <legend className="text-xl font-bold mb-4 pb-2 border-b">Santé</legend>
             <div>
-              <label className="block font-semibold mb-2">État de santé</label>
+              <label className="block font-semibold mb-2">
+                État de santé <span className="text-red-500">*</span>
+              </label>
               <select
                 name="health_status"
                 value={formData.health_status}
@@ -730,6 +736,9 @@ export default function PlantFormPage() {
                 <option value="recovering">En rétablissement</option>
                 <option value="dead">Morte</option>
               </select>
+              {fieldErrors.health_status && (
+                <p className="text-red-600 text-sm mt-1">{fieldErrors.health_status}</p>
+              )}
             </div>
           </fieldset>
 

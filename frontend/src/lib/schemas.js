@@ -198,9 +198,9 @@ export const plantSchema = z.object({
 
   difficulty_level: z
     .string()
-    .min(1, '* Le niveau de difficulté est obligatoire')
+    .min(1, 'Le niveau de difficulté est obligatoire')
     .refine(val => ['easy', 'medium', 'hard'].includes(val), {
-      message: '* Le niveau de difficulté est obligatoire'
+      message: 'Le niveau de difficulté est obligatoire'
     })
     .nullable()
     .optional()
@@ -208,9 +208,9 @@ export const plantSchema = z.object({
 
   growth_speed: z
     .string()
-    .min(1, '* La vitesse de croissance est obligatoire')
+    .min(1, 'La vitesse de croissance est obligatoire')
     .refine(val => ['slow', 'medium', 'fast'].includes(val), {
-      message: '* La vitesse de croissance est obligatoire'
+      message: 'La vitesse de croissance est obligatoire'
     })
     .nullable()
     .optional()
@@ -247,9 +247,9 @@ export const plantSchema = z.object({
   // ===== SANTÉ =====
   health_status: z
     .string()
-    .min(1, '* L\'état de santé est obligatoire')
+    .min(1, 'L\'état de santé est obligatoire')
     .refine(val => HEALTH_STATUSES.includes(val), {
-      message: '* L\'état de santé est obligatoire'
+      message: 'L\'état de santé est obligatoire'
     })
     .nullable()
     .optional()
