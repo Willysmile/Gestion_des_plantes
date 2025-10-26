@@ -366,11 +366,68 @@ export const plantUpdateSchema = plantSchema.partial().required({
 /**
  * Schema pour validation création
  * Exclut les champs auto-générés (reference, scientific_name)
+ * Note: .omit() perd les refines, donc on les réapplique explicitement
  */
 export const plantCreateSchema = plantSchema.omit({ 
   reference: true,
   scientific_name: true 
-})
+}).refine(
+  (data) => {
+    // Règle: Si species est fourni, genus est obligatoire
+    if ((data.species || '').trim() && !(data.genus || '').trim()) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Le genre est obligatoire si l\'espèce est fournie',
+    path: ['genus'],
+  }
+).refine(
+  (data) => {
+    // Règle: genus et species doivent être tous deux fournis ou tous deux vides
+    const hasGenus = (data.genus || '').trim()
+    const hasSpecies = (data.species || '').trim()
+    
+    if ((hasGenus && !hasSpecies) || (!hasGenus && hasSpecies)) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Le genre et l\'espèce doivent être fournis ensemble',
+    path: ['species'],
+  }
+).refine(
+  (data) => {
+    // Règle: temperature_min doit être inférieure ou égale à temperature_max
+    const tempMin = data.temperature_min === '' || data.temperature_min === null ? null : Number(data.temperature_min)
+    const tempMax = data.temperature_max === '' || data.temperature_max === null ? null : Number(data.temperature_max)
+    
+    if (tempMin !== null && tempMax !== null && tempMin > tempMax) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'La température minimale doit être inférieure ou égale à la température maximale',
+    path: ['temperature_min'],
+  }
+).refine(
+  (data) => {
+    // Règle: humidity_level doit être entre 0 et 100
+    const humidityLevel = data.humidity_level === '' || data.humidity_level === null ? null : Number(data.humidity_level)
+    
+    if (humidityLevel !== null && (humidityLevel < 0 || humidityLevel > 100)) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'L\'humidité doit être entre 0% et 100%',
+    path: ['humidity_level'],
+  }
+)
 
 /**
  * Fonction utilitaire pour valider une plante
