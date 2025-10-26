@@ -160,6 +160,16 @@ export default function PlantFormPage() {
     corrected.temp_max = corrected.temp_max === '' ? null : Number(corrected.temp_max)
     corrected.humidity = corrected.humidity === '' ? null : Number(corrected.humidity)
 
+    // Map frontend field names to backend field names
+    corrected.temperature_min = corrected.temp_min
+    corrected.temperature_max = corrected.temp_max
+    corrected.humidity_level = corrected.humidity
+    
+    // Remove old frontend field names
+    delete corrected.temp_min
+    delete corrected.temp_max
+    delete corrected.humidity
+
     return corrected
   }
 
