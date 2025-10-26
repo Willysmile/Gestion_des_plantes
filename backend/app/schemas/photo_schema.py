@@ -14,25 +14,19 @@ class PhotoResponse(BaseModel):
     plant_id: int
     filename: str
     file_size: int
-    description: Optional[str] = None
-    is_main: bool
-    deleted_at: Optional[datetime] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    is_primary: bool
     created_at: datetime
+    updated_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
 
 
-class PhotoUploadResponse(BaseModel):
+class PhotoUploadResponse(PhotoResponse):
     """Schéma pour la réponse d'upload"""
     
-    id: int
-    plant_id: int
-    filename: str
-    file_size: int
-    description: Optional[str] = None
-    is_main: bool
-    thumbnail_url: str
-    photo_url: str
-    created_at: datetime
+    urls: dict = Field(..., description="URLs pour les différentes versions WebP")
     
     model_config = ConfigDict(from_attributes=True)
+
