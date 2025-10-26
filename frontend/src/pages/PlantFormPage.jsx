@@ -249,6 +249,7 @@ export default function PlantFormPage() {
       console.error('Full error:', err)
       if (err.response?.data) {
         console.error('Error response data:', err.response.data)
+        console.error('Error detail:', JSON.stringify(err.response.data.detail, null, 2))
       }
       
       // Extract error message safely
@@ -259,9 +260,12 @@ export default function PlantFormPage() {
         const detail = err.response.data.detail
         if (Array.isArray(detail)) {
           // Pydantic validation error array
-          errorMessage = detail.map(e => 
-            typeof e === 'string' ? e : (e.msg || JSON.stringify(e))
-          ).join(', ')
+          errorMessage = detail.map(e => {
+            if (typeof e === 'string') return e
+            if (e.msg) return e.msg
+            if (e.message) return e.message
+            return JSON.stringify(e)
+          }).join(', ')
         } else if (typeof detail === 'string') {
           errorMessage = detail
         } else if (typeof detail === 'object' && detail.msg) {
