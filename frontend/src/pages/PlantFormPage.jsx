@@ -314,6 +314,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('genus')}
                   placeholder="Ex: Monstera"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Format: première lettre majuscule, reste minuscule</p>
                 {fieldErrors.genus && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.genus}</p>
                 )}
@@ -329,6 +330,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('species')}
                   placeholder="Ex: deliciosa"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Format: tout en minuscule</p>
                 {fieldErrors.species && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.species}</p>
                 )}
@@ -344,6 +346,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('subspecies')}
                   placeholder="Ex: borsigiana"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Format: préfixé par "subsp. " et minuscule</p>
                 {fieldErrors.subspecies && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.subspecies}</p>
                 )}
@@ -359,6 +362,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('variety')}
                   placeholder="Ex: variegata"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Format: préfixé par "var. " et minuscule</p>
                 {fieldErrors.variety && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.variety}</p>
                 )}
@@ -374,6 +378,7 @@ export default function PlantFormPage() {
                   className={getFieldClass('cultivar')}
                   placeholder="Ex: Thai Constellation"
                 />
+                <p className="text-gray-600 text-sm mt-1">💡 Format: entouré de guillemets simples</p>
                 {fieldErrors.cultivar && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.cultivar}</p>
                 )}

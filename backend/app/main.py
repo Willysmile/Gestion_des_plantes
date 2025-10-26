@@ -35,7 +35,9 @@ app = FastAPI(
 # ⚠️ CRITICAL: Both dev (Vite) and production (Tauri) origins needed
 CORS_ORIGINS = [
     "http://localhost:5173",        # Vite dev server (React)
+    "http://localhost:5174",        # Vite dev server alternative port
     "http://127.0.0.1:5173",        # Alternative localhost
+    "http://127.0.0.1:5174",        # Alternative localhost alt port
     "https://tauri.localhost",      # Tauri production (correct format)
     "tauri://localhost",            # Legacy fallback (may not work)
 ]
