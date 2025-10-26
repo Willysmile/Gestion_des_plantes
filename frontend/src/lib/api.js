@@ -130,4 +130,8 @@ export const lookupsAPI = {
   },
 }
 
+// Import photo API
+import photosAPI from './api/photosAPI'
+
+export { photosAPI }
 export default api
