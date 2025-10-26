@@ -1,7 +1,15 @@
-from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text, DECIMAL
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text, DECIMAL, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import BaseModel
+
+# Association table for many-to-many relationship between Plant and Tag
+plant_tag_association = Table(
+    'plant_tag',
+    BaseModel.metadata,
+    Column('plant_id', Integer, ForeignKey('plants.id'), primary_key=True),
+    Column('tag_id', Integer, ForeignKey('tags.id'), primary_key=True)
+)
 
 class Plant(BaseModel):
     __tablename__ = "plants"
@@ -58,6 +66,7 @@ class Plant(BaseModel):
     repotting_histories = relationship("RepottingHistory", back_populates="plant")
     disease_histories = relationship("DiseaseHistory", back_populates="plant")
     plant_histories = relationship("PlantHistory", back_populates="plant")
+    tags = relationship("Tag", secondary=plant_tag_association, backref="plants")
     
     def generate_scientific_name(self):
         """

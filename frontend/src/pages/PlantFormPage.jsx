@@ -38,6 +38,7 @@ export default function PlantFormPage() {
     watering_frequency_id: null,
     light_requirement_id: null,
     location_id: null,
+    tags: [],
   })
 
   const [fieldErrors, setFieldErrors] = useState({})
@@ -47,6 +48,7 @@ export default function PlantFormPage() {
     locations: [],
     wateringFrequencies: [],
     lightRequirements: [],
+    tags: [],
   })
 
   // Load existing plant data
@@ -80,23 +82,26 @@ export default function PlantFormPage() {
         watering_frequency_id: existingPlant.watering_frequency_id || null,
         light_requirement_id: existingPlant.light_requirement_id || null,
         location_id: existingPlant.location_id || null,
+        tags: existingPlant.tags?.map(tag => tag.id) || [],
       })
-    }
+```    }
   }, [id, existingPlant])
 
   // Load lookups
   useEffect(() => {
     const loadLookups = async () => {
       try {
-        const [locations, frequencies, lights] = await Promise.all([
+        const [locations, frequencies, lights, tags] = await Promise.all([
           lookupsAPI.getLocations(),
           lookupsAPI.getWateringFrequencies(),
           lookupsAPI.getLightRequirements(),
+          lookupsAPI.getTags(),
         ])
         setLookups({
           locations: locations.data || [],
           wateringFrequencies: frequencies.data || [],
           lightRequirements: lights.data || [],
+          tags: tags.data || [],
         })
       } catch (err) {
         console.error('Erreur lors du chargement des données:', err)
@@ -119,6 +124,15 @@ export default function PlantFormPage() {
         return newErrors
       })
     }
+  }
+
+  const handleTagChange = (tagId) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tagId)
+        ? prev.tags.filter(id => id !== tagId)
+        : [...prev.tags, tagId]
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -161,7 +175,7 @@ export default function PlantFormPage() {
 
   const getFieldClass = (fieldName) => {
     const baseClass = "w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
-    return fieldErrors[fieldName] 
+    return fieldErrors[fieldName]
       ? `${baseClass} border-red-500 bg-red-50`
       : `${baseClass} border-gray-300`
   }
@@ -431,7 +445,7 @@ export default function PlantFormPage() {
               </div>
 
               <div>
-                <label className="block font-semibold mb-2">Lieu de stockage</label>
+                <label className="block font-semibold mb-2">Emplacement actuel</label>
                 <select
                   name="location_id"
                   value={formData.location_id || ''}
@@ -449,9 +463,9 @@ export default function PlantFormPage() {
             </div>
           </fieldset>
 
-          {/* Description et Soins */}
+          {/* Description */}
           <fieldset>
-            <legend className="text-xl font-bold mb-4 pb-2 border-b">Description et Soins</legend>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Description</legend>
             <div className="space-y-4">
               <div>
                 <label className="block font-semibold mb-2">Description générale</label>
@@ -463,21 +477,6 @@ export default function PlantFormPage() {
                   placeholder="Décrivez votre plante..."
                   rows="3"
                 />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2">Instructions de soin</label>
-                <textarea
-                  name="care_instructions"
-                  value={formData.care_instructions}
-                  onChange={handleChange}
-                  className={getFieldClass('care_instructions')}
-                  placeholder="Comment bien soigner votre plante..."
-                  rows="3"
-                />
-                {fieldErrors.care_instructions && (
-                  <p className="text-red-600 text-sm mt-1">{fieldErrors.care_instructions}</p>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -532,6 +531,28 @@ export default function PlantFormPage() {
                   )}
                 </div>
               </div>
+            </div>
+          </fieldset>
+
+          {/* Tags */}
+          <fieldset>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Tags</legend>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {lookups.tags && lookups.tags.length > 0 ? (
+                lookups.tags.map(tag => (
+                  <label key={tag.id} className="flex items-center gap-2 cursor-pointer p-2 border rounded hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={formData.tags.includes(tag.id)}
+                      onChange={() => handleTagChange(tag.id)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">{tag.name}</span>
+                  </label>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm col-span-full">Aucun tag disponible</p>
+              )}
             </div>
           </fieldset>
 

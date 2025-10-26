@@ -262,6 +262,14 @@ export const plantSchema = z.object({
     .nullable()
     .optional()
     .default('healthy'),
+
+  // ===== TAGS =====
+  tags: z
+    .array(z.number().int().positive())
+    .nullable()
+    .optional()
+    .default([]),
+
 }).refine(
   (data) => {
     // Règle: Si species est fourni, genus est obligatoire
