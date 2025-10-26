@@ -131,7 +131,7 @@ export default function PlantFormPage() {
     if (corrected.subspecies && corrected.subspecies.trim()) {
       let subsp = corrected.subspecies.trim().toLowerCase()
       if (!subsp.startsWith('subsp.')) {
-        corrected.subspecies = `subsp. ${subsp}`
+        corrected.subspecies = 'subsp. ' + subsp
       } else {
         corrected.subspecies = subsp
       }
@@ -141,7 +141,7 @@ export default function PlantFormPage() {
     if (corrected.variety && corrected.variety.trim()) {
       let var_value = corrected.variety.trim().toLowerCase()
       if (!var_value.startsWith('var.')) {
-        corrected.variety = `var. ${var_value}`
+        corrected.variety = 'var. ' + var_value
       } else {
         corrected.variety = var_value
       }
@@ -151,7 +151,7 @@ export default function PlantFormPage() {
     if (corrected.cultivar && corrected.cultivar.trim()) {
       let cult = corrected.cultivar.trim()
       if (!cult.startsWith("'") || !cult.endsWith("'")) {
-        corrected.cultivar = `'${cult}'`
+        corrected.cultivar = "'" + cult + "'"
       }
     }
 
@@ -228,8 +228,8 @@ export default function PlantFormPage() {
   const getFieldClass = (fieldName) => {
     const baseClass = "w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
     return fieldErrors[fieldName]
-      ? `${baseClass} border-red-500 bg-red-50`
-      : `${baseClass} border-gray-300`
+      ? baseClass + " border-red-500 bg-red-50"
+      : baseClass + " border-gray-300"
   }
 
   return (
