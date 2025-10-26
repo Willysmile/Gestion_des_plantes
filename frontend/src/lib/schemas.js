@@ -112,25 +112,40 @@ export const plantSchema = z.object({
 
   // ===== ENVIRONNEMENT =====
   temp_min: z
-    .number()
-    .min(-50, 'La température minimale ne peut pas être inférieure à -50°C')
-    .max(50, 'La température minimale ne peut pas être supérieure à 50°C')
+    .union([z.string(), z.number()])
+    .transform(val => {
+      if (val === '' || val === null) return null
+      return Number(val)
+    })
     .nullable()
-    .optional(),
+    .optional()
+    .refine(val => val === null || (val >= -50 && val <= 50), {
+      message: 'La température minimale doit être entre -50°C et 50°C'
+    }),
 
   temp_max: z
-    .number()
-    .min(-50, 'La température maximale ne peut pas être inférieure à -50°C')
-    .max(50, 'La température maximale ne peut pas être supérieure à 50°C')
+    .union([z.string(), z.number()])
+    .transform(val => {
+      if (val === '' || val === null) return null
+      return Number(val)
+    })
     .nullable()
-    .optional(),
+    .optional()
+    .refine(val => val === null || (val >= -50 && val <= 50), {
+      message: 'La température maximale doit être entre -50°C et 50°C'
+    }),
 
   humidity: z
-    .number()
-    .min(0, 'L\'humidité ne peut pas être inférieure à 0%')
-    .max(100, 'L\'humidité ne peut pas être supérieure à 100%')
+    .union([z.string(), z.number()])
+    .transform(val => {
+      if (val === '' || val === null) return null
+      return Number(val)
+    })
     .nullable()
-    .optional(),
+    .optional()
+    .refine(val => val === null || (val >= 0 && val <= 100), {
+      message: 'L\'humidité doit être entre 0% et 100%'
+    }),
 
   soil_type: z
     .string()
@@ -140,23 +155,29 @@ export const plantSchema = z.object({
     .transform(val => val === '' ? null : val),
 
   watering_frequency_id: z
-    .number()
-    .int('La fréquence d\'arrosage doit être valide')
-    .positive('La fréquence d\'arrosage est invalide')
+    .union([z.string(), z.number()])
+    .transform(val => {
+      if (val === '' || val === null) return null
+      return Number(val)
+    })
     .nullable()
     .optional(),
 
   light_requirement_id: z
-    .number()
-    .int('Le besoin en lumière doit être valide')
-    .positive('Le besoin en lumière est invalide')
+    .union([z.string(), z.number()])
+    .transform(val => {
+      if (val === '' || val === null) return null
+      return Number(val)
+    })
     .nullable()
     .optional(),
 
   location_id: z
-    .number()
-    .int('Le lieu de stockage doit être valide')
-    .positive('Le lieu de stockage est invalide')
+    .union([z.string(), z.number()])
+    .transform(val => {
+      if (val === '' || val === null) return null
+      return Number(val)
+    })
     .nullable()
     .optional(),
 
@@ -259,6 +280,18 @@ export const plantSchema = z.object({
   {
     message: 'Le genre et l\'espèce doivent être fournis ensemble',
     path: ['species'],
+  }
+).refine(
+  (data) => {
+    // Règle: temp_min doit être inférieure ou égale à temp_max
+    if (data.temp_min !== null && data.temp_max !== null && data.temp_min > data.temp_max) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'La température minimale doit être inférieure ou égale à la température maximale',
+    path: ['temp_min'],
   }
 )
 
