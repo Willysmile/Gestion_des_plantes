@@ -85,6 +85,19 @@ class PlantCreate(BaseModel):
             raise ValueError("Le prix ne peut pas être négatif")
         return v
     
+    @field_validator("temperature_min", "temperature_max")
+    @classmethod
+    def validate_temperature_range(cls, values):
+        """Valide que temperature_min < temperature_max"""
+        temp_min = values.get("temperature_min")
+        temp_max = values.get("temperature_max")
+        
+        if temp_min is not None and temp_max is not None:
+            if temp_min >= temp_max:
+                raise ValueError("temperature_min doit être < temperature_max")
+        
+        return values
+    
     class Config:
         from_attributes = True
 
@@ -131,6 +144,8 @@ class PlantResponse(BaseModel):
     is_favorite: bool
     is_toxic: bool
     is_archived: bool
+    archived_date: Optional[datetime] = None
+    archived_reason: Optional[str] = None
     deleted_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime

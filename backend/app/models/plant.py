@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text, DECIMAL
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import BaseModel
 
 class Plant(BaseModel):
@@ -7,7 +8,7 @@ class Plant(BaseModel):
     
     # Basic info
     name = Column(String(100), nullable=False, index=True)
-    scientific_name = Column(String(150))
+    scientific_name = Column(String(150))  # Auto-generated from genus + species
     family = Column(String(100))
     subfamily = Column(String(100))
     genus = Column(String(100))
@@ -45,7 +46,9 @@ class Plant(BaseModel):
     is_outdoor = Column(Boolean, default=False)
     is_favorite = Column(Boolean, default=False)
     is_toxic = Column(Boolean, default=False)
-    is_archived = Column(Boolean, default=False)
+    is_archived = Column(Boolean, default=False, index=True)
+    archived_date = Column(DateTime, nullable=True)  # When plant was archived
+    archived_reason = Column(String(255), nullable=True)  # Why was it archived
     deleted_at = Column(DateTime, nullable=True)
     
     # Relationships
@@ -55,6 +58,25 @@ class Plant(BaseModel):
     repotting_histories = relationship("RepottingHistory", back_populates="plant")
     disease_histories = relationship("DiseaseHistory", back_populates="plant")
     plant_histories = relationship("PlantHistory", back_populates="plant")
+    
+    def generate_scientific_name(self):
+        """
+        Generate scientific name from genus + species (Linnaean nomenclature).
+        Format: Genus species (e.g., Solanum lycopersicum)
+        """
+        if self.genus and self.species:
+            # Genus with first letter capitalized, species all lowercase
+            genus = self.genus.strip().capitalize()
+            species = self.species.strip().lower()
+            return f"{genus} {species}"
+        return None
+    
+    def __init__(self, **kwargs):
+        """Override init to auto-generate scientific_name"""
+        super().__init__(**kwargs)
+        # Auto-generate scientific_name if genus and species are provided
+        if self.genus and self.species and not self.scientific_name:
+            self.scientific_name = self.generate_scientific_name()
 
 class Photo(BaseModel):
     __tablename__ = "photos"

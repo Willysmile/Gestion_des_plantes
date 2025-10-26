@@ -7,6 +7,8 @@ from app.models import Base
 from app.routes.plants import router as plants_router
 from app.routes.photos import router as photos_router, files_router
 from app.routes.histories import watering_router, fertilizing_router, repotting_router, disease_router, notes_router
+from app.routes.settings import router as settings_router
+from app.routes.statistics import router as statistics_router
 from app.scripts.seed_lookups import seed_all
 
 # Initialize database
@@ -35,6 +37,8 @@ app.include_router(fertilizing_router)
 app.include_router(repotting_router)
 app.include_router(disease_router)
 app.include_router(notes_router)
+app.include_router(settings_router)
+app.include_router(statistics_router)
 
 # Health check endpoint
 @app.get("/health")

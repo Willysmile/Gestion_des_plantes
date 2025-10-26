@@ -53,6 +53,34 @@ async def create_plant(
         )
 
 
+@router.post("/generate-reference")
+async def generate_reference(
+    family: str = Query(..., min_length=1, description="Famille botanique"),
+    db: Session = Depends(get_db),
+):
+    """
+    Génère une référence unique au format FAMILY-NNN
+    
+    Exemples:
+    - Araceae → ARA-001, ARA-002, ...
+    - Phalaenopsidaceae → PHA-001, ...
+    
+    Args:
+        family: Famille botanique (ex: "Araceae")
+    
+    Returns:
+        {reference: "ARA-001"}
+    """
+    try:
+        from app.services.plant_service import PlantService
+        reference = PlantService.generate_reference(db, family)
+        return {"reference": reference, "status": "success"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur génération référence: {str(e)}")
+
+
 @router.get("/archived", response_model=List[PlantListResponse])
 async def get_archived_plants(
     skip: int = Query(0, ge=0),
@@ -65,14 +93,55 @@ async def get_archived_plants(
 
 
 @router.get("/search", response_model=List[PlantListResponse])
-async def search_plants(
+async def search_plants_endpoint(
     q: str = Query(..., min_length=1, description="Terme de recherche"),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
 ):
-    """Recherche les plantes par nom"""
+    """Recherche full-text dans name, scientific_name, description"""
     plants = PlantService.search(db, q, skip=skip, limit=limit)
+    return plants
+
+
+@router.get("/filter", response_model=List[PlantListResponse])
+async def filter_plants_endpoint(
+    location_id: int = Query(None),
+    difficulty: str = Query(None),
+    health_status: str = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db),
+):
+    """Filtre avancé: localisation, difficulté, santé"""
+    plants = PlantService.filter_plants(
+        db,
+        location_id=location_id,
+        difficulty=difficulty,
+        health_status=health_status,
+        skip=skip,
+        limit=limit
+    )
+    return plants
+
+
+@router.get("/to-water", response_model=List[dict])
+async def plants_to_water_endpoint(
+    days_ago: int = Query(0, ge=0, description="Jours depuis dernier arrosage"),
+    db: Session = Depends(get_db),
+):
+    """Plantes à arroser: jamais arrosées ou arrosées il y a N jours"""
+    plants = PlantService.get_plants_to_water(db, days_ago=days_ago)
+    return plants
+
+
+@router.get("/to-fertilize", response_model=List[dict])
+async def plants_to_fertilize_endpoint(
+    days_ago: int = Query(0, ge=0, description="Jours depuis dernière fertilisation"),
+    db: Session = Depends(get_db),
+):
+    """Plantes à fertiliser: jamais fertilisées ou fertilisées il y a N jours"""
+    plants = PlantService.get_plants_to_fertilize(db, days_ago=days_ago)
     return plants
 
 
