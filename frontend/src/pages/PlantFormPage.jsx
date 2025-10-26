@@ -26,9 +26,9 @@ export default function PlantFormPage() {
     difficulty_level: '',
     growth_speed: '',
     flowering_season: '',
-    temp_min: 15,
-    temp_max: 25,
-    humidity: 60,
+    temp_min: null,
+    temp_max: null,
+    humidity: null,
     soil_type: '',
     health_status: 'healthy',
     is_favorite: false,
@@ -70,9 +70,9 @@ export default function PlantFormPage() {
         difficulty_level: existingPlant.difficulty_level || '',
         growth_speed: existingPlant.growth_speed || '',
         flowering_season: existingPlant.flowering_season || '',
-        temp_min: existingPlant.temp_min ?? 15,
-        temp_max: existingPlant.temp_max ?? 25,
-        humidity: existingPlant.humidity ?? 60,
+        temp_min: existingPlant.temp_min || null,
+        temp_max: existingPlant.temp_max || null,
+        humidity: existingPlant.humidity || null,
         soil_type: existingPlant.soil_type || '',
         health_status: existingPlant.health_status || 'healthy',
         is_favorite: existingPlant.is_favorite || false,
@@ -314,7 +314,6 @@ export default function PlantFormPage() {
                   className={getFieldClass('genus')}
                   placeholder="Ex: Monstera"
                 />
-                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: première lettre majuscule, reste minuscule</p>
                 {fieldErrors.genus && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.genus}</p>
                 )}
@@ -330,7 +329,6 @@ export default function PlantFormPage() {
                   className={getFieldClass('species')}
                   placeholder="Ex: deliciosa"
                 />
-                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: tout en minuscule</p>
                 {fieldErrors.species && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.species}</p>
                 )}
@@ -346,7 +344,6 @@ export default function PlantFormPage() {
                   className={getFieldClass('subspecies')}
                   placeholder="Ex: borsigiana"
                 />
-                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: préfixé par "subsp. " et minuscule</p>
                 {fieldErrors.subspecies && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.subspecies}</p>
                 )}
@@ -362,7 +359,6 @@ export default function PlantFormPage() {
                   className={getFieldClass('variety')}
                   placeholder="Ex: variegata"
                 />
-                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: préfixé par "var. " et minuscule</p>
                 {fieldErrors.variety && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.variety}</p>
                 )}
@@ -378,7 +374,6 @@ export default function PlantFormPage() {
                   className={getFieldClass('cultivar')}
                   placeholder="Ex: Thai Constellation"
                 />
-                <p className="text-gray-600 text-sm mt-1">💡 Sera automatiquement corrigé: entouré de guillemets simples</p>
                 {fieldErrors.cultivar && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.cultivar}</p>
                 )}
