@@ -1,39 +1,40 @@
 """
-Endpoints FastAPI pour les photos
+Routes pour la gestion des photos
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path as PathParam
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from typing import List
+from sqlalchemy import desc
+from pathlib import Path
+import logging
 
-from app.utils.db import get_db
+from app.database import get_db
+from app.models.plant import Plant
+from app.models.photo import Photo as PhotoModel
 from app.schemas.photo_schema import PhotoResponse, PhotoUploadResponse
-from app.services.photo_service import PhotoService
-from app.models.plant import Plant, Photo
+from app.utils.image_processor import validate_image_upload, process_image_to_webp, delete_photo_files
 
-router = APIRouter(
-    prefix="/api/plants",
-    tags=["photos"],
-)
+logger = logging.getLogger(__name__)
 
-# Routeur séparé pour serveur les fichiers (sans prefix)
-files_router = APIRouter(
-    tags=["files"],
-)
+router = APIRouter(prefix="/api/plants", tags=["photos"])
+files_router = APIRouter(tags=["files"])
 
 
 @router.post("/{plant_id}/photos", response_model=PhotoUploadResponse, status_code=201)
 async def upload_photo(
-    plant_id: int,
+    plant_id: int = PathParam(..., gt=0),
     file: UploadFile = File(...),
-    description: str = Query(None),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
-    """Upload une photo pour une plante"""
-    
+    """
+    Télécharge une photo pour une plante
+    - Convertit en WebP
+    - Génère 3 versions (large, medium, thumbnail)
+    - Stocke les métadonnées en DB
+    """
     # Vérifier que la plante existe
-    plant = db.query(Plant).filter(Plant.id == plant_id, Plant.deleted_at == None).first()
+    plant = db.query(Plant).filter(Plant.id == plant_id).first()
     if not plant:
         raise HTTPException(status_code=404, detail="Plante non trouvée")
     
@@ -43,87 +44,139 @@ async def upload_photo(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur lecture fichier: {str(e)}")
     
-    # Traiter l'upload
-    success, photo, msg = PhotoService.process_upload(
+    # Valider l'image
+    validation = validate_image_upload(file_content, file.filename or "unknown")
+    if not validation['valid']:
+        raise HTTPException(status_code=400, detail=validation['error'])
+    
+    # Obtenir le prochain ID photo pour cette plante
+    last_photo = db.query(PhotoModel).filter(
+        PhotoModel.plant_id == plant_id
+    ).order_by(desc(PhotoModel.id)).first()
+    
+    photo_id = (last_photo.id + 1) if last_photo else 1
+    
+    # Traiter l'image en WebP
+    result = process_image_to_webp(file_content, plant_id, photo_id)
+    
+    if not result['success']:
+        raise HTTPException(status_code=400, detail=result['error'])
+    
+    # Déterminer si c'est la première/principale photo
+    is_primary = not bool(last_photo)
+    
+    # Créer l'enregistrement en DB (utiliser la version large comme fichier principal)
+    large_info = result['files']['large']
+    
+    photo = PhotoModel(
         plant_id=plant_id,
-        file_content=file_content,
-        filename=file.filename,
-        db=db,
+        filename=large_info['filename'],
+        file_size=large_info['file_size'],
+        width=result['original_width'],
+        height=result['original_height'],
+        is_primary=is_primary
     )
     
-    if not success:
-        raise HTTPException(status_code=400, detail=msg)
+    db.add(photo)
+    db.commit()
+    db.refresh(photo)
     
-    # Ajouter description si fournie
-    if description:
-        photo.description = description
-        db.commit()
-        db.refresh(photo)
+    logger.info(f"Photo {photo.id} créée pour la plante {plant_id}")
     
-    return PhotoUploadResponse(
-        **photo.__dict__,
-        thumbnail_url=f"/api/photos/{plant_id}/{photo.filename}/thumb",
-        photo_url=f"/api/photos/{plant_id}/{photo.filename}",
-    )
+    # Construire la réponse avec URLs
+    response = PhotoUploadResponse.model_validate(photo)
+    response.urls = {
+        'large': f'/api/photos/{plant_id}/{large_info["filename"]}',
+        'medium': f'/api/photos/{plant_id}/{result["files"]["medium"]["filename"]}',
+        'thumbnail': f'/api/photos/{plant_id}/{result["files"]["thumbnail"]["filename"]}'
+    }
+    
+    return response
 
 
-@router.get("/{plant_id}/photos", response_model=List[PhotoResponse])
-async def list_photos(
-    plant_id: int,
-    db: Session = Depends(get_db),
+@router.get("/{plant_id}/photos", response_model=list[PhotoResponse])
+async def get_photos(
+    plant_id: int = PathParam(..., gt=0),
+    db: Session = Depends(get_db)
 ):
-    """Récupère les photos d'une plante"""
-    
+    """Récupère toutes les photos d'une plante"""
     # Vérifier que la plante existe
-    plant = db.query(Plant).filter(Plant.id == plant_id, Plant.deleted_at == None).first()
+    plant = db.query(Plant).filter(Plant.id == plant_id).first()
     if not plant:
         raise HTTPException(status_code=404, detail="Plante non trouvée")
     
-    photos = PhotoService.get_photos(db, plant_id)
+    photos = db.query(PhotoModel).filter(
+        PhotoModel.plant_id == plant_id
+    ).order_by(desc(PhotoModel.created_at)).all()
+    
     return photos
-
-
-@router.get("/{plant_id}/photos/{photo_id}", response_model=PhotoResponse)
-async def get_photo_info(
-    plant_id: int,
-    photo_id: int,
-    db: Session = Depends(get_db),
-):
-    """Récupère les infos d'une photo"""
-    
-    photo = PhotoService.get_photo(db, photo_id, plant_id)
-    if not photo:
-        raise HTTPException(status_code=404, detail="Photo non trouvée")
-    
-    return photo
 
 
 @router.delete("/{plant_id}/photos/{photo_id}", status_code=204)
 async def delete_photo(
-    plant_id: int,
-    photo_id: int,
-    db: Session = Depends(get_db),
+    plant_id: int = PathParam(..., gt=0),
+    photo_id: int = PathParam(..., gt=0),
+    db: Session = Depends(get_db)
 ):
-    """Supprime une photo (soft delete)"""
+    """Supprime une photo"""
+    # Vérifier que la photo existe
+    photo = db.query(PhotoModel).filter(
+        PhotoModel.id == photo_id,
+        PhotoModel.plant_id == plant_id
+    ).first()
     
-    success = PhotoService.delete_photo(db, photo_id, plant_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Photo non trouvée")
-    
-    return None
-
-
-@router.patch("/{plant_id}/photos/{photo_id}/set-main", response_model=PhotoResponse)
-async def set_main_photo(
-    plant_id: int,
-    photo_id: int,
-    db: Session = Depends(get_db),
-):
-    """Désigne une photo comme main photo"""
-    
-    photo = PhotoService.set_main_photo(db, photo_id, plant_id)
     if not photo:
         raise HTTPException(status_code=404, detail="Photo non trouvée")
+    
+    # Supprimer les fichiers physiques
+    delete_photo_files(plant_id, photo_id)
+    
+    # Si c'était la principale, en désigner une autre
+    if photo.is_primary:
+        other_photo = db.query(PhotoModel).filter(
+            PhotoModel.plant_id == plant_id,
+            PhotoModel.id != photo_id
+        ).order_by(PhotoModel.created_at).first()
+        
+        if other_photo:
+            other_photo.is_primary = True
+            db.add(other_photo)
+    
+    # Supprimer de la DB
+    db.delete(photo)
+    db.commit()
+    
+    logger.info(f"Photo {photo_id} supprimée de la plante {plant_id}")
+
+
+@router.put("/{plant_id}/photos/{photo_id}/set-primary", response_model=PhotoResponse)
+async def set_primary_photo(
+    plant_id: int = PathParam(..., gt=0),
+    photo_id: int = PathParam(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    """Désigne une photo comme la principale"""
+    # Vérifier que la photo existe
+    photo = db.query(PhotoModel).filter(
+        PhotoModel.id == photo_id,
+        PhotoModel.plant_id == plant_id
+    ).first()
+    
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo non trouvée")
+    
+    # Retirer le flag principal de toutes les photos de cette plante
+    db.query(PhotoModel).filter(
+        PhotoModel.plant_id == plant_id
+    ).update({'is_primary': False})
+    
+    # Désigner celle-ci comme principale
+    photo.is_primary = True
+    db.add(photo)
+    db.commit()
+    db.refresh(photo)
+    
+    logger.info(f"Photo {photo_id} désignée comme principale pour la plante {plant_id}")
     
     return photo
 
@@ -132,28 +185,22 @@ async def set_main_photo(
 
 @files_router.get("/api/photos/{plant_id}/{filename}")
 async def get_photo_file(
-    plant_id: int,
-    filename: str,
-    thumb: bool = Query(False, description="Retourner le thumbnail"),
-    db: Session = Depends(get_db),
+    plant_id: int = PathParam(..., gt=0),
+    filename: str = PathParam(...),
+    db: Session = Depends(get_db)
 ):
-    """Servir le fichier photo (full resolution ou thumbnail)"""
-    
-    # Récupérer la photo de la DB pour vérifier qu'elle existe et n'est pas supprimée
-    photo = db.query(Photo).filter(
-        Photo.plant_id == plant_id,
-        Photo.filename == filename,
-        Photo.deleted_at == None
+    """Servir le fichier photo WebP"""
+    # Vérifier que la photo existe en DB
+    photo = db.query(PhotoModel).filter(
+        PhotoModel.plant_id == plant_id,
+        PhotoModel.filename == filename
     ).first()
     
     if not photo:
         raise HTTPException(status_code=404, detail="Photo non trouvée")
     
-    # Récupérer le chemin du fichier
-    if thumb:
-        file_path = PhotoService.get_thumbnail_path(photo)
-    else:
-        file_path = PhotoService.get_file_path(photo)
+    # Construire le chemin du fichier
+    file_path = Path(f'data/photos/{plant_id}/{filename}')
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Fichier non trouvé")
@@ -161,5 +208,5 @@ async def get_photo_file(
     return FileResponse(
         path=file_path,
         media_type="image/webp",
-        filename=f"{filename}",
+        filename=filename
     )
