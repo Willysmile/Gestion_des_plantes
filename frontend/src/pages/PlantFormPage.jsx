@@ -26,9 +26,9 @@ export default function PlantFormPage() {
     difficulty_level: '',
     growth_speed: '',
     flowering_season: '',
-    temp_min: null,
-    temp_max: null,
-    humidity: null,
+    temp_min: '',
+    temp_max: '',
+    humidity: '',
     soil_type: '',
     health_status: 'healthy',
     is_favorite: false,
@@ -70,9 +70,9 @@ export default function PlantFormPage() {
         difficulty_level: existingPlant.difficulty_level || '',
         growth_speed: existingPlant.growth_speed || '',
         flowering_season: existingPlant.flowering_season || '',
-        temp_min: existingPlant.temp_min || null,
-        temp_max: existingPlant.temp_max || null,
-        humidity: existingPlant.humidity || null,
+        temp_min: existingPlant.temp_min || '',
+        temp_max: existingPlant.temp_max || '',
+        humidity: existingPlant.humidity || '',
         soil_type: existingPlant.soil_type || '',
         health_status: existingPlant.health_status || 'healthy',
         is_favorite: existingPlant.is_favorite || false,
@@ -155,6 +155,11 @@ export default function PlantFormPage() {
       }
     }
 
+    // Convert numeric fields from string to number (or null if empty)
+    corrected.temp_min = corrected.temp_min === '' ? null : Number(corrected.temp_min)
+    corrected.temp_max = corrected.temp_max === '' ? null : Number(corrected.temp_max)
+    corrected.humidity = corrected.humidity === '' ? null : Number(corrected.humidity)
+
     return corrected
   }
 
@@ -162,7 +167,7 @@ export default function PlantFormPage() {
     const { name, value, type, checked } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value === '' ? null : (type === 'number' ? Number(value) : value)
+      [name]: type === 'checkbox' ? checked : value
     }))
     // Clear error for this field when user starts typing
     if (fieldErrors[name]) {
