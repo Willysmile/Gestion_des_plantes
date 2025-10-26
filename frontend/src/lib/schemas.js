@@ -348,6 +348,20 @@ export const plantUpdateSchema = plantSchema.partial().required({
     message: 'La température minimale doit être inférieure ou égale à la température maximale',
     path: ['temp_min'],
   }
+).refine(
+  (data) => {
+    // Règle: humidity doit être entre 0 et 100
+    const humidity = data.humidity === '' || data.humidity === null ? null : Number(data.humidity)
+    
+    if (humidity !== null && (humidity < 0 || humidity > 100)) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'L\'humidité doit être entre 0% et 100%',
+    path: ['humidity'],
+  }
 )
 
 /**
