@@ -306,7 +306,49 @@ export const plantSchema = z.object({
 export const plantUpdateSchema = plantSchema.partial().required({
   name: true,
   family: true,
-})
+}).refine(
+  (data) => {
+    // Règle: Si species est fourni, genus est obligatoire
+    if ((data.species || '').trim() && !(data.genus || '').trim()) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Le genre est obligatoire si l\'espèce est fournie',
+    path: ['genus'],
+  }
+).refine(
+  (data) => {
+    // Règle: genus et species doivent être tous deux fournis ou tous deux vides
+    const hasGenus = (data.genus || '').trim()
+    const hasSpecies = (data.species || '').trim()
+    
+    if ((hasGenus && !hasSpecies) || (!hasGenus && hasSpecies)) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Le genre et l\'espèce doivent être fournis ensemble',
+    path: ['species'],
+  }
+).refine(
+  (data) => {
+    // Règle: temp_min doit être inférieure ou égale à temp_max
+    const tempMin = data.temp_min === '' || data.temp_min === null ? null : Number(data.temp_min)
+    const tempMax = data.temp_max === '' || data.temp_max === null ? null : Number(data.temp_max)
+    
+    if (tempMin !== null && tempMax !== null && tempMin > tempMax) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'La température minimale doit être inférieure ou égale à la température maximale',
+    path: ['temp_min'],
+  }
+)
 
 /**
  * Schema pour validation création
