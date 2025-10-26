@@ -13,12 +13,19 @@ export default function PlantFormPage() {
   const [formData, setFormData] = useState({
     name: '',
     family: '',
+    subfamily: '',
     genus: '',
     species: '',
+    subspecies: '',
+    variety: '',
+    cultivar: '',
     scientific_name: '',
     reference: '',
     description: '',
     care_instructions: '',
+    difficulty_level: '',
+    growth_speed: '',
+    flowering_season: '',
     temp_min: 15,
     temp_max: 25,
     humidity: 60,
@@ -48,12 +55,19 @@ export default function PlantFormPage() {
       setFormData({
         name: existingPlant.name || '',
         family: existingPlant.family || '',
+        subfamily: existingPlant.subfamily || '',
         genus: existingPlant.genus || '',
         species: existingPlant.species || '',
+        subspecies: existingPlant.subspecies || '',
+        variety: existingPlant.variety || '',
+        cultivar: existingPlant.cultivar || '',
         scientific_name: existingPlant.scientific_name || '',
         reference: existingPlant.reference || '',
         description: existingPlant.description || '',
         care_instructions: existingPlant.care_instructions || '',
+        difficulty_level: existingPlant.difficulty_level || '',
+        growth_speed: existingPlant.growth_speed || '',
+        flowering_season: existingPlant.flowering_season || '',
         temp_min: existingPlant.temp_min ?? 15,
         temp_max: existingPlant.temp_max ?? 25,
         humidity: existingPlant.humidity ?? 60,
@@ -122,11 +136,19 @@ export default function PlantFormPage() {
 
     setLoading(true)
     try {
+      // Préparer les données en excluant les champs auto-générés en création
+      let dataToSend = { ...formData }
+      if (!id) {
+        // En création, exclure reference et scientific_name (auto-générés par backend)
+        delete dataToSend.reference
+        delete dataToSend.scientific_name
+      }
+
       if (id) {
-        await plantsAPI.update(id, formData)
+        await plantsAPI.update(id, dataToSend)
         alert('Plante mise à jour avec succès!')
       } else {
-        await plantsAPI.create(formData)
+        await plantsAPI.create(dataToSend)
         alert('Plante créée avec succès!')
       }
       navigate('/')
@@ -202,27 +224,18 @@ export default function PlantFormPage() {
               </div>
 
               <div>
-                <label className="block font-semibold mb-2">Nom scientifique</label>
+                <label className="block font-semibold mb-2">Sous-famille</label>
                 <input
                   type="text"
-                  name="scientific_name"
-                  value={formData.scientific_name}
+                  name="subfamily"
+                  value={formData.subfamily}
                   onChange={handleChange}
-                  className={getFieldClass('scientific_name')}
-                  placeholder="Ex: Monstera deliciosa"
+                  className={getFieldClass('subfamily')}
+                  placeholder="Ex: Pothoideae"
                 />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2">Référence</label>
-                <input
-                  type="text"
-                  name="reference"
-                  value={formData.reference}
-                  onChange={handleChange}
-                  className={getFieldClass('reference')}
-                  placeholder="Ex: MON-001"
-                />
+                {fieldErrors.subfamily && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.subfamily}</p>
+                )}
               </div>
 
               <div>
@@ -235,6 +248,9 @@ export default function PlantFormPage() {
                   className={getFieldClass('genus')}
                   placeholder="Ex: Monstera"
                 />
+                {fieldErrors.genus && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.genus}</p>
+                )}
               </div>
 
               <div>
@@ -247,7 +263,73 @@ export default function PlantFormPage() {
                   className={getFieldClass('species')}
                   placeholder="Ex: deliciosa"
                 />
+                {fieldErrors.species && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.species}</p>
+                )}
               </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Sous-espèce</label>
+                <input
+                  type="text"
+                  name="subspecies"
+                  value={formData.subspecies}
+                  onChange={handleChange}
+                  className={getFieldClass('subspecies')}
+                  placeholder="Ex: borsigiana"
+                />
+                {fieldErrors.subspecies && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.subspecies}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Variété</label>
+                <input
+                  type="text"
+                  name="variety"
+                  value={formData.variety}
+                  onChange={handleChange}
+                  className={getFieldClass('variety')}
+                  placeholder="Ex: variegata"
+                />
+                {fieldErrors.variety && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.variety}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Cultivar</label>
+                <input
+                  type="text"
+                  name="cultivar"
+                  value={formData.cultivar}
+                  onChange={handleChange}
+                  className={getFieldClass('cultivar')}
+                  placeholder="Ex: Thai Constellation"
+                />
+                {fieldErrors.cultivar && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.cultivar}</p>
+                )}
+              </div>
+
+              {id && (
+                <>
+                  <div>
+                    <label className="block font-semibold mb-2">Nom scientifique (auto-généré)</label>
+                    <div className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100">
+                      <p className="text-gray-700">{formData.scientific_name || 'À générer...'}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold mb-2">Référence (auto-générée)</label>
+                    <div className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100">
+                      <p className="text-gray-700">{formData.reference || 'À générer...'}</p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </fieldset>
 
@@ -367,9 +449,9 @@ export default function PlantFormPage() {
             </div>
           </fieldset>
 
-          {/* Description */}
+          {/* Description et Soins */}
           <fieldset>
-            <legend className="text-xl font-bold mb-4 pb-2 border-b">Description</legend>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Description et Soins</legend>
             <div className="space-y-4">
               <div>
                 <label className="block font-semibold mb-2">Description générale</label>
@@ -393,6 +475,62 @@ export default function PlantFormPage() {
                   placeholder="Comment bien soigner votre plante..."
                   rows="3"
                 />
+                {fieldErrors.care_instructions && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.care_instructions}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-semibold mb-2">Niveau de difficulté</label>
+                  <select
+                    name="difficulty_level"
+                    value={formData.difficulty_level || ''}
+                    onChange={handleChange}
+                    className={getFieldClass('difficulty_level')}
+                  >
+                    <option value="">Sélectionner...</option>
+                    <option value="easy">Facile 😊</option>
+                    <option value="medium">Moyen 🤔</option>
+                    <option value="hard">Difficile 😅</option>
+                  </select>
+                  {fieldErrors.difficulty_level && (
+                    <p className="text-red-600 text-sm mt-1">{fieldErrors.difficulty_level}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-2">Vitesse de croissance</label>
+                  <select
+                    name="growth_speed"
+                    value={formData.growth_speed || ''}
+                    onChange={handleChange}
+                    className={getFieldClass('growth_speed')}
+                  >
+                    <option value="">Sélectionner...</option>
+                    <option value="slow">Lente 🐢</option>
+                    <option value="medium">Normale 🚶</option>
+                    <option value="fast">Rapide 🚀</option>
+                  </select>
+                  {fieldErrors.growth_speed && (
+                    <p className="text-red-600 text-sm mt-1">{fieldErrors.growth_speed}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-2">Saison de floraison</label>
+                  <input
+                    type="text"
+                    name="flowering_season"
+                    value={formData.flowering_season}
+                    onChange={handleChange}
+                    className={getFieldClass('flowering_season')}
+                    placeholder="Ex: Printemps-Été"
+                  />
+                  {fieldErrors.flowering_season && (
+                    <p className="text-red-600 text-sm mt-1">{fieldErrors.flowering_season}</p>
+                  )}
+                </div>
               </div>
             </div>
           </fieldset>
