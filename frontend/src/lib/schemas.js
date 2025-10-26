@@ -284,7 +284,11 @@ export const plantSchema = z.object({
 ).refine(
   (data) => {
     // Règle: temp_min doit être inférieure ou égale à temp_max
-    if (data.temp_min !== null && data.temp_max !== null && data.temp_min > data.temp_max) {
+    // Convert to numbers for comparison
+    const tempMin = data.temp_min === '' || data.temp_min === null ? null : Number(data.temp_min)
+    const tempMax = data.temp_max === '' || data.temp_max === null ? null : Number(data.temp_max)
+    
+    if (tempMin !== null && tempMax !== null && tempMin > tempMax) {
       return false
     }
     return true
