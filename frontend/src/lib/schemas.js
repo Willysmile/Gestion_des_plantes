@@ -198,7 +198,12 @@ export const plantSchema = z.object({
 
   difficulty_level: z
     .enum(['easy', 'medium', 'hard'], {
-      errorMap: () => ({ message: 'Sélectionnez un niveau de difficulté valide' })
+      errorMap: (issue, ctx) => {
+        if (issue.code === 'invalid_enum_value') {
+          return { message: '* Le niveau de difficulté est obligatoire' }
+        }
+        return { message: 'Sélectionnez un niveau de difficulté valide' }
+      }
     })
     .nullable()
     .optional()
@@ -206,7 +211,12 @@ export const plantSchema = z.object({
 
   growth_speed: z
     .enum(['slow', 'medium', 'fast'], {
-      errorMap: () => ({ message: 'Sélectionnez une vitesse de croissance valide' })
+      errorMap: (issue, ctx) => {
+        if (issue.code === 'invalid_enum_value') {
+          return { message: '* La vitesse de croissance est obligatoire' }
+        }
+        return { message: 'Sélectionnez une vitesse de croissance valide' }
+      }
     })
     .nullable()
     .optional()
@@ -242,7 +252,14 @@ export const plantSchema = z.object({
 
   // ===== SANTÉ =====
   health_status: z
-    .enum(HEALTH_STATUSES)
+    .enum(HEALTH_STATUSES, {
+      errorMap: (issue, ctx) => {
+        if (issue.code === 'invalid_enum_value') {
+          return { message: '* L\'état de santé est obligatoire' }
+        }
+        return { message: 'Sélectionnez un état de santé valide' }
+      }
+    })
     .nullable()
     .optional()
     .default('healthy'),
