@@ -225,6 +225,10 @@ export default function PlantFormPage() {
 
       // Préparer les données en excluant les champs auto-générés en création
       let dataToSend = { ...correctedData }
+      
+      // Exclure les champs non supportés par le backend
+      delete dataToSend.care_instructions  // Not in backend schema
+      
       if (!id) {
         // En création, exclure reference et scientific_name (auto-générés par backend)
         delete dataToSend.reference
