@@ -111,7 +111,7 @@ export const plantSchema = z.object({
     .transform(val => val === '' ? null : val),
 
   // ===== ENVIRONNEMENT =====
-  temp_min: z
+  temperature_min: z
     .union([z.string(), z.number()])
     .transform(val => {
       if (val === '' || val === null) return null
@@ -123,7 +123,7 @@ export const plantSchema = z.object({
       message: 'La température minimale doit être entre -50°C et 50°C'
     }),
 
-  temp_max: z
+  temperature_max: z
     .union([z.string(), z.number()])
     .transform(val => {
       if (val === '' || val === null) return null
@@ -135,7 +135,7 @@ export const plantSchema = z.object({
       message: 'La température maximale doit être entre -50°C et 50°C'
     }),
 
-  humidity: z
+  humidity_level: z
     .union([z.string(), z.number()])
     .transform(val => {
       if (val === '' || val === null) return null
@@ -283,10 +283,9 @@ export const plantSchema = z.object({
   }
 ).refine(
   (data) => {
-    // Règle: temp_min doit être inférieure ou égale à temp_max
-    // Convert to numbers for comparison
-    const tempMin = data.temp_min === '' || data.temp_min === null ? null : Number(data.temp_min)
-    const tempMax = data.temp_max === '' || data.temp_max === null ? null : Number(data.temp_max)
+    // Règle: temperature_min doit être inférieure ou égale à temperature_max
+    const tempMin = data.temperature_min === '' || data.temperature_min === null ? null : Number(data.temperature_min)
+    const tempMax = data.temperature_max === '' || data.temperature_max === null ? null : Number(data.temperature_max)
     
     if (tempMin !== null && tempMax !== null && tempMin > tempMax) {
       return false
@@ -295,7 +294,7 @@ export const plantSchema = z.object({
   },
   {
     message: 'La température minimale doit être inférieure ou égale à la température maximale',
-    path: ['temp_min'],
+    path: ['temperature_min'],
   }
 )
 
@@ -335,9 +334,9 @@ export const plantUpdateSchema = plantSchema.partial().required({
   }
 ).refine(
   (data) => {
-    // Règle: temp_min doit être inférieure ou égale à temp_max
-    const tempMin = data.temp_min === '' || data.temp_min === null ? null : Number(data.temp_min)
-    const tempMax = data.temp_max === '' || data.temp_max === null ? null : Number(data.temp_max)
+    // Règle: temperature_min doit être inférieure ou égale à temperature_max
+    const tempMin = data.temperature_min === '' || data.temperature_min === null ? null : Number(data.temperature_min)
+    const tempMax = data.temperature_max === '' || data.temperature_max === null ? null : Number(data.temperature_max)
     
     if (tempMin !== null && tempMax !== null && tempMin > tempMax) {
       return false
@@ -346,21 +345,21 @@ export const plantUpdateSchema = plantSchema.partial().required({
   },
   {
     message: 'La température minimale doit être inférieure ou égale à la température maximale',
-    path: ['temp_min'],
+    path: ['temperature_min'],
   }
 ).refine(
   (data) => {
-    // Règle: humidity doit être entre 0 et 100
-    const humidity = data.humidity === '' || data.humidity === null ? null : Number(data.humidity)
+    // Règle: humidity_level doit être entre 0 et 100
+    const humidityLevel = data.humidity_level === '' || data.humidity_level === null ? null : Number(data.humidity_level)
     
-    if (humidity !== null && (humidity < 0 || humidity > 100)) {
+    if (humidityLevel !== null && (humidityLevel < 0 || humidityLevel > 100)) {
       return false
     }
     return true
   },
   {
     message: 'L\'humidité doit être entre 0% et 100%',
-    path: ['humidity'],
+    path: ['humidity_level'],
   }
 )
 

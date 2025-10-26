@@ -26,9 +26,9 @@ export default function PlantFormPage() {
     difficulty_level: '',
     growth_speed: '',
     flowering_season: '',
-    temp_min: '',
-    temp_max: '',
-    humidity: '',
+    temperature_min: '',
+    temperature_max: '',
+    humidity_level: '',
     soil_type: '',
     health_status: 'healthy',
     is_favorite: false,
@@ -70,9 +70,9 @@ export default function PlantFormPage() {
         difficulty_level: existingPlant.difficulty_level || '',
         growth_speed: existingPlant.growth_speed || '',
         flowering_season: existingPlant.flowering_season || '',
-        temp_min: existingPlant.temperature_min || '',
-        temp_max: existingPlant.temperature_max || '',
-        humidity: existingPlant.humidity_level || '',
+        temperature_min: existingPlant.temperature_min || '',
+        temperature_max: existingPlant.temperature_max || '',
+        humidity_level: existingPlant.humidity_level || '',
         soil_type: existingPlant.soil_type || '',
         health_status: existingPlant.health_status || 'healthy',
         is_favorite: existingPlant.is_favorite || false,
@@ -156,19 +156,9 @@ export default function PlantFormPage() {
     }
 
     // Convert numeric fields from string to number (or null if empty)
-    corrected.temp_min = corrected.temp_min === '' ? null : Number(corrected.temp_min)
-    corrected.temp_max = corrected.temp_max === '' ? null : Number(corrected.temp_max)
-    corrected.humidity = corrected.humidity === '' ? null : Number(corrected.humidity)
-
-    // Map frontend field names to backend field names
-    corrected.temperature_min = corrected.temp_min
-    corrected.temperature_max = corrected.temp_max
-    corrected.humidity_level = corrected.humidity
-    
-    // Remove old frontend field names
-    delete corrected.temp_min
-    delete corrected.temp_max
-    delete corrected.humidity
+    corrected.temperature_min = corrected.temperature_min === '' ? null : Number(corrected.temperature_min)
+    corrected.temperature_max = corrected.temperature_max === '' ? null : Number(corrected.temperature_max)
+    corrected.humidity_level = corrected.humidity_level === '' ? null : Number(corrected.humidity_level)
 
     return corrected
   }
@@ -207,6 +197,11 @@ export default function PlantFormPage() {
     try {
       // Auto-corriger les données selon les règles métier
       let correctedData = autoCorrectData(formData)
+      console.log('Corrected data:', {
+        temp_min: correctedData.temperature_min,
+        temp_max: correctedData.temperature_max,
+        humidity: correctedData.humidity_level
+      })
 
       // Valider avec Zod (validation légère: obligatoire/optionnel seulement)
       const validation = validatePlant(correctedData, !!id)
@@ -217,6 +212,7 @@ export default function PlantFormPage() {
           const val = validation.errors[key]
           cleanErrors[key] = typeof val === 'string' ? val : String(val)
         })
+        console.log('Validation errors:', cleanErrors)
         setFieldErrors(cleanErrors)
         setGlobalError('Veuillez corriger les erreurs ci-dessous')
         setLoading(false)
@@ -470,14 +466,14 @@ export default function PlantFormPage() {
                 <label className="block font-semibold mb-2">Temp. min (°C)</label>
                 <input
                   type="number"
-                  name="temp_min"
-                  value={formData.temp_min}
+                  name="temperature_min"
+                  value={formData.temperature_min}
                   onChange={handleChange}
-                  className={getFieldClass('temp_min')}
+                  className={getFieldClass('temperature_min')}
                   placeholder="Ex: 15"
                 />
-                {fieldErrors.temp_min && (
-                  <p className="text-red-600 text-sm mt-1">{fieldErrors.temp_min}</p>
+                {fieldErrors.temperature_min && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.temperature_min}</p>
                 )}
               </div>
 
@@ -485,14 +481,14 @@ export default function PlantFormPage() {
                 <label className="block font-semibold mb-2">Temp. max (°C)</label>
                 <input
                   type="number"
-                  name="temp_max"
-                  value={formData.temp_max}
+                  name="temperature_max"
+                  value={formData.temperature_max}
                   onChange={handleChange}
-                  className={getFieldClass('temp_max')}
+                  className={getFieldClass('temperature_max')}
                   placeholder="Ex: 25"
                 />
-                {fieldErrors.temp_max && (
-                  <p className="text-red-600 text-sm mt-1">{fieldErrors.temp_max}</p>
+                {fieldErrors.temperature_max && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.temperature_max}</p>
                 )}
               </div>
 
@@ -500,16 +496,16 @@ export default function PlantFormPage() {
                 <label className="block font-semibold mb-2">Humidité (%)</label>
                 <input
                   type="number"
-                  name="humidity"
-                  value={formData.humidity}
+                  name="humidity_level"
+                  value={formData.humidity_level}
                   onChange={handleChange}
-                  className={getFieldClass('humidity')}
+                  className={getFieldClass('humidity_level')}
                   placeholder="Ex: 60"
                   min="0"
                   max="100"
                 />
-                {fieldErrors.humidity && (
-                  <p className="text-red-600 text-sm mt-1">{fieldErrors.humidity}</p>
+                {fieldErrors.humidity_level && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.humidity_level}</p>
                 )}
               </div>
 
