@@ -65,7 +65,7 @@ export const plantSchema = z.object({
     .string()
     .max(100, 'La sous-famille doit contenir au maximum 100 caractères')
     .refine(
-      val => val === null || val === undefined || val === '' || /^[a-z]/.test(val),
+      val => /^[a-z]/.test(val),
       'La sous-famille doit commencer par une minuscule'
     )
     .nullable()
@@ -76,7 +76,7 @@ export const plantSchema = z.object({
     .string()
     .max(100, 'Le genre doit contenir au maximum 100 caractères')
     .refine(
-      val => val === null || val === undefined || val === '' || /^[A-Z][a-z]*$/.test(val),
+      val => /^[A-Z][a-z]*$/.test(val),
       'Le genre doit commencer par une majuscule suivie de minuscules (ex: Phalaenopsis)'
     )
     .nullable()
@@ -87,7 +87,7 @@ export const plantSchema = z.object({
     .string()
     .max(100, 'L\'espèce doit contenir au maximum 100 caractères')
     .refine(
-      val => val === null || val === undefined || val === '' || /^[a-z]/.test(val),
+      val => /^[a-z]/.test(val),
       'L\'espèce doit être entièrement minuscule (ex: amabilis)'
     )
     .nullable()
@@ -98,7 +98,7 @@ export const plantSchema = z.object({
     .string()
     .max(100, 'La sous-espèce doit contenir au maximum 100 caractères')
     .refine(
-      val => val === null || val === undefined || val === '' || /^(subsp\.\s+)?[a-z]/.test(val),
+      val => /^(subsp\.\s+)?[a-z]/.test(val),
       'La sous-espèce doit être minuscule, optionnellement préfixée par "subsp. " (ex: subsp. rosenstromii ou rosenstromii)'
     )
     .nullable()
@@ -113,7 +113,7 @@ export const plantSchema = z.object({
     .string()
     .max(100, 'La variété doit contenir au maximum 100 caractères')
     .refine(
-      val => val === null || val === undefined || val === '' || /^(var\.\s+)?[a-z]/.test(val),
+      val => /^(var\.\s+)?[a-z]/.test(val),
       'La variété doit être minuscule, optionnellement préfixée par "var. " (ex: var. alba ou alba)'
     )
     .nullable()
@@ -128,7 +128,7 @@ export const plantSchema = z.object({
     .string()
     .max(100, 'Le cultivar doit contenir au maximum 100 caractères')
     .refine(
-      val => val === null || val === undefined || val === '' || /^['"]/.test(val) || /[a-zA-Z0-9\s\-']$/.test(val),
+      val => /^['"]/.test(val) || /[a-zA-Z0-9\s\-']$/.test(val),
       'Le cultivar doit être entre guillemets simples (ex: \'White Dream\')'
     )
     .nullable()
