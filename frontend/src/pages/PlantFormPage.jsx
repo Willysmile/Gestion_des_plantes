@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { plantsAPI, lookupsAPI } from '../lib/api'
 import { usePlant } from '../hooks/usePlants'
+import { validatePlant } from '../lib/schemas'
 import { ArrowLeft } from 'lucide-react'
 
 export default function PlantFormPage() {
@@ -14,10 +15,13 @@ export default function PlantFormPage() {
     family: '',
     genus: '',
     species: '',
+    scientific_name: '',
+    reference: '',
     description: '',
-    temperature_min: 15,
-    temperature_max: 25,
-    humidity_level: 60,
+    care_instructions: '',
+    temp_min: 15,
+    temp_max: 25,
+    humidity: 60,
     soil_type: '',
     health_status: 'healthy',
     is_favorite: false,
@@ -29,8 +33,9 @@ export default function PlantFormPage() {
     location_id: null,
   })
 
+  const [fieldErrors, setFieldErrors] = useState({})
+  const [globalError, setGlobalError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
   const [lookups, setLookups] = useState({
     locations: [],
     wateringFrequencies: [],
@@ -40,7 +45,28 @@ export default function PlantFormPage() {
   // Load existing plant data
   useEffect(() => {
     if (id && existingPlant) {
-      setFormData(existingPlant)
+      setFormData({
+        name: existingPlant.name || '',
+        family: existingPlant.family || '',
+        genus: existingPlant.genus || '',
+        species: existingPlant.species || '',
+        scientific_name: existingPlant.scientific_name || '',
+        reference: existingPlant.reference || '',
+        description: existingPlant.description || '',
+        care_instructions: existingPlant.care_instructions || '',
+        temp_min: existingPlant.temp_min ?? 15,
+        temp_max: existingPlant.temp_max ?? 25,
+        humidity: existingPlant.humidity ?? 60,
+        soil_type: existingPlant.soil_type || '',
+        health_status: existingPlant.health_status || 'healthy',
+        is_favorite: existingPlant.is_favorite || false,
+        is_indoor: existingPlant.is_indoor || false,
+        is_outdoor: existingPlant.is_outdoor || false,
+        is_toxic: existingPlant.is_toxic || false,
+        watering_frequency_id: existingPlant.watering_frequency_id || null,
+        light_requirement_id: existingPlant.light_requirement_id || null,
+        location_id: existingPlant.location_id || null,
+      })
     }
   }, [id, existingPlant])
 
@@ -71,13 +97,30 @@ export default function PlantFormPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value === '' ? null : (type === 'number' ? Number(value) : value)
     }))
+    // Clear error for this field when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
+    setGlobalError(null)
+    setFieldErrors({})
 
+    // Valider avec Zod
+    const validation = validatePlant(formData, !!id)
+    if (!validation.success) {
+      setFieldErrors(validation.errors)
+      setGlobalError('Veuillez corriger les erreurs ci-dessous')
+      return
+    }
+
+    setLoading(true)
     try {
       if (id) {
         await plantsAPI.update(id, formData)
@@ -88,10 +131,17 @@ export default function PlantFormPage() {
       }
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Erreur lors de la sauvegarde')
+      setGlobalError(err.response?.data?.detail || err.message || 'Erreur lors de la sauvegarde')
     } finally {
       setLoading(false)
     }
+  }
+
+  const getFieldClass = (fieldName) => {
+    const baseClass = "w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
+    return fieldErrors[fieldName] 
+      ? `${baseClass} border-red-500 bg-red-50`
+      : `${baseClass} border-gray-300`
   }
 
   return (
@@ -101,40 +151,80 @@ export default function PlantFormPage() {
         Retour
       </Link>
 
-      <div className="bg-white rounded-lg shadow p-8 max-w-2xl">
+      <div className="bg-white rounded-lg shadow p-8 max-w-4xl">
         <h1 className="text-3xl font-bold mb-6">
           {id ? 'Éditer' : 'Nouvelle'} Plante
         </h1>
 
-        {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-6">{error}</div>}
+        {globalError && (
+          <div className="bg-red-100 text-red-700 p-4 rounded mb-6 border border-red-300">
+            {globalError}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Informations de Base */}
           <fieldset>
-            <legend className="text-xl font-bold mb-4">Informations de base</legend>
-            <div className="grid grid-cols-2 gap-4">
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Informations de base</legend>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block font-semibold mb-2">Nom *</label>
+                <label className="block font-semibold mb-2">
+                  Nom <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                  className={getFieldClass('name')}
+                  placeholder="Ex: Monstera"
                 />
+                {fieldErrors.name && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.name}</p>
+                )}
               </div>
+
               <div>
-                <label className="block font-semibold mb-2">Famille *</label>
+                <label className="block font-semibold mb-2">
+                  Famille <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="family"
                   value={formData.family}
                   onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                  className={getFieldClass('family')}
+                  placeholder="Ex: Araceae"
+                />
+                {fieldErrors.family && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.family}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Nom scientifique</label>
+                <input
+                  type="text"
+                  name="scientific_name"
+                  value={formData.scientific_name}
+                  onChange={handleChange}
+                  className={getFieldClass('scientific_name')}
+                  placeholder="Ex: Monstera deliciosa"
                 />
               </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Référence</label>
+                <input
+                  type="text"
+                  name="reference"
+                  value={formData.reference}
+                  onChange={handleChange}
+                  className={getFieldClass('reference')}
+                  placeholder="Ex: MON-001"
+                />
+              </div>
+
               <div>
                 <label className="block font-semibold mb-2">Genre</label>
                 <input
@@ -142,9 +232,11 @@ export default function PlantFormPage() {
                   name="genus"
                   value={formData.genus}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                  className={getFieldClass('genus')}
+                  placeholder="Ex: Monstera"
                 />
               </div>
+
               <div>
                 <label className="block font-semibold mb-2">Espèce</label>
                 <input
@@ -152,7 +244,8 @@ export default function PlantFormPage() {
                   name="species"
                   value={formData.species}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                  className={getFieldClass('species')}
+                  placeholder="Ex: deliciosa"
                 />
               </div>
             </div>
@@ -160,40 +253,55 @@ export default function PlantFormPage() {
 
           {/* Environnement */}
           <fieldset>
-            <legend className="text-xl font-bold mb-4">Environnement</legend>
-            <div className="grid grid-cols-2 gap-4">
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Environnement</legend>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block font-semibold mb-2">Temp Min (°C)</label>
+                <label className="block font-semibold mb-2">Temp. min (°C)</label>
                 <input
                   type="number"
-                  name="temperature_min"
-                  value={formData.temperature_min}
+                  name="temp_min"
+                  value={formData.temp_min}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                  className={getFieldClass('temp_min')}
+                  placeholder="Ex: 15"
                 />
+                {fieldErrors.temp_min && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.temp_min}</p>
+                )}
               </div>
+
               <div>
-                <label className="block font-semibold mb-2">Temp Max (°C)</label>
+                <label className="block font-semibold mb-2">Temp. max (°C)</label>
                 <input
                   type="number"
-                  name="temperature_max"
-                  value={formData.temperature_max}
+                  name="temp_max"
+                  value={formData.temp_max}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                  className={getFieldClass('temp_max')}
+                  placeholder="Ex: 25"
                 />
+                {fieldErrors.temp_max && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.temp_max}</p>
+                )}
               </div>
+
               <div>
                 <label className="block font-semibold mb-2">Humidité (%)</label>
                 <input
                   type="number"
-                  name="humidity_level"
-                  value={formData.humidity_level}
+                  name="humidity"
+                  value={formData.humidity}
                   onChange={handleChange}
+                  className={getFieldClass('humidity')}
+                  placeholder="Ex: 60"
                   min="0"
                   max="100"
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
                 />
+                {fieldErrors.humidity && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.humidity}</p>
+                )}
               </div>
+
               <div>
                 <label className="block font-semibold mb-2">Type de sol</label>
                 <input
@@ -201,34 +309,58 @@ export default function PlantFormPage() {
                   name="soil_type"
                   value={formData.soil_type}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                  className={getFieldClass('soil_type')}
+                  placeholder="Ex: terreau"
                 />
               </div>
+
               <div>
                 <label className="block font-semibold mb-2">Fréquence d'arrosage</label>
                 <select
                   name="watering_frequency_id"
                   value={formData.watering_frequency_id || ''}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                  className={getFieldClass('watering_frequency_id')}
                 >
                   <option value="">Sélectionner...</option>
                   {lookups.wateringFrequencies.map(freq => (
-                    <option key={freq.id} value={freq.id}>{freq.name}</option>
+                    <option key={freq.id} value={freq.id}>
+                      {freq.name} ({freq.days} jours)
+                    </option>
                   ))}
                 </select>
               </div>
+
               <div>
-                <label className="block font-semibold mb-2">Luminosité</label>
+                <label className="block font-semibold mb-2">Besoin en lumière</label>
                 <select
                   name="light_requirement_id"
                   value={formData.light_requirement_id || ''}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                  className={getFieldClass('light_requirement_id')}
                 >
                   <option value="">Sélectionner...</option>
                   {lookups.lightRequirements.map(light => (
-                    <option key={light.id} value={light.id}>{light.name}</option>
+                    <option key={light.id} value={light.id}>
+                      {light.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Lieu de stockage</label>
+                <select
+                  name="location_id"
+                  value={formData.location_id || ''}
+                  onChange={handleChange}
+                  className={getFieldClass('location_id')}
+                >
+                  <option value="">Sélectionner...</option>
+                  {lookups.locations.map(loc => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -236,90 +368,114 @@ export default function PlantFormPage() {
           </fieldset>
 
           {/* Description */}
-          <div>
-            <label className="block font-semibold mb-2">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-            />
-          </div>
-
-          {/* Flags */}
           <fieldset>
-            <legend className="text-xl font-bold mb-4">Propriétés</legend>
-            <div className="space-y-2">
-              <label className="flex items-center">
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Description</legend>
+            <div className="space-y-4">
+              <div>
+                <label className="block font-semibold mb-2">Description générale</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  className={getFieldClass('description')}
+                  placeholder="Décrivez votre plante..."
+                  rows="3"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Instructions de soin</label>
+                <textarea
+                  name="care_instructions"
+                  value={formData.care_instructions}
+                  onChange={handleChange}
+                  className={getFieldClass('care_instructions')}
+                  placeholder="Comment bien soigner votre plante..."
+                  rows="3"
+                />
+              </div>
+            </div>
+          </fieldset>
+
+          {/* Propriétés */}
+          <fieldset>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Propriétés</legend>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   name="is_favorite"
                   checked={formData.is_favorite}
                   onChange={handleChange}
-                  className="mr-2"
+                  className="w-4 h-4"
                 />
-                Favorite
+                <span>Favorite ❤️</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   name="is_indoor"
                   checked={formData.is_indoor}
                   onChange={handleChange}
-                  className="mr-2"
+                  className="w-4 h-4"
                 />
-                Intérieur
+                <span>Intérieur 🏠</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   name="is_outdoor"
                   checked={formData.is_outdoor}
                   onChange={handleChange}
-                  className="mr-2"
+                  className="w-4 h-4"
                 />
-                Extérieur
+                <span>Extérieur 🌱</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   name="is_toxic"
                   checked={formData.is_toxic}
                   onChange={handleChange}
-                  className="mr-2"
+                  className="w-4 h-4"
                 />
-                Toxique
+                <span>Toxique ⚠️</span>
               </label>
             </div>
           </fieldset>
 
           {/* Santé */}
-          <div>
-            <label className="block font-semibold mb-2">État de santé</label>
-            <select
-              name="health_status"
-              value={formData.health_status}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-            >
-              <option value="healthy">En bonne santé</option>
-              <option value="sick">Malade</option>
-              <option value="recovering">En récupération</option>
-              <option value="dead">Morte</option>
-            </select>
-          </div>
+          <fieldset>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Santé</legend>
+            <div>
+              <label className="block font-semibold mb-2">État de santé</label>
+              <select
+                name="health_status"
+                value={formData.health_status}
+                onChange={handleChange}
+                className={getFieldClass('health_status')}
+              >
+                <option value="healthy">En bonne santé</option>
+                <option value="sick">Malade</option>
+                <option value="recovering">En rétablissement</option>
+                <option value="dead">Morte</option>
+              </select>
+            </div>
+          </fieldset>
 
-          {/* Actions */}
+          {/* Buttons */}
           <div className="flex gap-4 pt-6 border-t">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="flex-1 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700 disabled:bg-gray-400 transition"
             >
-              {loading ? 'Enregistrement...' : id ? 'Mettre à jour' : 'Créer'}
+              {loading ? 'Sauvegarde...' : (id ? 'Mettre à jour' : 'Créer')}
             </button>
-            <Link to="/" className="flex-1 bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 text-center">
+            <Link
+              to="/"
+              className="flex-1 bg-gray-300 text-gray-800 font-bold py-3 rounded hover:bg-gray-400 transition text-center"
+            >
               Annuler
             </Link>
           </div>
