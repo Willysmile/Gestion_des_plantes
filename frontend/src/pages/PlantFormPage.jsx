@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { plantsAPI, lookupsAPI } from '../lib/api'
+import { plantsAPI, lookupsAPI, photosAPI } from '../lib/api'
 import { usePlant } from '../hooks/usePlants'
 import { validatePlant } from '../lib/schemas'
 import { ArrowLeft } from 'lucide-react'
+import PlantPhotoUpload from '../components/PlantPhotoUpload'
+import PlantPhotoGallery from '../components/PlantPhotoGallery'
 
 export default function PlantFormPage() {
   const { id } = useParams()
@@ -44,6 +46,8 @@ export default function PlantFormPage() {
   const [fieldErrors, setFieldErrors] = useState({})
   const [globalError, setGlobalError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [photos, setPhotos] = useState([])
+  const [photosLoading, setPhotosLoading] = useState(false)
   const [lookups, setLookups] = useState({
     locations: [],
     wateringFrequencies: [],
@@ -109,6 +113,26 @@ export default function PlantFormPage() {
     }
     loadLookups()
   }, [])
+
+  // Load photos when plant ID changes
+  useEffect(() => {
+    if (id && existingPlant) {
+      const loadPhotos = async () => {
+        setPhotosLoading(true)
+        try {
+          const response = await photosAPI.getPhotos(id)
+          setPhotos(response.data || [])
+        } catch (err) {
+          console.error('Erreur lors du chargement des photos:', err)
+        } finally {
+          setPhotosLoading(false)
+        }
+      }
+      loadPhotos()
+    } else {
+      setPhotos([])
+    }
+  }, [id, existingPlant])
 
   /**
    * Auto-correction des données selon les règles métier
@@ -277,6 +301,27 @@ export default function PlantFormPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Handler pour quand une photo est ajoutée
+  const handlePhotoAdded = async (result) => {
+    const newPhoto = result.data
+    setPhotos((prev) => [newPhoto, ...prev])
+  }
+
+  // Handler pour quand une photo est supprimée
+  const handlePhotoDeleted = (photoId) => {
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId))
+  }
+
+  // Handler pour quand la photo principale change
+  const handlePhotoPrimaryChanged = (photoId) => {
+    setPhotos((prev) =>
+      prev.map((p) => ({
+        ...p,
+        is_primary: p.id === photoId,
+      }))
+    )
   }
 
   const getFieldClass = (fieldName) => {
@@ -741,6 +786,36 @@ export default function PlantFormPage() {
               )}
             </div>
           </fieldset>
+
+          {/* Photos */}
+          {id && (
+            <fieldset>
+              <legend className="text-xl font-bold mb-4 pb-2 border-b">Photos 📷</legend>
+              
+              {/* Upload section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">Ajouter une photo</h3>
+                <PlantPhotoUpload plantId={id} onPhotoAdded={handlePhotoAdded} />
+              </div>
+
+              {/* Gallery section */}
+              {photosLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Chargement des photos...</p>
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-lg font-semibold mb-3">Galerie</h3>
+                  <PlantPhotoGallery
+                    photos={photos}
+                    plantId={id}
+                    onPhotoDeleted={handlePhotoDeleted}
+                    onPhotoPrimaryChanged={handlePhotoPrimaryChanged}
+                  />
+                </>
+              )}
+            </fieldset>
+          )}
 
           {/* Buttons */}
           <div className="flex gap-4 pt-6 border-t">
