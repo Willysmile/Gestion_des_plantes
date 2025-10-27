@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { usePlants } from '../hooks/usePlants'
 import { Trash2, Archive, Edit, Eye, Heart } from 'lucide-react'
 import { plantsAPI } from '../lib/api'
+import PlantCard from '../components/PlantCard'
 
 export default function DashboardPage() {
   const { plants, loading, error, refetch } = usePlants()
@@ -70,51 +71,13 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Plants Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Plants Grid: 5 cards par ligne, 3 lignes maxi */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-h-[calc(100vh-300px)] overflow-y-auto">
         {filteredPlants.map(plant => (
-          <div key={plant.id} className="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-xl font-bold">{plant.name}</h3>
-                <p className="text-gray-600">{plant.scientific_name || plant.family}</p>
-              </div>
-              {plant.is_favorite && <Heart className="w-5 h-5 text-red-500 fill-current" />}
-            </div>
-
-            <div className="text-sm text-gray-600 mb-4">
-              <p>Ref: <span className="font-mono">{plant.reference}</span></p>
-              <p>Santé: {plant.health_status || 'Non spécifiée'}</p>
-            </div>
-
-            <div className="flex gap-2">
-              <Link
-                to={`/plants/${plant.id}`}
-                className="flex-1 flex items-center justify-center gap-2 bg-blue-100 text-blue-700 px-3 py-2 rounded hover:bg-blue-200"
-              >
-                <Eye className="w-4 h-4" />
-                Voir
-              </Link>
-              <Link
-                to={`/plants/${plant.id}/edit`}
-                className="flex items-center justify-center gap-2 bg-yellow-100 text-yellow-700 px-3 py-2 rounded hover:bg-yellow-200"
-              >
-                <Edit className="w-4 h-4" />
-              </Link>
-              <button
-                onClick={() => handleArchive(plant.id)}
-                className="flex items-center justify-center gap-2 bg-purple-100 text-purple-700 px-3 py-2 rounded hover:bg-purple-200"
-              >
-                <Archive className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleDelete(plant.id)}
-                className="flex items-center justify-center gap-2 bg-red-100 text-red-700 px-3 py-2 rounded hover:bg-red-200"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          <PlantCard
+            key={plant.id}
+            plant={plant}
+          />
         ))}
       </div>
 

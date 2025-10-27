@@ -1,18 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
-import { X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { photosAPI } from '../lib/api'
 
 export default function PhotoCarousel({ photos, initialIndex = 0, plantId, onClose, onPhotoDeleted }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
-  const [isDeleting, setIsDeleting] = useState(false)
 
   const currentPhoto = photos[currentIndex]
 
-  const goToNext = useCallback(() => {
+  const goToNext = useCallback((e) => {
+    e?.stopPropagation()
     setCurrentIndex((prev) => (prev + 1) % photos.length)
   }, [photos.length])
 
-  const goToPrevious = useCallback(() => {
+  const goToPrevious = useCallback((e) => {
+    e?.stopPropagation()
     setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)
   }, [photos.length])
 
@@ -27,34 +28,6 @@ export default function PhotoCarousel({ photos, initialIndex = 0, plantId, onClo
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose, goToPrevious, goToNext])
-
-  const handleDeletePhoto = async () => {
-    if (!window.confirm('Supprimer cette photo?')) {
-      return
-    }
-
-    setIsDeleting(true)
-    try {
-      await photosAPI.deletePhoto(plantId, currentPhoto.id)
-      if (onPhotoDeleted) {
-        onPhotoDeleted(currentPhoto.id)
-      }
-
-      // Si c'était la dernière photo, fermer le carousel
-      if (photos.length === 1) {
-        onClose()
-      } else {
-        // Ajuster l'index si nécessaire
-        const newIndex = currentIndex >= photos.length - 1 ? currentIndex - 1 : currentIndex
-        setCurrentIndex(newIndex)
-      }
-    } catch (err) {
-      console.error('Error deleting photo:', err)
-      alert('Erreur lors de la suppression')
-    } finally {
-      setIsDeleting(false)
-    }
-  }
 
   // Fermer au clic sur l'arrière-plan
   const handleBackgroundClick = (e) => {
@@ -79,7 +52,7 @@ export default function PhotoCarousel({ photos, initialIndex = 0, plantId, onClo
         </button>
 
         {/* Image */}
-        <div className="flex-1 flex items-center justify-center min-h-0">
+        <div className="flex-1 flex items-center justify-center min-h-0" onClick={(e) => e.stopPropagation()}>
           <img
             src={photosAPI.getPhotoUrl(plantId, currentPhoto.filename, 'large')}
             alt={`Photo ${currentIndex + 1}`}
@@ -98,26 +71,24 @@ export default function PhotoCarousel({ photos, initialIndex = 0, plantId, onClo
           <div className="flex items-center gap-4">
             {/* Bouton précédent */}
             <button
-              onClick={goToPrevious}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                goToPrevious(e)
+              }}
               disabled={photos.length <= 1}
               className="text-white hover:text-gray-300 disabled:opacity-30 transition-colors"
             >
               <ChevronLeft size={32} />
             </button>
 
-            {/* Bouton supprimer */}
-            <button
-              onClick={handleDeletePhoto}
-              disabled={isDeleting || photos.length === 1}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors disabled:opacity-50"
-            >
-              <Trash2 size={18} />
-              {isDeleting ? 'Suppression...' : 'Supprimer'}
-            </button>
-
             {/* Bouton suivant */}
             <button
-              onClick={goToNext}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                goToNext(e)
+              }}
               disabled={photos.length <= 1}
               className="text-white hover:text-gray-300 disabled:opacity-30 transition-colors"
             >

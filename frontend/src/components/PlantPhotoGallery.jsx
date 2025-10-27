@@ -70,7 +70,7 @@ export default function PlantPhotoGallery({ photos = [], plantId, onPhotoDeleted
             <img
               src={photosAPI.getPhotoUrl(plantId, photo.filename, 'thumbnail')}
               alt={`Photo ${index + 1}`}
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110"
+              className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-110"
             />
 
             {/* Overlay au survol */}

@@ -5,7 +5,7 @@
 
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8001/api'
+const API_BASE_URL = 'http://127.0.0.1:8002/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -135,10 +135,12 @@ export const setPrimaryPhoto = async (plantId, photoId) => {
  * Get photo file URL for different versions
  * @param {number} plantId - Plant ID
  * @param {string} filename - Filename (e.g., 'photo_1.webp' or 'photo_1_medium.webp')
+ * @param {string} type - Type of image ('thumbnail' or 'full', default: 'full')
  * @returns {string} URL to photo
  */
-export const getPhotoUrl = (plantId, filename) => {
-  return `${API_BASE_URL}/photos/${plantId}/${filename}`
+export const getPhotoUrl = (plantId, filename, type = 'full') => {
+  const url = `${API_BASE_URL}/photos/${plantId}/${filename}`
+  return type === 'thumbnail' ? `${url}?thumb=true` : url
 }
 
 /**

@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from PIL import Image, ImageOps
 import logging
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +103,8 @@ def process_image_to_webp(
         elif image.mode != 'RGB':
             image = image.convert('RGB')
         
-        # Create photos directory
-        photos_dir = Path(f'data/photos/{plant_id}')
+        # Create photos directory using settings
+        photos_dir = settings.PHOTOS_DIR / str(plant_id)
         photos_dir.mkdir(parents=True, exist_ok=True)
         
         files = {}
@@ -113,8 +114,9 @@ def process_image_to_webp(
             target_size = version_config['size']
             max_size = version_config['max_size']
             
-            # Resize with crop (center)
-            resized = ImageOps.fit(image, target_size, Image.LANCZOS, centering=(0.5, 0.5))
+            # Resize WITHOUT crop (keep aspect ratio)
+            resized = image.copy()
+            resized.thumbnail(target_size, Image.LANCZOS)
             
             # Determine filename
             if version_name == 'large':
@@ -176,26 +178,46 @@ def process_image_to_webp(
         }
 
 
-def delete_photo_files(plant_id: int, photo_id: int) -> bool:
+def delete_photo_files(plant_id: int, photo_id: int, filename: str = None) -> bool:
     """
     Delete all versions of a photo (large, medium, thumbnail)
+    Uses filename if provided (from DB), otherwise falls back to photo_id pattern
     
     Returns: True if successful
     """
     try:
-        photos_dir = Path(f'data/photos/{plant_id}')
+        photos_dir = settings.PHOTOS_DIR / str(plant_id)
         
-        for version_name in VERSIONS.keys():
-            if version_name == 'large':
-                filename = f'photo_{photo_id}.webp'
-            else:
-                filename = f'photo_{photo_id}_{version_name}.webp'
+        # If filename provided (from DB), use it
+        if filename:
+            # Remove extension for base name
+            base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
             
-            filepath = photos_dir / filename
+            # Delete main photo
+            main_photo = photos_dir / f'{base_name}.webp'
+            if main_photo.exists():
+                main_photo.unlink()
+                logger.info(f'Deleted {main_photo}')
             
-            if filepath.exists():
-                filepath.unlink()
-                logger.info(f'Deleted {filepath}')
+            # Delete thumbnail
+            thumb_dir = photos_dir / 'thumbs'
+            thumb_photo = thumb_dir / f'{base_name}.webp'
+            if thumb_photo.exists():
+                thumb_photo.unlink()
+                logger.info(f'Deleted {thumb_photo}')
+        else:
+            # Fallback: try the old naming pattern photo_{photo_id}
+            for version_name in VERSIONS.keys():
+                if version_name == 'large':
+                    filename_pattern = f'photo_{photo_id}.webp'
+                else:
+                    filename_pattern = f'photo_{photo_id}_{version_name}.webp'
+                
+                filepath = photos_dir / filename_pattern
+                
+                if filepath.exists():
+                    filepath.unlink()
+                    logger.info(f'Deleted {filepath}')
         
         # Remove directory if empty
         if photos_dir.exists() and not any(photos_dir.iterdir()):

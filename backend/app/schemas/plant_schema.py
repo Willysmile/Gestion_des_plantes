@@ -152,6 +152,7 @@ class PlantListResponse(BaseModel):
     
     id: int
     name: str
+    reference: Optional[str] = None
     scientific_name: Optional[str] = None
     health_status: Optional[str] = None
     location_id: Optional[int] = None

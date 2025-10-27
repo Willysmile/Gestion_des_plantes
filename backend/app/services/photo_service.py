@@ -5,6 +5,7 @@ Upload, conversion WebP, compression, stockage
 
 import os
 import uuid
+import logging
 from pathlib import Path
 from io import BytesIO
 from PIL import Image
@@ -12,8 +13,10 @@ from sqlalchemy.orm import Session
 from typing import Optional, Tuple
 from datetime import datetime
 
-from app.models.plant import Photo
+from app.models.photo import Photo
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class PhotoService:
@@ -160,17 +163,16 @@ class PhotoService:
         
         # 7. Sauver metadata en DB
         try:
-            # Si c'est la première photo, la marquer comme main
+            # Si c'est la première photo, la marquer comme primary
             existing_photos = db.query(Photo).filter(
-                Photo.plant_id == plant_id,
-                Photo.deleted_at == None
+                Photo.plant_id == plant_id
             ).count()
             
             photo = Photo(
                 plant_id=plant_id,
                 filename=f"{file_uuid}.webp",
                 file_size=len(webp_data),
-                is_main=(existing_photos == 0),  # Première photo = main
+                is_primary=(existing_photos == 0),  # Première photo = primary
             )
             db.add(photo)
             db.commit()
@@ -185,60 +187,77 @@ class PhotoService:
     
     @staticmethod
     def get_photos(db: Session, plant_id: int) -> list:
-        """Récupère toutes les photos non-supprimées d'une plante"""
+        """Récupère toutes les photos d'une plante"""
         return db.query(Photo).filter(
-            Photo.plant_id == plant_id,
-            Photo.deleted_at == None
-        ).order_by(Photo.is_main.desc(), Photo.created_at.asc()).all()
+            Photo.plant_id == plant_id
+        ).order_by(Photo.is_primary.desc(), Photo.created_at.asc()).all()
     
     @staticmethod
     def get_photo(db: Session, photo_id: int, plant_id: int) -> Optional[Photo]:
         """Récupère une photo spécifique"""
         return db.query(Photo).filter(
             Photo.id == photo_id,
-            Photo.plant_id == plant_id,
-            Photo.deleted_at == None
+            Photo.plant_id == plant_id
         ).first()
     
     @staticmethod
     def delete_photo(db: Session, photo_id: int, plant_id: int) -> bool:
-        """Soft delete une photo"""
+        """Supprime une photo (fichiers + base de données)"""
         photo = PhotoService.get_photo(db, photo_id, plant_id)
         if not photo:
             return False
         
-        photo.deleted_at = datetime.utcnow()
-        
-        # Si c'était la main photo, désigner une autre
-        if photo.is_main:
-            next_photo = db.query(Photo).filter(
-                Photo.plant_id == plant_id,
-                Photo.deleted_at == None,
-                Photo.id != photo_id
-            ).first()
+        # 1. Supprimer les fichiers physiques
+        try:
+            # Supprimer la photo principale
+            photo_path = PhotoService.get_file_path(photo)
+            if photo_path.exists():
+                photo_path.unlink()
             
-            if next_photo:
-                next_photo.is_main = True
+            # Supprimer la thumbnail
+            thumb_path = PhotoService.get_thumbnail_path(photo)
+            if thumb_path.exists():
+                thumb_path.unlink()
+        except Exception as e:
+            # Log l'erreur mais continue la suppression en DB
+            logger.error(f"Erreur suppression fichiers photo {photo_id}: {str(e)}")
         
-        db.commit()
-        return True
+        # 2. Supprimer de la base de données
+        try:
+            # Si c'était la photo primary, désigner une autre
+            if photo.is_primary:
+                next_photo = db.query(Photo).filter(
+                    Photo.plant_id == plant_id,
+                    Photo.id != photo_id
+                ).first()
+                
+                if next_photo:
+                    next_photo.is_primary = True
+                    db.add(next_photo)
+            
+            db.delete(photo)
+            db.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Erreur suppression photo en DB {photo_id}: {str(e)}")
+            return False
     
     @staticmethod
     def set_main_photo(db: Session, photo_id: int, plant_id: int) -> Optional[Photo]:
-        """Désigne une photo comme main"""
+        """Désigne une photo comme primary"""
         photo = PhotoService.get_photo(db, photo_id, plant_id)
         if not photo:
             return None
         
-        # Désélectionner l'ancienne main
+        # Désélectionner l'ancienne primary
         db.query(Photo).filter(
             Photo.plant_id == plant_id,
-            Photo.is_main == True,
+            Photo.is_primary == True,
             Photo.id != photo_id
-        ).update({"is_main": False})
+        ).update({"is_primary": False})
         
         # Sélectionner la nouvelle
-        photo.is_main = True
+        photo.is_primary = True
         db.commit()
         db.refresh(photo)
         return photo

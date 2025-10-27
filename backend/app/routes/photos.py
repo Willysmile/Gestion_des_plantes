@@ -2,7 +2,7 @@
 Routes pour la gestion des photos
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path as PathParam
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path as PathParam, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
@@ -13,7 +13,8 @@ from app.utils.db import get_db
 from app.models.plant import Plant
 from app.models.photo import Photo as PhotoModel
 from app.schemas.photo_schema import PhotoResponse, PhotoUploadResponse
-from app.utils.image_processor import validate_image_upload, process_image_to_webp, delete_photo_files
+from app.services.photo_service import PhotoService
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +29,9 @@ async def upload_photo(
     db: Session = Depends(get_db)
 ):
     """
-    Télécharge une photo pour une plante
+    Télécharge une photo pour une plante avec UUID
     - Convertit en WebP
-    - Génère 3 versions (large, medium, thumbnail)
+    - Génère versions (large, medium, thumbnail)
     - Stocke les métadonnées en DB
     """
     # Vérifier que la plante existe
@@ -44,60 +45,30 @@ async def upload_photo(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur lecture fichier: {str(e)}")
     
-    # Valider l'image
-    validation = validate_image_upload(file_content, file.filename or "unknown")
-    if not validation['valid']:
-        raise HTTPException(status_code=400, detail=validation['error'])
-    
-    # Obtenir le prochain ID photo pour cette plante
-    last_photo = db.query(PhotoModel).filter(
-        PhotoModel.plant_id == plant_id
-    ).order_by(desc(PhotoModel.id)).first()
-    
-    photo_id = (last_photo.id + 1) if last_photo else 1
-    
-    # Traiter l'image en WebP
-    result = process_image_to_webp(file_content, plant_id, photo_id)
-    
-    if not result['success']:
-        raise HTTPException(status_code=400, detail=result['error'])
-    
-    # Déterminer si c'est la première/principale photo
-    is_primary = not bool(last_photo)
-    
-    # Créer l'enregistrement en DB (utiliser la version large comme fichier principal)
-    large_info = result['files']['large']
-    
-    photo = PhotoModel(
+    # Traiter l'upload avec PhotoService (utilise UUID)
+    success, photo, msg = PhotoService.process_upload(
         plant_id=plant_id,
-        filename=large_info['filename'],
-        file_size=large_info['file_size'],
-        width=result['original_width'],
-        height=result['original_height'],
-        is_primary=is_primary
+        file_content=file_content,
+        filename=file.filename or "photo.jpg",
+        db=db,
     )
     
-    db.add(photo)
-    db.commit()
-    db.refresh(photo)
+    if not success:
+        raise HTTPException(status_code=400, detail=msg)
     
-    logger.info(f"Photo {photo.id} créée pour la plante {plant_id}")
-    
-    # Construire la réponse avec URLs - utiliser model_dump et ajouter urls
+    # Construire la réponse avec URLs
     response_data = {
         'id': photo.id,
         'plant_id': photo.plant_id,
-        'filename': large_info['filename'],
-        'file_size': large_info['file_size'],
-        'width': result['original_width'],
-        'height': result['original_height'],
+        'filename': photo.filename,
+        'file_size': photo.file_size,
         'is_primary': photo.is_primary,
         'created_at': photo.created_at,
         'updated_at': photo.updated_at,
         'urls': {
-            'large': f'/api/photos/{plant_id}/{large_info["filename"]}',
-            'medium': f'/api/photos/{plant_id}/{result["files"]["medium"]["filename"]}',
-            'thumbnail': f'/api/photos/{plant_id}/{result["files"]["thumbnail"]["filename"]}'
+            'large': f'/api/photos/{plant_id}/{photo.filename}',
+            'medium': f'/api/photos/{plant_id}/{photo.filename}?size=medium',
+            'thumbnail': f'/api/photos/{plant_id}/{photo.filename}?size=thumb'
         }
     }
     
@@ -128,33 +99,12 @@ async def delete_photo(
     photo_id: int = PathParam(..., gt=0),
     db: Session = Depends(get_db)
 ):
-    """Supprime une photo"""
-    # Vérifier que la photo existe
-    photo = db.query(PhotoModel).filter(
-        PhotoModel.id == photo_id,
-        PhotoModel.plant_id == plant_id
-    ).first()
+    """Supprime une photo et ses fichiers"""
+    # Utiliser PhotoService pour suppression complète
+    success = PhotoService.delete_photo(db, photo_id, plant_id)
     
-    if not photo:
+    if not success:
         raise HTTPException(status_code=404, detail="Photo non trouvée")
-    
-    # Supprimer les fichiers physiques
-    delete_photo_files(plant_id, photo_id)
-    
-    # Si c'était la principale, en désigner une autre
-    if photo.is_primary:
-        other_photo = db.query(PhotoModel).filter(
-            PhotoModel.plant_id == plant_id,
-            PhotoModel.id != photo_id
-        ).order_by(PhotoModel.created_at).first()
-        
-        if other_photo:
-            other_photo.is_primary = True
-            db.add(other_photo)
-    
-    # Supprimer de la DB
-    db.delete(photo)
-    db.commit()
     
     logger.info(f"Photo {photo_id} supprimée de la plante {plant_id}")
 
@@ -195,11 +145,12 @@ async def set_primary_photo(
 
 @files_router.get("/api/photos/{plant_id}/{filename}")
 async def get_photo_file(
-    plant_id: int = PathParam(..., gt=0),
-    filename: str = PathParam(...),
+    plant_id: int,
+    filename: str,
+    thumb: bool = Query(False),
     db: Session = Depends(get_db)
 ):
-    """Servir le fichier photo WebP"""
+    """Servir le fichier photo WebP ou thumbnail"""
     # Vérifier que la photo existe en DB
     photo = db.query(PhotoModel).filter(
         PhotoModel.plant_id == plant_id,
@@ -210,7 +161,10 @@ async def get_photo_file(
         raise HTTPException(status_code=404, detail="Photo non trouvée")
     
     # Construire le chemin du fichier
-    file_path = Path(f'data/photos/{plant_id}/{filename}')
+    if thumb:
+        file_path = settings.PHOTOS_DIR / str(plant_id) / "thumbs" / filename
+    else:
+        file_path = settings.PHOTOS_DIR / str(plant_id) / filename
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Fichier non trouvé")

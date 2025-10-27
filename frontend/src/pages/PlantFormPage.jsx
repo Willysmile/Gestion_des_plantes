@@ -338,7 +338,7 @@ export default function PlantFormPage() {
         Retour
       </Link>
 
-      <div className="bg-white rounded-lg shadow p-8 max-w-4xl">
+      <div className="bg-white rounded-lg shadow p-8 max-w-[70vw]">
         <h1 className="text-3xl font-bold mb-6">
           {id ? 'Éditer' : 'Nouvelle'} Plante
         </h1>
@@ -349,7 +349,9 @@ export default function PlantFormPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} id="plant-form" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Colonne gauche - Formulaire */}
+          <div className="space-y-8">
           {/* Informations de Base */}
           <fieldset>
             <legend className="text-xl font-bold mb-4 pb-2 border-b">Informations de base</legend>
@@ -809,17 +811,20 @@ export default function PlantFormPage() {
               )}
             </div>
           </fieldset>
+          </div>
 
-          {/* Photos */}
-          {id && (
-            <fieldset>
-              <legend className="text-xl font-bold mb-4 pb-2 border-b">Photos 📷</legend>
-              
-              {/* Upload section */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3">Ajouter une photo</h3>
-                <PlantPhotoUpload plantId={id} onPhotoAdded={handlePhotoAdded} />
-              </div>
+          {/* Colonne droite - Photos */}
+          <div className="space-y-8">
+            {/* Photos */}
+            {id && (
+              <fieldset>
+                <legend className="text-xl font-bold mb-4 pb-2 border-b">Photos 📷</legend>
+                
+                {/* Upload section */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">Ajouter une photo</h3>
+                  <PlantPhotoUpload plantId={id} onPhotoAdded={handlePhotoAdded} />
+                </div>
 
               {/* Gallery section */}
               {photosLoading ? (
@@ -839,22 +844,6 @@ export default function PlantFormPage() {
               )}
             </fieldset>
           )}
-
-          {/* Buttons */}
-          <div className="flex gap-4 pt-6 border-t">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700 disabled:bg-gray-400 transition"
-            >
-              {loading ? 'Sauvegarde...' : (id ? 'Mettre à jour' : 'Créer')}
-            </button>
-            <Link
-              to="/"
-              className="flex-1 bg-gray-300 text-gray-800 font-bold py-3 rounded hover:bg-gray-400 transition text-center"
-            >
-              Annuler
-            </Link>
           </div>
         </form>
       </div>
