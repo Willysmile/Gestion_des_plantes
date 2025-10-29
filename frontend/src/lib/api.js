@@ -134,9 +134,33 @@ export const lookupsAPI = {
   },
   getFertilizerTypes: async () => {
     try {
-      return await api.get('/settings/fertilizer-types')
+      return await api.get('/lookups/fertilizer-types')
     } catch (error) {
       console.error('Error fetching fertilizer types:', error)
+      throw error
+    }
+  },
+  createFertilizerType: async (data) => {
+    try {
+      return await api.post('/lookups/fertilizer-types', data)
+    } catch (error) {
+      console.error('Error creating fertilizer type:', error)
+      throw error
+    }
+  },
+  updateFertilizerType: async (id, data) => {
+    try {
+      return await api.put(`/lookups/fertilizer-types/${id}`, data)
+    } catch (error) {
+      console.error('Error updating fertilizer type:', error)
+      throw error
+    }
+  },
+  deleteFertilizerType: async (id) => {
+    try {
+      return await api.delete(`/lookups/fertilizer-types/${id}`)
+    } catch (error) {
+      console.error('Error deleting fertilizer type:', error)
       throw error
     }
   },

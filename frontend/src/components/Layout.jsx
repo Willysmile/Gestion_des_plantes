@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Leaf, Plus, Save, X } from 'lucide-react'
+import { Leaf, Plus, Save, X, Settings } from 'lucide-react'
 import { ModalProvider, useModal } from '../contexts/ModalContext'
 import PlantDetailModal from './PlantDetailModal'
 
@@ -37,13 +37,22 @@ function LayoutContent() {
               </Link>
             </div>
           ) : (
-            <Link 
-              to="/plants/new"
-              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            >
-              <Plus className="w-5 h-5" />
-              Nouvelle Plante
-            </Link>
+            <div className="flex gap-2">
+              <Link 
+                to="/plants/new"
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              >
+                <Plus className="w-5 h-5" />
+                Nouvelle Plante
+              </Link>
+              <Link
+                to="/settings"
+                className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+              >
+                <Settings className="w-5 h-5" />
+                Paramètres
+              </Link>
+            </div>
           )}
         </div>
       </header>
