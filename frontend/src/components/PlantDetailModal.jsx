@@ -179,6 +179,13 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     return fert ? fert.name : 'Type inconnu'
   }
 
+  // Obtenir l'unité du type d'engrais par ID
+  const getFertilizerUnit = (fertilizerTypeId) => {
+    if (!fertilizerTypeId) return 'ml'
+    const fert = lookups.fertilizerTypes.find(f => f.id === fertilizerTypeId)
+    return fert ? fert.unit : 'ml'
+  }
+
   const handleOpenCarousel = () => {
     if (photos.length > 0) {
       setIsCarouselOpen(true)
@@ -334,7 +341,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                           {getFertilizerTypeName(lastFertilizing.fertilizer_type_id)}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {lastFertilizing.amount} {lastFertilizing.amount ? 'ml' : ''}
+                          {lastFertilizing.amount} {lastFertilizing.amount ? getFertilizerUnit(lastFertilizing.fertilizer_type_id) : ''}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           {new Date(lastFertilizing.date).toLocaleDateString('fr-FR')}
