@@ -164,6 +164,38 @@ export const lookupsAPI = {
       throw error
     }
   },
+  getUnits: async () => {
+    try {
+      return await api.get('/lookups/units')
+    } catch (error) {
+      console.error('Error fetching units:', error)
+      throw error
+    }
+  },
+  createUnit: async (data) => {
+    try {
+      return await api.post('/lookups/units', data)
+    } catch (error) {
+      console.error('Error creating unit:', error)
+      throw error
+    }
+  },
+  updateUnit: async (id, data) => {
+    try {
+      return await api.put(`/lookups/units/${id}`, data)
+    } catch (error) {
+      console.error('Error updating unit:', error)
+      throw error
+    }
+  },
+  deleteUnit: async (id) => {
+    try {
+      return await api.delete(`/lookups/units/${id}`)
+    } catch (error) {
+      console.error('Error deleting unit:', error)
+      throw error
+    }
+  },
 }
 
 // Import photo API

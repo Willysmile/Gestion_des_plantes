@@ -9,12 +9,55 @@ from typing import List
 
 from app.utils.db import get_db
 from app.services.settings_service import SettingsService
+from app.services.lookup_service import UnitService, FertilizerTypeService
+from app.schemas.lookup_schema import UnitCreate, UnitUpdate, UnitResponse, FertilizerTypeCreate, FertilizerTypeUpdate, FertilizerTypeResponse
 
 
 router = APIRouter(
     prefix="/api/lookups",
     tags=["lookups"],
 )
+
+
+# ===== UNITS (NEW) =====
+
+@router.get("/units", response_model=List[UnitResponse])
+async def list_units(db: Session = Depends(get_db)):
+    """Récupère toutes les unités"""
+    return UnitService.get_all(db)
+
+
+@router.get("/units/{unit_id}", response_model=UnitResponse)
+async def get_unit(unit_id: int, db: Session = Depends(get_db)):
+    """Récupère une unité par ID"""
+    unit = UnitService.get_by_id(db, unit_id)
+    if not unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    return unit
+
+
+@router.post("/units", response_model=UnitResponse)
+async def create_unit(unit: UnitCreate, db: Session = Depends(get_db)):
+    """Crée une nouvelle unité"""
+    return UnitService.create(db, unit)
+
+
+@router.put("/units/{unit_id}", response_model=UnitResponse)
+async def update_unit(unit_id: int, unit: UnitUpdate, db: Session = Depends(get_db)):
+    """Modifie une unité"""
+    db_unit = UnitService.update(db, unit_id, unit)
+    if not db_unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    return db_unit
+
+
+@router.delete("/units/{unit_id}")
+async def delete_unit(unit_id: int, db: Session = Depends(get_db)):
+    """Supprime une unité"""
+    db_unit = UnitService.delete(db, unit_id)
+    if not db_unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    return {"detail": "Unit deleted successfully"}
 
 
 # ===== LOCATIONS =====
@@ -61,6 +104,30 @@ async def list_fertilizer_types(
     """Récupère tous les types d'engrais"""
     fertilizers = SettingsService.get_fertilizer_types(db)
     return [{"id": f.id, "name": f.name, "unit": f.unit, "description": f.description} for f in fertilizers]
+
+
+@router.post("/fertilizer-types", response_model=FertilizerTypeResponse)
+async def create_fertilizer_type(fertilizer: FertilizerTypeCreate, db: Session = Depends(get_db)):
+    """Crée un nouveau type d'engrais"""
+    return FertilizerTypeService.create(db, fertilizer)
+
+
+@router.put("/fertilizer-types/{fert_id}", response_model=FertilizerTypeResponse)
+async def update_fertilizer_type(fert_id: int, fertilizer: FertilizerTypeUpdate, db: Session = Depends(get_db)):
+    """Modifie un type d'engrais"""
+    db_fert = FertilizerTypeService.update(db, fert_id, fertilizer)
+    if not db_fert:
+        raise HTTPException(status_code=404, detail="Fertilizer type not found")
+    return db_fert
+
+
+@router.delete("/fertilizer-types/{fert_id}")
+async def delete_fertilizer_type(fert_id: int, db: Session = Depends(get_db)):
+    """Supprime un type d'engrais"""
+    db_fert = FertilizerTypeService.delete(db, fert_id)
+    if not db_fert:
+        raise HTTPException(status_code=404, detail="Fertilizer type not found")
+    return {"detail": "Fertilizer type deleted successfully"}
 
 
 # ===== DISEASE TYPES =====

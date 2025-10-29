@@ -3,6 +3,31 @@ from typing import Optional
 from datetime import datetime
 
 
+# Unit schemas
+class UnitCreate(BaseModel):
+    name: str
+    symbol: str
+    description: Optional[str] = None
+
+
+class UnitUpdate(BaseModel):
+    name: Optional[str] = None
+    symbol: Optional[str] = None
+    description: Optional[str] = None
+
+
+class UnitResponse(BaseModel):
+    id: int
+    name: str
+    symbol: str
+    description: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # Disease Type schemas
 class DiseaseTypeCreate(BaseModel):
     name: str

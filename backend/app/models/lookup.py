@@ -1,6 +1,12 @@
 from sqlalchemy import Column, String, Integer, Text
 from app.models.base import BaseModel
 
+class Unit(BaseModel):
+    __tablename__ = "units"
+    name = Column(String(50), unique=True, nullable=False)
+    symbol = Column(String(20), nullable=False)
+    description = Column(Text, nullable=True)
+
 class Location(BaseModel):
     __tablename__ = "locations"
     name = Column(String(100), unique=True, nullable=False)

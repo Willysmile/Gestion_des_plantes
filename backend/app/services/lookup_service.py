@@ -1,11 +1,48 @@
 from sqlalchemy.orm import Session
-from app.models.lookup import DiseaseType, TreatmentType, PlantHealthStatus, FertilizerType
+from app.models.lookup import Unit, DiseaseType, TreatmentType, PlantHealthStatus, FertilizerType
 from app.schemas.lookup_schema import (
+    UnitCreate, UnitUpdate, UnitResponse,
     DiseaseTypeCreate, DiseaseTypeUpdate, DiseaseTypeResponse,
     TreatmentTypeCreate, TreatmentTypeUpdate, TreatmentTypeResponse,
     PlantHealthStatusCreate, PlantHealthStatusUpdate, PlantHealthStatusResponse,
     FertilizerTypeCreate, FertilizerTypeUpdate, FertilizerTypeResponse
 )
+
+
+class UnitService:
+    @staticmethod
+    def get_all(db: Session):
+        return db.query(Unit).all()
+
+    @staticmethod
+    def get_by_id(db: Session, unit_id: int):
+        return db.query(Unit).filter(Unit.id == unit_id).first()
+
+    @staticmethod
+    def create(db: Session, unit: UnitCreate):
+        db_unit = Unit(**unit.dict())
+        db.add(db_unit)
+        db.commit()
+        db.refresh(db_unit)
+        return db_unit
+
+    @staticmethod
+    def update(db: Session, unit_id: int, unit: UnitUpdate):
+        db_unit = db.query(Unit).filter(Unit.id == unit_id).first()
+        if db_unit:
+            for key, value in unit.dict(exclude_unset=True).items():
+                setattr(db_unit, key, value)
+            db.commit()
+            db.refresh(db_unit)
+        return db_unit
+
+    @staticmethod
+    def delete(db: Session, unit_id: int):
+        db_unit = db.query(Unit).filter(Unit.id == unit_id).first()
+        if db_unit:
+            db.delete(db_unit)
+            db.commit()
+        return db_unit
 
 
 class DiseaseTypeService:

@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.config import get_db
 from app.services.lookup_service import (
-    DiseaseTypeService, TreatmentTypeService, PlantHealthStatusService, FertilizerTypeService
+    UnitService, DiseaseTypeService, TreatmentTypeService, PlantHealthStatusService, FertilizerTypeService
 )
 from app.schemas.lookup_schema import (
+    UnitCreate, UnitUpdate, UnitResponse,
     DiseaseTypeCreate, DiseaseTypeUpdate, DiseaseTypeResponse,
     TreatmentTypeCreate, TreatmentTypeUpdate, TreatmentTypeResponse,
     PlantHealthStatusCreate, PlantHealthStatusUpdate, PlantHealthStatusResponse,
@@ -12,6 +13,41 @@ from app.schemas.lookup_schema import (
 )
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
+
+
+# Unit routes
+@router.get("/units", response_model=list[UnitResponse])
+async def get_units(db: Session = Depends(get_db)):
+    return UnitService.get_all(db)
+
+
+@router.get("/units/{unit_id}", response_model=UnitResponse)
+async def get_unit(unit_id: int, db: Session = Depends(get_db)):
+    unit = UnitService.get_by_id(db, unit_id)
+    if not unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    return unit
+
+
+@router.post("/units", response_model=UnitResponse)
+async def create_unit(unit: UnitCreate, db: Session = Depends(get_db)):
+    return UnitService.create(db, unit)
+
+
+@router.put("/units/{unit_id}", response_model=UnitResponse)
+async def update_unit(unit_id: int, unit: UnitUpdate, db: Session = Depends(get_db)):
+    db_unit = UnitService.update(db, unit_id, unit)
+    if not db_unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    return db_unit
+
+
+@router.delete("/units/{unit_id}")
+async def delete_unit(unit_id: int, db: Session = Depends(get_db)):
+    db_unit = UnitService.delete(db, unit_id)
+    if not db_unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    return {"detail": "Unit deleted successfully"}
 
 
 # Disease Type routes
