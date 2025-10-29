@@ -140,6 +140,14 @@ export const lookupsAPI = {
       throw error
     }
   },
+  getDiseaseTypes: async () => {
+    try {
+      return await api.get('/lookups/disease-types')
+    } catch (error) {
+      console.error('Error fetching disease types:', error)
+      throw error
+    }
+  },
   createFertilizerType: async (data) => {
     try {
       return await api.post('/lookups/fertilizer-types', data)

@@ -29,6 +29,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     wateringFrequencies: [],
     lightRequirements: [],
     fertilizerTypes: [],
+    diseaseTypes: [],
   })
 
   // Charger la plante complète depuis l'API
@@ -70,15 +71,17 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   const loadLookups = async () => {
     try {
-      const [freqRes, lightRes, fertRes] = await Promise.all([
+      const [freqRes, lightRes, fertRes, diseaseRes] = await Promise.all([
         lookupsAPI.getWateringFrequencies(),
         lookupsAPI.getLightRequirements(),
         lookupsAPI.getFertilizerTypes(),
+        lookupsAPI.getDiseaseTypes(),
       ])
       setLookups({
         wateringFrequencies: freqRes.data || [],
         lightRequirements: lightRes.data || [],
         fertilizerTypes: fertRes.data || [],
+        diseaseTypes: diseaseRes.data || [],
       })
     } catch (err) {
       console.error('Error loading lookups:', err)
@@ -186,6 +189,25 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     return fert ? fert.unit : 'ml'
   }
 
+  // Pluraliser une unité (ex: "1 ml" vs "2 ml")
+  const pluralizeUnit = (unit, amount) => {
+    if (!amount || amount === 1) return unit
+    // Certaines unités ont des formes plurielles en français
+    const plurals = {
+      'bâton': 'bâtons',
+      'pastille': 'pastilles',
+      'cuillère': 'cuillères',
+      'dose': 'doses',
+      'unité': 'unités'
+    }
+    return plurals[unit] || unit
+  }
+
+  // Pluraliser "cm" dans les tailles de pots
+  const pluralizeCm = (count) => {
+    return count === 1 ? 'cm' : 'cm'
+  }
+
   const handleOpenCarousel = () => {
     if (photos.length > 0) {
       setIsCarouselOpen(true)
@@ -202,6 +224,23 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     if (!plant.light_requirement_id) return '[Placeholder]'
     const light = lookups.lightRequirements.find(l => l.id === plant.light_requirement_id)
     return light?.name || '[Placeholder]'
+  }
+
+  // Obtenir le nom du type de maladie par ID
+  const getDiseaseName = (diseaseTypeId) => {
+    if (!diseaseTypeId) return 'N/A'
+    const disease = lookups.diseaseTypes?.find(d => d.id === diseaseTypeId)
+    return disease ? disease.name : 'Type inconnu'
+  }
+
+  // Obtenir la traduction de l'état de santé
+  const getHealthStatusName = (healthStatusId) => {
+    const statuses = {
+      'healthy': 'Saine',
+      'recovering': 'En récupération',
+      'affected': 'Affectée'
+    }
+    return statuses[healthStatusId] || healthStatusId
   }
 
   // Galerie: max 2 photos, excluant la photo principale
@@ -341,7 +380,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                           {getFertilizerTypeName(lastFertilizing.fertilizer_type_id)}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {lastFertilizing.amount} {lastFertilizing.amount ? getFertilizerUnit(lastFertilizing.fertilizer_type_id) : ''}
+                          {lastFertilizing.amount} {lastFertilizing.amount ? pluralizeUnit(getFertilizerUnit(lastFertilizing.fertilizer_type_id), lastFertilizing.amount) : ''}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           {new Date(lastFertilizing.date).toLocaleDateString('fr-FR')}
@@ -375,6 +414,18 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                         'Aucun rempotage'
                       )}
                     </p>
+                    {lastRepotting && (
+                      <>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Pot: {lastRepotting.pot_size_before || '?'}{pluralizeCm(lastRepotting.pot_size_before)} → {lastRepotting.pot_size_after || '?'}{pluralizeCm(lastRepotting.pot_size_after)}
+                        </p>
+                        {lastRepotting.soil_type && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Substrat: {lastRepotting.soil_type}
+                          </p>
+                        )}
+                      </>
+                    )}
                   </div>
                   <Flower2 className="absolute bottom-2 left-2 w-5 h-5 text-yellow-500" />
                   <button
@@ -393,13 +444,21 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                     Maladie
                   </Link>
                   <div className="text-center flex-1 mt-2">
-                    <p className="text-xs text-gray-600 font-medium">
-                      {lastDisease ? (
-                        new Date(lastDisease.date).toLocaleDateString('fr-FR')
-                      ) : (
-                        'Aucune maladie'
-                      )}
-                    </p>
+                    {lastDisease ? (
+                      <>
+                        <p className="text-xs text-gray-600 font-medium">
+                          {getDiseaseName(lastDisease.disease_type_id)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          État: {getHealthStatusName(lastDisease.current_status)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(lastDisease.date).toLocaleDateString('fr-FR')}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-xs text-gray-600">Aucune maladie</p>
+                    )}
                   </div>
                   <AlertCircle className="absolute bottom-2 left-2 w-5 h-5 text-red-500" />
                   <button
