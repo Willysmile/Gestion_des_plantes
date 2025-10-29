@@ -9,6 +9,7 @@ from app.models.lookup import (
     PurchasePlace,
     WateringFrequency,
     LightRequirement,
+    Unit,
     FertilizerType,
     DiseaseType,
     TreatmentType,
@@ -92,6 +93,28 @@ def seed_light_requirements(db: Session) -> None:
     db.commit()
 
 
+def seed_units(db: Session) -> None:
+    """Pré-remplit les unités"""
+    units = [
+        Unit(name="millilitre", symbol="ml", description="Unité de volume"),
+        Unit(name="litre", symbol="L", description="Unité de volume"),
+        Unit(name="centimètre cube", symbol="cm³", description="Unité de volume"),
+        Unit(name="gramme", symbol="g", description="Unité de poids"),
+        Unit(name="kilogramme", symbol="kg", description="Unité de poids"),
+        Unit(name="cuillère", symbol="c.", description="Mesure à la cuillère"),
+        Unit(name="bâton", symbol="bâton", description="Engrais en forme de bâton"),
+        Unit(name="pastille", symbol="pastille", description="Engrais en forme de pastille"),
+        Unit(name="dose", symbol="dose", description="Une dose"),
+        Unit(name="unité", symbol="unité", description="Unité générique"),
+    ]
+    
+    for unit in units:
+        if not db.query(Unit).filter(Unit.name == unit.name).first():
+            db.add(unit)
+    
+    db.commit()
+
+
 def seed_fertilizer_types(db: Session) -> None:
     """Pré-remplit les types d'engrais"""
     types = [
@@ -110,6 +133,7 @@ def seed_fertilizer_types(db: Session) -> None:
             db.add(fert)
     
     db.commit()
+
 
 
 def seed_disease_types(db: Session) -> None:
@@ -187,6 +211,9 @@ def seed_all(db: Session) -> None:
     seed_light_requirements(db)
     print("✅ Light requirements seeded")
     
+    seed_units(db)
+    print("✅ Units seeded")
+
     seed_fertilizer_types(db)
     print("✅ Fertilizer types seeded")
 
