@@ -132,6 +132,14 @@ export const lookupsAPI = {
       throw error
     }
   },
+  getFertilizerTypes: async () => {
+    try {
+      return await api.get('/settings/fertilizer-types')
+    } catch (error) {
+      console.error('Error fetching fertilizer types:', error)
+      throw error
+    }
+  },
 }
 
 // Import photo API

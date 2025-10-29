@@ -36,12 +36,18 @@ class DiseaseHistory(BaseModel):
     plant_id = Column(Integer, ForeignKey("plants.id"), nullable=False)
     date = Column(Date, nullable=False)
     disease_name = Column(String(100), nullable=False)
+    disease_type_id = Column(Integer, ForeignKey("disease_types.id"), nullable=True)
     treatment = Column(String(255))
+    treatment_type_id = Column(Integer, ForeignKey("treatment_types.id"), nullable=True)
     treated_date = Column(Date)
     recovered = Column(Boolean, default=False)
+    health_status_id = Column(Integer, ForeignKey("plant_health_statuses.id"), nullable=True)
     notes = Column(Text)
     deleted_at = Column(DateTime, nullable=True)
     plant = relationship("Plant", back_populates="disease_histories")
+    disease_type = relationship("DiseaseType")
+    treatment_type = relationship("TreatmentType")
+    health_status = relationship("PlantHealthStatus")
 
 class PlantHistory(BaseModel):
     __tablename__ = "plant_histories"

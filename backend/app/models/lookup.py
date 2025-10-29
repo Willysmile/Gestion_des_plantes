@@ -25,3 +25,19 @@ class FertilizerType(BaseModel):
     __tablename__ = "fertilizer_types"
     name = Column(String(100), unique=True, nullable=False)
     description = Column(Text, nullable=True)
+    unit = Column(String(50), nullable=False, default="ml")  # ml, g, cuillère, etc.
+
+class DiseaseType(BaseModel):
+    __tablename__ = "disease_types"
+    name = Column(String(100), unique=True, nullable=False)
+    description = Column(Text, nullable=True)
+
+class TreatmentType(BaseModel):
+    __tablename__ = "treatment_types"
+    name = Column(String(100), unique=True, nullable=False)
+    description = Column(Text, nullable=True)
+
+class PlantHealthStatus(BaseModel):
+    __tablename__ = "plant_health_statuses"
+    name = Column(String(50), unique=True, nullable=False)
+    description = Column(Text, nullable=True)

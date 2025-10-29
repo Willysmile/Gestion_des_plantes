@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
-import { X, Edit, Droplet, Sun, Eye } from 'lucide-react'
+import { X, Edit, Droplet, Sun, Eye, Leaf, Flower2, AlertCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { photosAPI, lookupsAPI, plantsAPI } from '../lib/api'
 import api from '../lib/api'
 import PhotoCarousel from './PhotoCarousel'
 import WateringHistory from './WateringHistory'
 import { WateringFormModal } from './WateringFormModal'
+import { FertilizingFormModal } from './FertilizingFormModal'
+import { RepottingFormModal } from './RepottingFormModal'
+import { DiseaseFormModal } from './DiseaseFormModal'
 import { useModal } from '../contexts/ModalContext'
 
 export default function PlantDetailModal({ plant: initialPlant, onClose }) {
@@ -16,9 +19,16 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   const [isCarouselOpen, setIsCarouselOpen] = useState(false)
   const [lastWatering, setLastWatering] = useState(null)
   const [showWateringForm, setShowWateringForm] = useState(false)
+  const [lastFertilizing, setLastFertilizing] = useState(null)
+  const [showFertilizingForm, setShowFertilizingForm] = useState(false)
+  const [lastRepotting, setLastRepotting] = useState(null)
+  const [showRepottingForm, setShowRepottingForm] = useState(false)
+  const [lastDisease, setLastDisease] = useState(null)
+  const [showDiseaseForm, setShowDiseaseForm] = useState(false)
   const [lookups, setLookups] = useState({
     wateringFrequencies: [],
     lightRequirements: [],
+    fertilizerTypes: [],
   })
 
   // Charger la plante complète depuis l'API
@@ -41,7 +51,17 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   }, [plant.id])
 
   useEffect(() => {
-    loadLastWatering()
+    if (plant.id) {
+      loadLastWatering()
+    }
+  }, [plant.id])
+
+  useEffect(() => {
+    if (plant.id) {
+      loadLastFertilizing()
+      loadLastRepotting()
+      loadLastDisease()
+    }
   }, [plant.id])
 
   useEffect(() => {
@@ -50,13 +70,15 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   const loadLookups = async () => {
     try {
-      const [freqRes, lightRes] = await Promise.all([
+      const [freqRes, lightRes, fertRes] = await Promise.all([
         lookupsAPI.getWateringFrequencies(),
         lookupsAPI.getLightRequirements(),
+        lookupsAPI.getFertilizerTypes(),
       ])
       setLookups({
         wateringFrequencies: freqRes.data || [],
         lightRequirements: lightRes.data || [],
+        fertilizerTypes: fertRes.data || [],
       })
     } catch (err) {
       console.error('Error loading lookups:', err)
@@ -80,14 +102,62 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   const loadLastWatering = async () => {
     try {
+      console.log(`🔄 Loading watering history for plant ${plant.id}...`)
       const response = await api.get(`/plants/${plant.id}/watering-history`)
+      console.log('📊 API Response:', response.data)
       if (response.data && response.data.length > 0) {
         // Trier par date décroissante et prendre le premier
-        const sorted = response.data.sort((a, b) => new Date(b.watering_date) - new Date(a.watering_date))
+        const sorted = response.data.sort((a, b) => new Date(b.date) - new Date(a.date))
+        console.log('✅ Last watering after sort:', sorted[0])
         setLastWatering(sorted[0])
+      } else {
+        console.log('⚠️  No watering history found')
+        setLastWatering(null)
       }
     } catch (err) {
-      console.error('Error loading last watering:', err)
+      console.error('❌ Error loading last watering:', err)
+    }
+  }
+
+  const loadLastFertilizing = async () => {
+    try {
+      const response = await api.get(`/plants/${plant.id}/fertilizing-history`)
+      if (response.data && response.data.length > 0) {
+        const sorted = response.data.sort((a, b) => new Date(b.date) - new Date(a.date))
+        setLastFertilizing(sorted[0])
+      } else {
+        setLastFertilizing(null)
+      }
+    } catch (err) {
+      console.error('Error loading last fertilizing:', err)
+    }
+  }
+
+  const loadLastRepotting = async () => {
+    try {
+      const response = await api.get(`/plants/${plant.id}/repotting-history`)
+      if (response.data && response.data.length > 0) {
+        const sorted = response.data.sort((a, b) => new Date(b.date) - new Date(a.date))
+        setLastRepotting(sorted[0])
+      } else {
+        setLastRepotting(null)
+      }
+    } catch (err) {
+      console.error('Error loading last repotting:', err)
+    }
+  }
+
+  const loadLastDisease = async () => {
+    try {
+      const response = await api.get(`/plants/${plant.id}/disease-history`)
+      if (response.data && response.data.length > 0) {
+        const sorted = response.data.sort((a, b) => new Date(b.date) - new Date(a.date))
+        setLastDisease(sorted[0])
+      } else {
+        setLastDisease(null)
+      }
+    } catch (err) {
+      console.error('Error loading last disease:', err)
     }
   }
 
@@ -100,6 +170,13 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
       console.error('Error setting primary photo:', err)
       alert('Erreur lors de la modification')
     }
+  }
+
+  // Obtenir le nom du type d'engrais par ID
+  const getFertilizerTypeName = (fertilizerTypeId) => {
+    if (!fertilizerTypeId) return 'N/A'
+    const fert = lookups.fertilizerTypes.find(f => f.id === fertilizerTypeId)
+    return fert ? fert.name : 'Type inconnu'
   }
 
   const handleOpenCarousel = () => {
@@ -129,7 +206,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     >
       <div
         className="bg-white rounded-lg shadow-lg overflow-hidden"
-        style={{ maxWidth: '2000px', minWidth: '45vw', height: '75vh' }}
+        style={{ maxWidth: '90vw', width: '80vw', height: '90vh' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="h-full flex flex-col">
@@ -184,15 +261,15 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
           </div>
 
           {/* Contenu principal */}
-          <div className="flex-1 overflow-hidden flex p-3 gap-4">
+          <div className="flex-1 overflow-hidden flex flex-col xl:flex-row p-3 gap-4">
             {/* Colonne gauche (1/2) */}
-            <div className="w-1/2 flex flex-col gap-3 overflow-y-auto pr-2">
+            <div className="w-full xl:w-1/2 flex flex-col gap-4 overflow-y-auto pr-3">
               {/* Photo principale */}
               <button
                 onClick={handleOpenCarousel}
                 disabled={!primaryPhoto}
                 className="bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden hover:shadow-lg transition disabled:cursor-not-allowed"
-                style={{ height: '280px' }}
+                style={{ height: '380px' }}
               >
                 {photosLoading ? (
                   <p className="text-gray-400 text-sm">Chargement...</p>
@@ -200,7 +277,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                   <img
                     src={photosAPI.getPhotoUrl(plant.id, primaryPhoto.filename)}
                     alt={plant.name}
-                    style={{ maxHeight: '280px', maxWidth: '100%', objectFit: 'contain', cursor: 'pointer' }}
+                    style={{ height: '100%', width: '100%', objectFit: 'contain', cursor: 'pointer' }}
                   />
                 ) : (
                   <p className="text-gray-400 text-sm">Pas de photo</p>
@@ -217,46 +294,113 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
               {/* Historiques (4 cartes) */}
               <div className="grid grid-cols-4 gap-2">
-                <div className="bg-blue-50 p-2 rounded-lg border-l-4 border-blue-500 relative">
+                <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 relative min-h-28">
                   <Link
                     to={`/plants/${plant.id}/watering-history`}
                     onClick={onClose}
                     className="text-xs font-semibold text-gray-700 hover:text-blue-600 transition block text-center"
                   >
-                    Arrosages
+                    Dernier arrosage
                   </Link>
-                  <div className="mt-1 text-center">
-                    <p className="text-xs text-gray-600">
+                  <div className="text-center flex-1 mt-2">
+                    <p className="text-xs text-gray-600 font-medium">
                       {lastWatering ? (
-                        <>
-                          Dernier: {new Date(lastWatering.date).toLocaleDateString('fr-FR')}
-                          {lastWatering.amount_ml && (
-                            <span className="ml-1 text-blue-600">({lastWatering.amount_ml}ml)</span>
-                          )}
-                        </>
+                        new Date(lastWatering.date).toLocaleDateString('fr-FR')
                       ) : (
                         'Aucun arrosage'
                       )}
                     </p>
                   </div>
+                  <Droplet className="absolute bottom-2 left-2 w-5 h-5 text-blue-500" />
                   <button
                     onClick={() => setShowWateringForm(true)}
-                    className="absolute bottom-1 right-1 px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs transition"
+                    className="absolute bottom-2 right-2 px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs transition"
                   >
                     Créer
                   </button>
                 </div>
-                <div className="bg-green-50 p-2 rounded-lg border-l-4 border-green-500 text-center">
-                  <p className="text-xs font-semibold text-gray-700">Engrais</p>
-                  <p className="text-xs text-gray-600 mt-1">[Placeholder]</p>
+                <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500 relative min-h-28">
+                  <Link
+                    to={`/plants/${plant.id}/fertilizing-history`}
+                    onClick={onClose}
+                    className="text-xs font-semibold text-gray-700 hover:text-green-600 transition block text-center"
+                  >
+                    Dernière fertilisation
+                  </Link>
+                  <div className="text-center flex-1 mt-2">
+                    {lastFertilizing ? (
+                      <>
+                        <p className="text-xs text-gray-600 font-medium">
+                          {getFertilizerTypeName(lastFertilizing.fertilizer_type_id)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {lastFertilizing.amount} {lastFertilizing.amount ? 'ml' : ''}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(lastFertilizing.date).toLocaleDateString('fr-FR')}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-xs text-gray-600">Aucune fertilisation</p>
+                    )}
+                  </div>
+                  <Leaf className="absolute bottom-2 left-2 w-5 h-5 text-green-500" />
+                  <button
+                    onClick={() => setShowFertilizingForm(true)}
+                    className="absolute bottom-2 right-2 px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs transition"
+                  >
+                    Créer
+                  </button>
                 </div>
-                <div className="bg-yellow-50 p-2 rounded-lg border-l-4 border-yellow-500 text-center">
-                  <p className="text-xs font-semibold text-gray-700">Rempotage</p>
-                  <p className="text-xs text-gray-600 mt-1">[Placeholder]</p>
+                <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500 relative min-h-28">
+                  <Link
+                    to={`/plants/${plant.id}/repotting-history`}
+                    onClick={onClose}
+                    className="text-xs font-semibold text-gray-700 hover:text-yellow-600 transition block text-center"
+                  >
+                    Dernier rempotage
+                  </Link>
+                  <div className="text-center flex-1 mt-2">
+                    <p className="text-xs text-gray-600 font-medium">
+                      {lastRepotting ? (
+                        new Date(lastRepotting.date).toLocaleDateString('fr-FR')
+                      ) : (
+                        'Aucun rempotage'
+                      )}
+                    </p>
+                  </div>
+                  <Flower2 className="absolute bottom-2 left-2 w-5 h-5 text-yellow-500" />
+                  <button
+                    onClick={() => setShowRepottingForm(true)}
+                    className="absolute bottom-2 right-2 px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs transition"
+                  >
+                    Créer
+                  </button>
                 </div>
-                <div className="bg-red-50 p-2 rounded-lg border-l-4 border-red-500 text-center">
-                  <p className="text-xs font-semibold text-gray-700">Maladies</p>
-                  <p className="text-xs text-gray-600 mt-1">[Placeholder]</p>
+                <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-500 relative min-h-28">
+                  <Link
+                    to={`/plants/${plant.id}/disease-history`}
+                    onClick={onClose}
+                    className="text-xs font-semibold text-gray-700 hover:text-red-600 transition block text-center"
+                  >
+                    Maladie
+                  </Link>
+                  <div className="text-center flex-1 mt-2">
+                    <p className="text-xs text-gray-600 font-medium">
+                      {lastDisease ? (
+                        new Date(lastDisease.date).toLocaleDateString('fr-FR')
+                      ) : (
+                        'Aucune maladie'
+                      )}
+                    </p>
+                  </div>
+                  <AlertCircle className="absolute bottom-2 left-2 w-5 h-5 text-red-500" />
+                  <button
+                    onClick={() => setShowDiseaseForm(true)}
+                    className="absolute bottom-2 right-2 px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs transition"
+                  >
+                    Créer
+                  </button>
                 </div>
               </div>
 
@@ -280,7 +424,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
             </div>
 
             {/* Colonne droite (1/2) */}
-            <div className="w-1/2 flex flex-col">
+            <div className="w-full xl:w-1/2 flex flex-col">
               {/* Cartes scrollables */}
               <div className="overflow-y-auto pr-2 flex-1">
                 <div className="grid grid-cols-2 gap-3">
@@ -426,6 +570,42 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
           onSuccess={() => {
             loadLastWatering()
             setShowWateringForm(false)
+          }}
+        />
+      )}
+
+      {/* Modal formulaire fertilisation */}
+      {showFertilizingForm && (
+        <FertilizingFormModal
+          plantId={plant.id}
+          onClose={() => setShowFertilizingForm(false)}
+          onSuccess={() => {
+            loadLastFertilizing()
+            setShowFertilizingForm(false)
+          }}
+        />
+      )}
+
+      {/* Modal formulaire rempotage */}
+      {showRepottingForm && (
+        <RepottingFormModal
+          plantId={plant.id}
+          onClose={() => setShowRepottingForm(false)}
+          onSuccess={() => {
+            loadLastRepotting()
+            setShowRepottingForm(false)
+          }}
+        />
+      )}
+
+      {/* Modal formulaire maladie */}
+      {showDiseaseForm && (
+        <DiseaseFormModal
+          plantId={plant.id}
+          onClose={() => setShowDiseaseForm(false)}
+          onSuccess={() => {
+            loadLastDisease()
+            setShowDiseaseForm(false)
           }}
         />
       )}

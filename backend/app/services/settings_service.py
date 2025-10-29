@@ -11,7 +11,7 @@ from datetime import datetime
 
 from app.models.lookup import (
     Location, PurchasePlace, WateringFrequency, 
-    LightRequirement, FertilizerType
+    LightRequirement, FertilizerType, DiseaseType, TreatmentType, PlantHealthStatus
 )
 from app.models.tags import Tag, TagCategory
 
@@ -222,9 +222,9 @@ class SettingsService:
     # ===== FERTILIZER TYPES =====
     
     @staticmethod
-    def create_fertilizer_type(db: Session, name: str) -> FertilizerType:
+    def create_fertilizer_type(db: Session, name: str, unit: str = "ml", description: str = None) -> FertilizerType:
         """Crée un nouveau type d'engrais"""
-        fert_type = FertilizerType(name=name)
+        fert_type = FertilizerType(name=name, unit=unit, description=description)
         db.add(fert_type)
         db.commit()
         db.refresh(fert_type)
@@ -249,13 +249,17 @@ class SettingsService:
     def update_fertilizer_type(
         db: Session, 
         fert_type_id: int, 
-        name: str
+        name: str,
+        unit: str = "ml",
+        description: str = None
     ) -> Optional[FertilizerType]:
         """Met à jour un type d'engrais"""
         fert_type = SettingsService.get_fertilizer_type(db, fert_type_id)
         if not fert_type:
             return None
         fert_type.name = name
+        fert_type.unit = unit
+        fert_type.description = description
         db.commit()
         db.refresh(fert_type)
         return fert_type
@@ -381,3 +385,39 @@ class SettingsService:
         db.delete(tag)
         db.commit()
         return True
+
+    # ===== DISEASE TYPES =====
+
+    @staticmethod
+    def get_disease_types(db: Session) -> List[DiseaseType]:
+        """Récupère tous les types de maladies"""
+        return db.query(DiseaseType).all()
+
+    @staticmethod
+    def get_disease_type(db: Session, disease_type_id: int) -> Optional[DiseaseType]:
+        """Récupère un type de maladie par ID"""
+        return db.query(DiseaseType).filter(DiseaseType.id == disease_type_id).first()
+
+    # ===== TREATMENT TYPES =====
+
+    @staticmethod
+    def get_treatment_types(db: Session) -> List[TreatmentType]:
+        """Récupère tous les types de traitement"""
+        return db.query(TreatmentType).all()
+
+    @staticmethod
+    def get_treatment_type(db: Session, treatment_type_id: int) -> Optional[TreatmentType]:
+        """Récupère un type de traitement par ID"""
+        return db.query(TreatmentType).filter(TreatmentType.id == treatment_type_id).first()
+
+    # ===== PLANT HEALTH STATUSES =====
+
+    @staticmethod
+    def get_plant_health_statuses(db: Session) -> List[PlantHealthStatus]:
+        """Récupère tous les états de santé des plantes"""
+        return db.query(PlantHealthStatus).all()
+
+    @staticmethod
+    def get_plant_health_status(db: Session, status_id: int) -> Optional[PlantHealthStatus]:
+        """Récupère un état de santé par ID"""
+        return db.query(PlantHealthStatus).filter(PlantHealthStatus.id == status_id).first()

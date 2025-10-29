@@ -29,6 +29,11 @@ class TagSchema(BaseModel):
     category_id: int
     name: str
 
+class FertilizerTypeSchema(BaseModel):
+    name: str
+    unit: str = "ml"
+    description: Optional[str] = None
+
 
 router = APIRouter(
     prefix="/api/settings",
@@ -228,30 +233,30 @@ async def list_fertilizer_types(
 ):
     """Récupère tous les types d'engrais"""
     types = SettingsService.get_fertilizer_types(db)
-    return [{"id": t.id, "name": t.name} for t in types]
+    return [{"id": t.id, "name": t.name, "unit": t.unit, "description": t.description} for t in types]
 
 
 @router.post("/fertilizer-types", status_code=201)
 async def create_fertilizer_type(
-    data: NameSchema,
+    data: FertilizerTypeSchema,
     db: Session = Depends(get_db),
 ):
     """Crée un nouveau type d'engrais"""
-    fert_type = SettingsService.create_fertilizer_type(db, data.name)
-    return {"id": fert_type.id, "name": fert_type.name}
+    fert_type = SettingsService.create_fertilizer_type(db, data.name, data.unit, data.description)
+    return {"id": fert_type.id, "name": fert_type.name, "unit": fert_type.unit, "description": fert_type.description}
 
 
 @router.put("/fertilizer-types/{fert_type_id}")
 async def update_fertilizer_type(
     fert_type_id: int,
-    data: NameSchema,
+    data: FertilizerTypeSchema,
     db: Session = Depends(get_db),
 ):
     """Met à jour un type d'engrais"""
-    fert_type = SettingsService.update_fertilizer_type(db, fert_type_id, data.name)
+    fert_type = SettingsService.update_fertilizer_type(db, fert_type_id, data.name, data.unit, data.description)
     if not fert_type:
         raise HTTPException(status_code=404, detail="Type d'engrais non trouvé")
-    return {"id": fert_type.id, "name": fert_type.name}
+    return {"id": fert_type.id, "name": fert_type.name, "unit": fert_type.unit, "description": fert_type.description}
 
 
 @router.delete("/fertilizer-types/{fert_type_id}", status_code=204)

@@ -10,6 +10,9 @@ from app.models.lookup import (
     WateringFrequency,
     LightRequirement,
     FertilizerType,
+    DiseaseType,
+    TreatmentType,
+    PlantHealthStatus,
 )
 
 
@@ -92,19 +95,78 @@ def seed_light_requirements(db: Session) -> None:
 def seed_fertilizer_types(db: Session) -> None:
     """Pré-remplit les types d'engrais"""
     types = [
-        FertilizerType(name="NPK équilibré (10-10-10)", description="Engrais équilibré pour usage général"),
-        FertilizerType(name="NPK riche en Azote (20-5-5)", description="Pour feuillage luxuriant"),
-        FertilizerType(name="NPK riche en Potassium (5-10-20)", description="Pour fleurs et fruits"),
-        FertilizerType(name="Engrais bio", description="Engrais organique naturel"),
-        FertilizerType(name="Engrais liquide", description="Engrais dilué à l'eau"),
-        FertilizerType(name="Bâtons d'engrais", description="Engrais à libération lente"),
-        FertilizerType(name="Compost", description="Compost maison ou acheté"),
-        FertilizerType(name="Engrais foliaire", description="À pulvériser sur les feuilles"),
+        FertilizerType(name="NPK équilibré (10-10-10)", description="Engrais équilibré pour usage général", unit="ml"),
+        FertilizerType(name="NPK riche en Azote (20-5-5)", description="Pour feuillage luxuriant", unit="ml"),
+        FertilizerType(name="NPK riche en Potassium (5-10-20)", description="Pour fleurs et fruits", unit="ml"),
+        FertilizerType(name="Engrais bio", description="Engrais organique naturel", unit="g"),
+        FertilizerType(name="Engrais liquide", description="Engrais dilué à l'eau", unit="ml"),
+        FertilizerType(name="Bâtons d'engrais", description="Engrais à libération lente", unit="unité"),
+        FertilizerType(name="Compost", description="Compost maison ou acheté", unit="L"),
+        FertilizerType(name="Engrais foliaire", description="À pulvériser sur les feuilles", unit="ml"),
     ]
     
     for fert in types:
         if not db.query(FertilizerType).filter(FertilizerType.name == fert.name).first():
             db.add(fert)
+    
+    db.commit()
+
+
+def seed_disease_types(db: Session) -> None:
+    """Pré-remplit les types de maladies"""
+    disease_types = [
+        DiseaseType(name="Oïdium", description="Maladie fongique blanche poudreuse"),
+        DiseaseType(name="Mildiou", description="Maladie fongique due à l'humidité"),
+        DiseaseType(name="Rouille", description="Maladie fongique avec taches rouilles"),
+        DiseaseType(name="Pourriture", description="Décomposition des tissus"),
+        DiseaseType(name="Pourriture racinaire", description="Pourritures des racines par excès d'eau"),
+        DiseaseType(name="Tétranyque", description="Acarien nuisible"),
+        DiseaseType(name="Cochenille", description="Insecte parasite"),
+        DiseaseType(name="Mouche blanche", description="Petit insecte blanc"),
+        DiseaseType(name="Pucerons", description="Petits insectes suceurs de sève"),
+    ]
+    
+    for dt in disease_types:
+        if not db.query(DiseaseType).filter(DiseaseType.name == dt.name).first():
+            db.add(dt)
+    
+    db.commit()
+
+
+def seed_treatment_types(db: Session) -> None:
+    """Pré-remplit les types de traitement"""
+    treatment_types = [
+        TreatmentType(name="Fongicide", description="Traitement contre les maladies fongiques"),
+        TreatmentType(name="Insecticide", description="Traitement contre les insectes"),
+        TreatmentType(name="Nettoyage", description="Nettoyage manuel des zones affectées"),
+        TreatmentType(name="Isolation", description="Isoler la plante pour éviter la contamination"),
+        TreatmentType(name="Eau savonneuse", description="Solution d'eau et savon"),
+        TreatmentType(name="Huile de neem", description="Traitement naturel à base d'huile de neem"),
+        TreatmentType(name="Sulfate de cuivre", description="Fongicide à base de cuivre"),
+        TreatmentType(name="Extraction", description="Supprimer les parties affectées"),
+    ]
+    
+    for tt in treatment_types:
+        if not db.query(TreatmentType).filter(TreatmentType.name == tt.name).first():
+            db.add(tt)
+    
+    db.commit()
+
+
+def seed_plant_health_statuses(db: Session) -> None:
+    """Pré-remplit les états de santé des plantes"""
+    statuses = [
+        PlantHealthStatus(name="Sain", description="Plante en bonne santé"),
+        PlantHealthStatus(name="Malade", description="Plante atteinte d'une maladie"),
+        PlantHealthStatus(name="Rétablie", description="Plante ayant récupéré"),
+        PlantHealthStatus(name="Critique", description="État critique, intervention urgente requise"),
+        PlantHealthStatus(name="En traitement", description="Plante en cours de traitement"),
+        PlantHealthStatus(name="En convalescence", description="Plante en période de récupération"),
+    ]
+    
+    for status in statuses:
+        if not db.query(PlantHealthStatus).filter(PlantHealthStatus.name == status.name).first():
+            db.add(status)
     
     db.commit()
 
@@ -127,5 +189,15 @@ def seed_all(db: Session) -> None:
     
     seed_fertilizer_types(db)
     print("✅ Fertilizer types seeded")
+
+    seed_disease_types(db)
+    print("✅ Disease types seeded")
+
+    seed_treatment_types(db)
+    print("✅ Treatment types seeded")
+
+    seed_plant_health_statuses(db)
+    print("✅ Plant health statuses seeded")
     
     print("✅ All lookups seeded successfully!")
+
