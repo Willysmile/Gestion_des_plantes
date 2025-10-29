@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useFertilizingHistory } from '../hooks/useFertilizingHistory'
 import { lookupsAPI } from '../lib/api'
+import { getTodayDateString } from '../utils/dateUtils'
 
 export function FertilizingFormModal({ plantId, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export function FertilizingFormModal({ plantId, onClose, onSuccess }) {
   const [selectedFertilizer, setSelectedFertilizer] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
   const { addFertilizing } = useFertilizingHistory(plantId)
 
   // Charger les types d'engrais au montage
@@ -34,6 +36,7 @@ export function FertilizingFormModal({ plantId, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError(null)
 
     try {
       await addFertilizing({
@@ -47,6 +50,16 @@ export function FertilizingFormModal({ plantId, onClose, onSuccess }) {
       onClose()
     } catch (error) {
       console.error('Erreur lors de l\'ajout de la fertilisation:', error)
+      if (error.response?.data?.detail) {
+        setError(error.response.data.detail)
+      } else if (error.response?.data) {
+        const firstError = Array.isArray(error.response.data) 
+          ? error.response.data[0]?.msg 
+          : error.response.data.detail
+        setError(firstError || 'Erreur lors de l\'ajout de la fertilisation')
+      } else {
+        setError('Erreur lors de l\'ajout de la fertilisation')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -74,6 +87,11 @@ export function FertilizingFormModal({ plantId, onClose, onSuccess }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Date <span className="text-red-500">*</span>
@@ -83,6 +101,7 @@ export function FertilizingFormModal({ plantId, onClose, onSuccess }) {
               name="date"
               value={formData.date}
               onChange={handleChange}
+              max={getTodayDateString()}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             />

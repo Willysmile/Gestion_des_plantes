@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useDiseaseHistory } from '../hooks/useDiseaseHistory'
+import { getTodayDateString } from '../utils/dateUtils'
 
 const API_BASE = 'http://127.0.0.1:8002/api'
 
@@ -19,6 +20,7 @@ export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
   const [treatmentTypes, setTreatmentTypes] = useState([])
   const [healthStatuses, setHealthStatuses] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const { addDisease } = useDiseaseHistory(plantId)
 
   // Charger les lookups au montage
@@ -46,6 +48,7 @@ export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError(null)
 
     try {
       await addDisease({
@@ -62,6 +65,16 @@ export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
       onClose()
     } catch (error) {
       console.error('Erreur lors de l\'ajout de la maladie:', error)
+      if (error.response?.data?.detail) {
+        setError(error.response.data.detail)
+      } else if (error.response?.data) {
+        const firstError = Array.isArray(error.response.data) 
+          ? error.response.data[0]?.msg 
+          : error.response.data.detail
+        setError(firstError || 'Erreur lors de l\'ajout de la maladie')
+      } else {
+        setError('Erreur lors de l\'ajout de la maladie')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -83,6 +96,11 @@ export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Date <span className="text-red-500">*</span>
@@ -92,6 +110,7 @@ export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
               name="date"
               value={formData.date}
               onChange={handleChange}
+              max={getTodayDateString()}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             />
@@ -161,6 +180,7 @@ export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
               name="treated_date"
               value={formData.treated_date}
               onChange={handleChange}
+              max={getTodayDateString()}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>

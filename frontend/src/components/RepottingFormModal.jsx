@@ -1,26 +1,31 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { useRepottingHistory } from '../hooks/useRepottingHistory'
+import { getTodayDateString } from '../utils/dateUtils'
 
 export function RepottingFormModal({ plantId, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     soil_type: '',
-    pot_size: '',
+    pot_size_before: '',
+    pot_size_after: '',
     notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState(null)
   const { addRepotting } = useRepottingHistory(plantId)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError(null)
 
     try {
       await addRepotting({
         date: formData.date,
         soil_type: formData.soil_type,
-        pot_size: formData.pot_size,
+        pot_size_before: formData.pot_size_before,
+        pot_size_after: formData.pot_size_after,
         notes: formData.notes
       })
 
@@ -28,6 +33,16 @@ export function RepottingFormModal({ plantId, onClose, onSuccess }) {
       onClose()
     } catch (error) {
       console.error('Erreur lors de l\'ajout du rempotage:', error)
+      if (error.response?.data?.detail) {
+        setError(error.response.data.detail)
+      } else if (error.response?.data) {
+        const firstError = Array.isArray(error.response.data) 
+          ? error.response.data[0]?.msg 
+          : error.response.data.detail
+        setError(firstError || 'Erreur lors de l\'ajout du rempotage')
+      } else {
+        setError('Erreur lors de l\'ajout du rempotage')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -49,6 +64,11 @@ export function RepottingFormModal({ plantId, onClose, onSuccess }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Date <span className="text-red-500">*</span>
@@ -58,6 +78,7 @@ export function RepottingFormModal({ plantId, onClose, onSuccess }) {
               name="date"
               value={formData.date}
               onChange={handleChange}
+              max={getTodayDateString()}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
             />
@@ -79,13 +100,27 @@ export function RepottingFormModal({ plantId, onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Taille du pot
+              Taille du pot avant rempotage
             </label>
             <input
               type="text"
-              name="pot_size"
+              name="pot_size_before"
               placeholder="Ex: 20cm"
-              value={formData.pot_size}
+              value={formData.pot_size_before}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Taille du pot après rempotage
+            </label>
+            <input
+              type="text"
+              name="pot_size_after"
+              placeholder="Ex: 25cm"
+              value={formData.pot_size_after}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
             />
