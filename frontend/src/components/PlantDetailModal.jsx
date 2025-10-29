@@ -194,16 +194,20 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   // Pluraliser une unité (ex: "1 ml" vs "2 ml")
   const pluralizeUnit = (unit, amount) => {
-    if (!amount || amount === 1) return unit
+    // Remplacer "unité" par "bâton d'engrais"
+    let displayUnit = unit === 'unité' ? 'bâton d\'engrais' : unit
+    
+    if (!amount || amount === 1) return displayUnit
     // Certaines unités ont des formes plurielles en français
     const plurals = {
+      'bâton d\'engrais': 'bâtons d\'engrais',
       'bâton': 'bâtons',
       'pastille': 'pastilles',
       'cuillère': 'cuillères',
       'dose': 'doses',
       'unité': 'unités'
     }
-    return plurals[unit] || unit
+    return plurals[displayUnit] || displayUnit
   }
 
   // Pluraliser "cm" dans les tailles de pots
@@ -340,7 +344,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
               {/* Historiques (4 cartes) */}
               <div className="grid grid-cols-4 gap-2">
-                <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 relative min-h-28">
+                <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 relative min-h-32">
                   <Link
                     to={`/plants/${plant.id}/watering-history`}
                     onClick={onClose}
@@ -365,7 +369,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                     Créer
                   </button>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500 relative min-h-28">
+                <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500 relative min-h-32">
                   <Link
                     to={`/plants/${plant.id}/fertilizing-history`}
                     onClick={onClose}
@@ -385,7 +389,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                           {getFertilizerTypeName(lastFertilizing.fertilizer_type_id)}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {lastFertilizing.amount} {lastFertilizing.amount ? pluralizeUnit(getFertilizerUnit(lastFertilizing.fertilizer_type_id), lastFertilizing.amount) : ''}
+                          {lastFertilizing.amount} {lastFertilizing.amount ? pluralizeUnit(getFertilizerUnit(lastFertilizing.fertilizer_type_id), parseFloat(lastFertilizing.amount)) : ''}
                         </p>
                       </>
                     ) : (
@@ -400,7 +404,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                     Créer
                   </button>
                 </div>
-                <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500 relative min-h-28">
+                <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500 relative min-h-32">
                   <Link
                     to={`/plants/${plant.id}/repotting-history`}
                     onClick={onClose}
@@ -437,7 +441,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                     Créer
                   </button>
                 </div>
-                <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-500 relative min-h-28">
+                <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-500 relative min-h-32">
                   <Link
                     to={`/plants/${plant.id}/disease-history`}
                     onClick={onClose}

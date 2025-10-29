@@ -42,6 +42,24 @@ export default function FertilizingHistory({ plantId }) {
     return fert ? fert.unit : 'ml'
   }
 
+  // Pluraliser une unité (ex: "1 ml" vs "2 ml")
+  const pluralizeUnit = (unit, amount) => {
+    // Remplacer "unité" par "bâton d'engrais"
+    let displayUnit = unit === 'unité' ? 'bâton d\'engrais' : unit
+    
+    if (!amount || amount === 1) return displayUnit
+    // Certaines unités ont des formes plurielles en français
+    const plurals = {
+      'bâton d\'engrais': 'bâtons d\'engrais',
+      'bâton': 'bâtons',
+      'pastille': 'pastilles',
+      'cuillère': 'cuillères',
+      'dose': 'doses',
+      'unité': 'unités'
+    }
+    return plurals[displayUnit] || displayUnit
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
@@ -200,7 +218,7 @@ export default function FertilizingHistory({ plantId }) {
                 <p className="text-xs font-semibold text-gray-900">{getFertilizerTypeName(item.fertilizer_type_id)}</p>
                 <p className="text-xs text-gray-600 mt-1">{new Date(item.date).toLocaleDateString('fr-FR')}</p>
                 {item.amount && (
-                  <p className="text-xs text-gray-600">{item.amount} {getFertilizerUnit(item.fertilizer_type_id)}</p>
+                  <p className="text-xs text-gray-600">{item.amount} {pluralizeUnit(getFertilizerUnit(item.fertilizer_type_id), parseFloat(item.amount))}</p>
                 )}
                 {item.notes && (
                   <p className="text-xs text-gray-500 italic mt-1">{item.notes}</p>

@@ -78,8 +78,8 @@ class FertilizingHistoryResponse(BaseModel):
 class RepottingHistoryCreate(BaseModel):
     date: date
     soil_type: Optional[str] = None
-    pot_size_before: Optional[str] = None
-    pot_size_after: Optional[str] = None
+    pot_size_before: Optional[int] = None
+    pot_size_after: Optional[int] = None
     notes: Optional[str] = None
 
     @field_validator('date')
@@ -91,8 +91,8 @@ class RepottingHistoryCreate(BaseModel):
 class RepottingHistoryUpdate(BaseModel):
     date: Optional[date] = None
     soil_type: Optional[str] = None
-    pot_size_before: Optional[str] = None
-    pot_size_after: Optional[str] = None
+    pot_size_before: Optional[int] = None
+    pot_size_after: Optional[int] = None
     notes: Optional[str] = None
 
     @field_validator('date')
@@ -108,8 +108,8 @@ class RepottingHistoryResponse(BaseModel):
     plant_id: int
     date: date
     soil_type: Optional[str]
-    pot_size_before: Optional[str]
-    pot_size_after: Optional[str]
+    pot_size_before: Optional[int]
+    pot_size_after: Optional[int]
     notes: Optional[str]
     created_at: datetime
     deleted_at: Optional[datetime] = None
