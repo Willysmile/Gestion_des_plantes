@@ -30,6 +30,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     lightRequirements: [],
     fertilizerTypes: [],
     diseaseTypes: [],
+    healthStatuses: [],
   })
 
   // Charger la plante complète depuis l'API
@@ -71,17 +72,19 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   const loadLookups = async () => {
     try {
-      const [freqRes, lightRes, fertRes, diseaseRes] = await Promise.all([
+      const [freqRes, lightRes, fertRes, diseaseRes, healthRes] = await Promise.all([
         lookupsAPI.getWateringFrequencies(),
         lookupsAPI.getLightRequirements(),
         lookupsAPI.getFertilizerTypes(),
         lookupsAPI.getDiseaseTypes(),
+        api.get('/lookups/plant-health-statuses'),
       ])
       setLookups({
         wateringFrequencies: freqRes.data || [],
         lightRequirements: lightRes.data || [],
         fertilizerTypes: fertRes.data || [],
         diseaseTypes: diseaseRes.data || [],
+        healthStatuses: healthRes.data || [],
       })
     } catch (err) {
       console.error('Error loading lookups:', err)
@@ -235,12 +238,9 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   // Obtenir la traduction de l'état de santé
   const getHealthStatusName = (healthStatusId) => {
-    const statuses = {
-      'healthy': 'Saine',
-      'recovering': 'En récupération',
-      'affected': 'Affectée'
-    }
-    return statuses[healthStatusId] || healthStatusId
+    if (!healthStatusId) return 'N/A'
+    const status = lookups.healthStatuses?.find(s => s.id === healthStatusId)
+    return status ? status.name : 'État inconnu'
   }
 
   // Galerie: max 2 photos, excluant la photo principale
@@ -373,6 +373,11 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                   >
                     Dernière fertilisation
                   </Link>
+                  {lastFertilizing && (
+                    <p className="text-xs text-gray-500 text-center mt-0.5">
+                      {new Date(lastFertilizing.date).toLocaleDateString('fr-FR')}
+                    </p>
+                  )}
                   <div className="text-center flex-1 mt-2">
                     {lastFertilizing ? (
                       <>
@@ -381,9 +386,6 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           {lastFertilizing.amount} {lastFertilizing.amount ? pluralizeUnit(getFertilizerUnit(lastFertilizing.fertilizer_type_id), lastFertilizing.amount) : ''}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(lastFertilizing.date).toLocaleDateString('fr-FR')}
                         </p>
                       </>
                     ) : (
@@ -443,18 +445,22 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                   >
                     Maladie
                   </Link>
+                  {lastDisease && (
+                    <p className="text-xs text-gray-500 text-center mt-0.5">
+                      {new Date(lastDisease.date).toLocaleDateString('fr-FR')}
+                    </p>
+                  )}
                   <div className="text-center flex-1 mt-2">
                     {lastDisease ? (
                       <>
                         <p className="text-xs text-gray-600 font-medium">
                           {getDiseaseName(lastDisease.disease_type_id)}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          État: {getHealthStatusName(lastDisease.current_status)}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(lastDisease.date).toLocaleDateString('fr-FR')}
-                        </p>
+                        {lastDisease.health_status_id && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            État: {getHealthStatusName(lastDisease.health_status_id)}
+                          </p>
+                        )}
                       </>
                     ) : (
                       <p className="text-xs text-gray-600">Aucune maladie</p>

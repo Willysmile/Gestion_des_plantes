@@ -24,8 +24,8 @@ export function RepottingFormModal({ plantId, onClose, onSuccess }) {
       await addRepotting({
         date: formData.date,
         soil_type: formData.soil_type,
-        pot_size_before: formData.pot_size_before,
-        pot_size_after: formData.pot_size_after,
+        pot_size_before: formData.pot_size_before ? parseFloat(formData.pot_size_before) : null,
+        pot_size_after: formData.pot_size_after ? parseFloat(formData.pot_size_after) : null,
         notes: formData.notes
       })
 
@@ -100,28 +100,32 @@ export function RepottingFormModal({ plantId, onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Taille du pot avant rempotage
+              Taille du pot avant rempotage (cm)
             </label>
             <input
-              type="text"
+              type="number"
               name="pot_size_before"
-              placeholder="Ex: 20cm"
+              placeholder="Ex: 20"
               value={formData.pot_size_before}
               onChange={handleChange}
+              step="0.5"
+              min="0"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Taille du pot après rempotage
+              Taille du pot après rempotage (cm)
             </label>
             <input
-              type="text"
+              type="number"
               name="pot_size_after"
-              placeholder="Ex: 25cm"
+              placeholder="Ex: 25"
               value={formData.pot_size_after}
               onChange={handleChange}
+              step="0.5"
+              min="0"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
             />
           </div>
