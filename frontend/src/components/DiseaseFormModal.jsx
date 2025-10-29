@@ -1,18 +1,47 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useDiseaseHistory } from '../hooks/useDiseaseHistory'
+
+const API_BASE = 'http://127.0.0.1:8002/api'
 
 export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
-    disease_name: '',
-    treatment: '',
+    disease_type_id: '',
+    treatment_type_id: '',
+    health_status_id: '',
     treated_date: '',
     recovered: false,
     notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [diseaseTypes, setDiseaseTypes] = useState([])
+  const [treatmentTypes, setTreatmentTypes] = useState([])
+  const [healthStatuses, setHealthStatuses] = useState([])
+  const [loading, setLoading] = useState(true)
   const { addDisease } = useDiseaseHistory(plantId)
+
+  // Charger les lookups au montage
+  useEffect(() => {
+    const loadLookups = async () => {
+      try {
+        const [diseaseRes, treatmentRes, healthRes] = await Promise.all([
+          fetch(`${API_BASE}/lookups/disease-types`),
+          fetch(`${API_BASE}/lookups/treatment-types`),
+          fetch(`${API_BASE}/lookups/plant-health-statuses`)
+        ])
+        
+        if (diseaseRes.ok) setDiseaseTypes(await diseaseRes.json())
+        if (treatmentRes.ok) setTreatmentTypes(await treatmentRes.json())
+        if (healthRes.ok) setHealthStatuses(await healthRes.json())
+      } catch (error) {
+        console.error('Erreur lors du chargement des lookups:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadLookups()
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -21,11 +50,12 @@ export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
     try {
       await addDisease({
         date: formData.date,
-        disease_name: formData.disease_name,
-        treatment: formData.treatment,
-        treated_date: formData.treated_date,
+        disease_type_id: formData.disease_type_id ? parseInt(formData.disease_type_id) : null,
+        treatment_type_id: formData.treatment_type_id ? parseInt(formData.treatment_type_id) : null,
+        health_status_id: formData.health_status_id ? parseInt(formData.health_status_id) : null,
+        treated_date: formData.treated_date || null,
         recovered: formData.recovered,
-        notes: formData.notes
+        notes: formData.notes || null
       })
 
       onSuccess?.()
@@ -69,31 +99,57 @@ export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nom de la maladie <span className="text-red-500">*</span>
+              Type de maladie <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              name="disease_name"
-              placeholder="Ex: Mildiou, Rouille..."
-              value={formData.disease_name}
+            <select
+              name="disease_type_id"
+              value={formData.disease_type_id}
               onChange={handleChange}
               required
+              disabled={loading}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
+            >
+              <option value="">-- Sélectionner --</option>
+              {diseaseTypes.map(dt => (
+                <option key={dt.id} value={dt.id}>{dt.name}</option>
+              ))}
+            </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Traitement appliqué
+              Type de traitement
             </label>
-            <input
-              type="text"
-              name="treatment"
-              placeholder="Ex: Fongicide sulfate de cuivre"
-              value={formData.treatment}
+            <select
+              name="treatment_type_id"
+              value={formData.treatment_type_id}
               onChange={handleChange}
+              disabled={loading}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
+            >
+              <option value="">-- Sélectionner (optionnel) --</option>
+              {treatmentTypes.map(tt => (
+                <option key={tt.id} value={tt.id}>{tt.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              État de santé actuel
+            </label>
+            <select
+              name="health_status_id"
+              value={formData.health_status_id}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="">-- Sélectionner (optionnel) --</option>
+              {healthStatuses.map(hs => (
+                <option key={hs.id} value={hs.id}>{hs.name}</option>
+              ))}
+            </select>
           </div>
 
           <div>

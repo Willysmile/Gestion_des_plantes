@@ -35,9 +35,7 @@ class DiseaseHistory(BaseModel):
     __tablename__ = "disease_histories"
     plant_id = Column(Integer, ForeignKey("plants.id"), nullable=False)
     date = Column(Date, nullable=False)
-    disease_name = Column(String(100), nullable=False)
     disease_type_id = Column(Integer, ForeignKey("disease_types.id"), nullable=True)
-    treatment = Column(String(255))
     treatment_type_id = Column(Integer, ForeignKey("treatment_types.id"), nullable=True)
     treated_date = Column(Date)
     recovered = Column(Boolean, default=False)

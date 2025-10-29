@@ -77,17 +77,18 @@ class RepottingHistoryResponse(BaseModel):
 
 class DiseaseHistoryCreate(BaseModel):
     date: date
-    disease_name: str
-    treatment: Optional[str] = None
+    disease_type_id: Optional[int] = None
+    treatment_type_id: Optional[int] = None
+    health_status_id: Optional[int] = None
     treated_date: Optional[date] = None
     recovered: bool = False
     notes: Optional[str] = None
 
 
 class DiseaseHistoryUpdate(BaseModel):
-    date: Optional[date] = None
-    disease_name: Optional[str] = None
-    treatment: Optional[str] = None
+    disease_type_id: Optional[int] = None
+    treatment_type_id: Optional[int] = None
+    health_status_id: Optional[int] = None
     treated_date: Optional[date] = None
     recovered: Optional[bool] = None
     notes: Optional[str] = None
@@ -97,8 +98,9 @@ class DiseaseHistoryResponse(BaseModel):
     id: int
     plant_id: int
     date: date
-    disease_name: str
-    treatment: Optional[str]
+    disease_type_id: Optional[int]
+    treatment_type_id: Optional[int]
+    health_status_id: Optional[int]
     treated_date: Optional[date]
     recovered: bool
     notes: Optional[str]

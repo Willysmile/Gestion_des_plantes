@@ -2,22 +2,62 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react'
 import { useDiseaseHistory } from '../hooks/useDiseaseHistory'
 
+const API_BASE = 'http://127.0.0.1:8002/api'
+
 export default function DiseaseHistory({ plantId }) {
   const { diseaseHistory, loading, error, addDisease, updateDisease, deleteDisease, getAllDiseases } = useDiseaseHistory(plantId)
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
-    disease_name: '',
-    treatment: '',
+    disease_type_id: '',
+    treatment_type_id: '',
+    health_status_id: '',
     treated_date: '',
     recovered: false,
     notes: ''
   })
+  const [lookups, setLookups] = useState({
+    diseaseTypes: [],
+    treatmentTypes: [],
+    healthStatuses: []
+  })
+  const [lookupsLoading, setLookupsLoading] = useState(true)
+
+  // Charger les lookups
+  useEffect(() => {
+    const loadLookups = async () => {
+      try {
+        const [diseaseRes, treatmentRes, healthRes] = await Promise.all([
+          fetch(`${API_BASE}/lookups/disease-types`),
+          fetch(`${API_BASE}/lookups/treatment-types`),
+          fetch(`${API_BASE}/lookups/plant-health-statuses`)
+        ])
+        const diseaseData = diseaseRes.ok ? await diseaseRes.json() : []
+        const treatmentData = treatmentRes.ok ? await treatmentRes.json() : []
+        const healthData = healthRes.ok ? await healthRes.json() : []
+        setLookups({ diseaseTypes: diseaseData, treatmentTypes: treatmentData, healthStatuses: healthData })
+      } catch (error) {
+        console.error('Erreur lookups:', error)
+      } finally {
+        setLookupsLoading(false)
+      }
+    }
+    loadLookups()
+  }, [])
 
   useEffect(() => {
     getAllDiseases()
   }, [plantId])
+
+  const getNameFromId = (id, type) => {
+    let data = []
+    if (type === 'disease') data = lookups.diseaseTypes
+    else if (type === 'treatment') data = lookups.treatmentTypes
+    else if (type === 'health') data = lookups.healthStatuses
+    const item = data.find(d => d.id === id)
+    return item ? item.name : `ID: ${id}`
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -37,8 +77,9 @@ export default function DiseaseHistory({ plantId }) {
     setEditingItem(item)
     setFormData({
       date: item.date,
-      disease_name: item.disease_name || '',
-      treatment: item.treatment || '',
+      disease_type_id: item.disease_type_id || '',
+      treatment_type_id: item.treatment_type_id || '',
+      health_status_id: item.health_status_id || '',
       treated_date: item.treated_date || '',
       recovered: item.recovered || false,
       notes: item.notes || ''
@@ -61,8 +102,9 @@ export default function DiseaseHistory({ plantId }) {
     setEditingItem(null)
     setFormData({
       date: new Date().toISOString().split('T')[0],
-      disease_name: '',
-      treatment: '',
+      disease_type_id: '',
+      treatment_type_id: '',
+      health_status_id: '',
       treated_date: '',
       recovered: false,
       notes: ''
@@ -118,25 +160,47 @@ export default function DiseaseHistory({ plantId }) {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Nom de la maladie *</label>
-              <input
-                type="text"
-                value={formData.disease_name}
-                onChange={(e) => setFormData({...formData, disease_name: e.target.value})}
-                placeholder="Ex: Oïdium"
+              <label className="block text-xs font-medium text-gray-700 mb-1">Type de maladie *</label>
+              <select
+                value={formData.disease_type_id}
+                onChange={(e) => setFormData({...formData, disease_type_id: e.target.value})}
                 required
+                disabled={lookupsLoading}
                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
+              >
+                <option value="">-- Sélectionner --</option>
+                {lookups.diseaseTypes.map(dt => (
+                  <option key={dt.id} value={dt.id}>{dt.name}</option>
+                ))}
+              </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Traitement</label>
-              <input
-                type="text"
-                value={formData.treatment}
-                onChange={(e) => setFormData({...formData, treatment: e.target.value})}
-                placeholder="Ex: Traitement fongicide"
+              <label className="block text-xs font-medium text-gray-700 mb-1">Type de traitement</label>
+              <select
+                value={formData.treatment_type_id}
+                onChange={(e) => setFormData({...formData, treatment_type_id: e.target.value})}
+                disabled={lookupsLoading}
                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
+              >
+                <option value="">-- Sélectionner (optionnel) --</option>
+                {lookups.treatmentTypes.map(tt => (
+                  <option key={tt.id} value={tt.id}>{tt.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">État de santé</label>
+              <select
+                value={formData.health_status_id}
+                onChange={(e) => setFormData({...formData, health_status_id: e.target.value})}
+                disabled={lookupsLoading}
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="">-- Sélectionner (optionnel) --</option>
+                {lookups.healthStatuses.map(hs => (
+                  <option key={hs.id} value={hs.id}>{hs.name}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Date du traitement</label>
@@ -200,17 +264,22 @@ export default function DiseaseHistory({ plantId }) {
               <div key={item.id} className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-semibold text-gray-900">{item.disease_name || 'Maladie non nommée'}</p>
+                    <p className="text-xs font-semibold text-gray-900">
+                      {getNameFromId(item.disease_type_id, 'disease')}
+                    </p>
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded ${badge.color}`}>
                       {badge.label}
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 mt-1">{new Date(item.date).toLocaleDateString('fr-FR')}</p>
-                  {item.treatment && (
-                    <p className="text-xs text-gray-600">Traitement: {item.treatment}</p>
+                  {item.treatment_type_id && (
+                    <p className="text-xs text-gray-600">Traitement: {getNameFromId(item.treatment_type_id, 'treatment')}</p>
                   )}
                   {item.treated_date && (
                     <p className="text-xs text-gray-600">Traité le: {new Date(item.treated_date).toLocaleDateString('fr-FR')}</p>
+                  )}
+                  {item.health_status_id && (
+                    <p className="text-xs text-gray-600">État: {getNameFromId(item.health_status_id, 'health')}</p>
                   )}
                   {item.notes && (
                     <p className="text-xs text-gray-500 italic mt-1">{item.notes}</p>
