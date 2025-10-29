@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react'
 import { useDiseaseHistory } from '../hooks/useDiseaseHistory'
+import { getTodayDateString } from '../utils/dateUtils'
 
 const API_BASE = 'http://127.0.0.1:8002/api'
 
@@ -155,6 +156,7 @@ export default function DiseaseHistory({ plantId }) {
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({...formData, date: e.target.value})}
+                max={getTodayDateString()}
                 required
                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
@@ -208,6 +210,7 @@ export default function DiseaseHistory({ plantId }) {
                 type="date"
                 value={formData.treated_date}
                 onChange={(e) => setFormData({...formData, treated_date: e.target.value})}
+                max={getTodayDateString()}
                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>

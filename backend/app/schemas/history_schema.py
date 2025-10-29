@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime, date
+from app.utils.validators import validate_not_future_date
 
 
 class WateringHistoryCreate(BaseModel):
@@ -8,11 +9,23 @@ class WateringHistoryCreate(BaseModel):
     amount_ml: Optional[int] = None
     notes: Optional[str] = None
 
+    @field_validator('date')
+    @classmethod
+    def validate_date(cls, v):
+        return validate_not_future_date(v)
+
 
 class WateringHistoryUpdate(BaseModel):
     date: Optional[date] = None
     amount_ml: Optional[int] = None
     notes: Optional[str] = None
+
+    @field_validator('date')
+    @classmethod
+    def validate_date(cls, v):
+        if v is not None:
+            return validate_not_future_date(v)
+        return v
 
 
 class WateringHistoryResponse(BaseModel):
@@ -31,12 +44,24 @@ class FertilizingHistoryCreate(BaseModel):
     amount: Optional[str] = None
     notes: Optional[str] = None
 
+    @field_validator('date')
+    @classmethod
+    def validate_date(cls, v):
+        return validate_not_future_date(v)
+
 
 class FertilizingHistoryUpdate(BaseModel):
     date: Optional[date] = None
     fertilizer_type_id: Optional[int] = None
     amount: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator('date')
+    @classmethod
+    def validate_date(cls, v):
+        if v is not None:
+            return validate_not_future_date(v)
+        return v
 
 
 class FertilizingHistoryResponse(BaseModel):
@@ -53,15 +78,29 @@ class FertilizingHistoryResponse(BaseModel):
 class RepottingHistoryCreate(BaseModel):
     date: date
     soil_type: Optional[str] = None
-    pot_size: Optional[str] = None
+    pot_size_before: Optional[str] = None
+    pot_size_after: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator('date')
+    @classmethod
+    def validate_date(cls, v):
+        return validate_not_future_date(v)
 
 
 class RepottingHistoryUpdate(BaseModel):
     date: Optional[date] = None
     soil_type: Optional[str] = None
-    pot_size: Optional[str] = None
+    pot_size_before: Optional[str] = None
+    pot_size_after: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator('date')
+    @classmethod
+    def validate_date(cls, v):
+        if v is not None:
+            return validate_not_future_date(v)
+        return v
 
 
 class RepottingHistoryResponse(BaseModel):
@@ -69,7 +108,8 @@ class RepottingHistoryResponse(BaseModel):
     plant_id: int
     date: date
     soil_type: Optional[str]
-    pot_size: Optional[str]
+    pot_size_before: Optional[str]
+    pot_size_after: Optional[str]
     notes: Optional[str]
     created_at: datetime
     deleted_at: Optional[datetime] = None
@@ -84,6 +124,13 @@ class DiseaseHistoryCreate(BaseModel):
     recovered: bool = False
     notes: Optional[str] = None
 
+    @field_validator('date', 'treated_date')
+    @classmethod
+    def validate_dates(cls, v):
+        if v is not None:
+            return validate_not_future_date(v)
+        return v
+
 
 class DiseaseHistoryUpdate(BaseModel):
     disease_type_id: Optional[int] = None
@@ -92,6 +139,13 @@ class DiseaseHistoryUpdate(BaseModel):
     treated_date: Optional[date] = None
     recovered: Optional[bool] = None
     notes: Optional[str] = None
+
+    @field_validator('treated_date')
+    @classmethod
+    def validate_treated_date(cls, v):
+        if v is not None:
+            return validate_not_future_date(v)
+        return v
 
 
 class DiseaseHistoryResponse(BaseModel):
@@ -114,12 +168,24 @@ class PlantHistoryCreate(BaseModel):
     note: str
     category: Optional[str] = None
 
+    @field_validator('date')
+    @classmethod
+    def validate_date(cls, v):
+        return validate_not_future_date(v)
+
 
 class PlantHistoryUpdate(BaseModel):
     date: Optional[date] = None
     title: Optional[str] = None
     note: Optional[str] = None
     category: Optional[str] = None
+
+    @field_validator('date')
+    @classmethod
+    def validate_date(cls, v):
+        if v is not None:
+            return validate_not_future_date(v)
+        return v
 
 
 class PlantHistoryResponse(BaseModel):

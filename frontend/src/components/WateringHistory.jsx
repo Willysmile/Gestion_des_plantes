@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Edit, Trash2, Droplets } from 'lucide-react'
 import { useWateringHistory } from '../hooks/useWateringHistory'
+import { getTodayDateString } from '../utils/dateUtils'
 
 export default function WateringHistory({ plantId }) {
   const { wateringHistory, loading, error, addWatering, updateWatering, deleteWatering } = useWateringHistory(plantId)
@@ -94,6 +95,7 @@ export default function WateringHistory({ plantId }) {
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                max={getTodayDateString()}
                 className="w-full px-2 py-1 border rounded text-xs"
                 required
               />

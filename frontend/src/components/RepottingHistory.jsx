@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Flower2 } from 'lucide-react'
 import { useRepottingHistory } from '../hooks/useRepottingHistory'
+import { getTodayDateString } from '../utils/dateUtils'
 
 export default function RepottingHistory({ plantId }) {
   const { repottingHistory, loading, error, addRepotting, updateRepotting, deleteRepotting, getAllRepotting } = useRepottingHistory(plantId)
@@ -9,7 +10,8 @@ export default function RepottingHistory({ plantId }) {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     soil_type: '',
-    pot_size: '',
+    pot_size_before: '',
+    pot_size_after: '',
     notes: ''
   })
 
@@ -36,7 +38,8 @@ export default function RepottingHistory({ plantId }) {
     setFormData({
       date: item.date,
       soil_type: item.soil_type || '',
-      pot_size: item.pot_size || '',
+      pot_size_before: item.pot_size_before || '',
+      pot_size_after: item.pot_size_after || '',
       notes: item.notes || ''
     })
     setShowForm(true)
@@ -58,7 +61,8 @@ export default function RepottingHistory({ plantId }) {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       soil_type: '',
-      pot_size: '',
+      pot_size_before: '',
+      pot_size_after: '',
       notes: ''
     })
   }
@@ -101,6 +105,7 @@ export default function RepottingHistory({ plantId }) {
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({...formData, date: e.target.value})}
+                max={getTodayDateString()}
                 required
                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"
               />
@@ -116,12 +121,22 @@ export default function RepottingHistory({ plantId }) {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Taille du pot</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Taille du pot avant rempotage</label>
               <input
                 type="text"
-                value={formData.pot_size}
-                onChange={(e) => setFormData({...formData, pot_size: e.target.value})}
+                value={formData.pot_size_before}
+                onChange={(e) => setFormData({...formData, pot_size_before: e.target.value})}
                 placeholder="Ex: 20cm"
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Taille du pot après rempotage</label>
+              <input
+                type="text"
+                value={formData.pot_size_after}
+                onChange={(e) => setFormData({...formData, pot_size_after: e.target.value})}
+                placeholder="Ex: 25cm"
                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"
               />
             </div>
@@ -168,8 +183,11 @@ export default function RepottingHistory({ plantId }) {
                 {item.soil_type && (
                   <p className="text-xs text-gray-600 mt-1">Terre: {item.soil_type}</p>
                 )}
-                {item.pot_size && (
-                  <p className="text-xs text-gray-600">Pot: {item.pot_size}</p>
+                {item.pot_size_before && (
+                  <p className="text-xs text-gray-600">Pot avant: {item.pot_size_before}</p>
+                )}
+                {item.pot_size_after && (
+                  <p className="text-xs text-gray-600">Pot après: {item.pot_size_after}</p>
                 )}
                 {item.notes && (
                   <p className="text-xs text-gray-500 italic mt-1">{item.notes}</p>

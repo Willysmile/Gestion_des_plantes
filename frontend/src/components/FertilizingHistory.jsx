@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Leaf } from 'lucide-react'
 import { useFertilizingHistory } from '../hooks/useFertilizingHistory'
 import { lookupsAPI } from '../lib/api'
+import { getTodayDateString } from '../utils/dateUtils'
 
 export default function FertilizingHistory({ plantId }) {
   const { fertilizingHistory, loading, error, addFertilizing, updateFertilizing, deleteFertilizing, getAllFertilizing } = useFertilizingHistory(plantId)
@@ -33,6 +34,12 @@ export default function FertilizingHistory({ plantId }) {
     if (!fertilizerTypeId) return 'N/A'
     const fert = fertilizerTypes.find(f => f.id === fertilizerTypeId)
     return fert ? fert.name : 'Type inconnu'
+  }
+
+  const getFertilizerUnit = (fertilizerTypeId) => {
+    if (!fertilizerTypeId) return 'ml'
+    const fert = fertilizerTypes.find(f => f.id === fertilizerTypeId)
+    return fert ? fert.unit : 'ml'
   }
 
   const handleSubmit = async (e) => {
@@ -119,6 +126,7 @@ export default function FertilizingHistory({ plantId }) {
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({...formData, date: e.target.value})}
+                max={getTodayDateString()}
                 required
                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -192,7 +200,7 @@ export default function FertilizingHistory({ plantId }) {
                 <p className="text-xs font-semibold text-gray-900">{getFertilizerTypeName(item.fertilizer_type_id)}</p>
                 <p className="text-xs text-gray-600 mt-1">{new Date(item.date).toLocaleDateString('fr-FR')}</p>
                 {item.amount && (
-                  <p className="text-xs text-gray-600">{item.amount} ml</p>
+                  <p className="text-xs text-gray-600">{item.amount} {getFertilizerUnit(item.fertilizer_type_id)}</p>
                 )}
                 {item.notes && (
                   <p className="text-xs text-gray-500 italic mt-1">{item.notes}</p>
