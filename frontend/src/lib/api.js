@@ -95,6 +95,14 @@ export const plantsAPI = {
       throw error
     }
   },
+  regenerateReference: async (id) => {
+    try {
+      return await api.post(`/plants/${id}/regenerate-reference`)
+    } catch (error) {
+      console.error(`Error regenerating reference for plant ${id}:`, error)
+      throw error
+    }
+  },
 }
 
 // Lookups endpoints
@@ -200,6 +208,30 @@ export const lookupsAPI = {
       return await api.delete(`/lookups/units/${id}`)
     } catch (error) {
       console.error('Error deleting unit:', error)
+      throw error
+    }
+  },
+  getWateringMethods: async () => {
+    try {
+      return await api.get('/lookups/watering-methods')
+    } catch (error) {
+      console.error('Error fetching watering methods:', error)
+      throw error
+    }
+  },
+  getWaterTypes: async () => {
+    try {
+      return await api.get('/lookups/water-types')
+    } catch (error) {
+      console.error('Error fetching water types:', error)
+      throw error
+    }
+  },
+  getSeasons: async () => {
+    try {
+      return await api.get('/lookups/seasons')
+    } catch (error) {
+      console.error('Error fetching seasons:', error)
       throw error
     }
   },

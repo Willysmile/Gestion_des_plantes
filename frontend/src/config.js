@@ -71,6 +71,9 @@ export const API_ENDPOINTS = {
     DISEASE_TYPES: '/lookups/disease-types',
     TREATMENT_TYPES: '/lookups/treatment-types',
     PLANT_HEALTH_STATUSES: '/lookups/plant-health-statuses',
+    WATERING_METHODS: '/lookups/watering-methods',
+    WATER_TYPES: '/lookups/water-types',
+    SEASONS: '/lookups/seasons',
   },
   SETTINGS: {
     TAGS: '/settings/tags',

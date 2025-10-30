@@ -47,3 +47,21 @@ class PlantHealthStatus(BaseModel):
     __tablename__ = "plant_health_statuses"
     name = Column(String(50), unique=True, nullable=False)
     description = Column(Text, nullable=True)
+
+class WateringMethod(BaseModel):
+    __tablename__ = "watering_methods"
+    name = Column(String(100), unique=True, nullable=False)  # par le dessus, par le dessous, etc.
+    description = Column(Text, nullable=True)
+
+class WaterType(BaseModel):
+    __tablename__ = "water_types"
+    name = Column(String(50), unique=True, nullable=False)  # pluie, robinet_reposee, filtree, distillee
+    description = Column(Text, nullable=True)
+
+class Season(BaseModel):
+    __tablename__ = "seasons"
+    name = Column(String(50), unique=True, nullable=False)  # printemps, été, automne, hiver
+    start_month = Column(Integer, nullable=False)  # 1-12
+    end_month = Column(Integer, nullable=False)  # 1-12
+    description = Column(Text, nullable=True)
+

@@ -14,6 +14,9 @@ from app.models.lookup import (
     DiseaseType,
     TreatmentType,
     PlantHealthStatus,
+    WateringMethod,
+    WaterType,
+    Season,
 )
 
 
@@ -195,6 +198,39 @@ def seed_plant_health_statuses(db: Session) -> None:
     db.commit()
 
 
+def seed_watering_methods(db: Session) -> None:
+    """Pré-remplit les méthodes d'arrosage"""
+    from app.scripts.seed_watering_lookups import WATERING_METHODS
+    
+    for data in WATERING_METHODS:
+        if not db.query(WateringMethod).filter(WateringMethod.name == data["name"]).first():
+            db.add(WateringMethod(**data))
+    
+    db.commit()
+
+
+def seed_water_types(db: Session) -> None:
+    """Pré-remplit les types d'eau"""
+    from app.scripts.seed_watering_lookups import WATER_TYPES
+    
+    for data in WATER_TYPES:
+        if not db.query(WaterType).filter(WaterType.name == data["name"]).first():
+            db.add(WaterType(**data))
+    
+    db.commit()
+
+
+def seed_seasons(db: Session) -> None:
+    """Pré-remplit les saisons"""
+    from app.scripts.seed_watering_lookups import SEASONS
+    
+    for data in SEASONS:
+        if not db.query(Season).filter(Season.name == data["name"]).first():
+            db.add(Season(**data))
+    
+    db.commit()
+
+
 def seed_all(db: Session) -> None:
     """Exécute tous les seeds"""
     print("🌱 Seeding lookup tables...")
@@ -225,6 +261,15 @@ def seed_all(db: Session) -> None:
 
     seed_plant_health_statuses(db)
     print("✅ Plant health statuses seeded")
+
+    seed_watering_methods(db)
+    print("✅ Watering methods seeded")
+
+    seed_water_types(db)
+    print("✅ Water types seeded")
+
+    seed_seasons(db)
+    print("✅ Seasons seeded")
     
     print("✅ All lookups seeded successfully!")
 

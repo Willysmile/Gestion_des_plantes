@@ -52,6 +52,9 @@ export default function PlantFormPage() {
     locations: [],
     wateringFrequencies: [],
     lightRequirements: [],
+    wateringMethods: [],
+    waterTypes: [],
+    seasons: [],
     tags: [],
   })
 
@@ -95,16 +98,22 @@ export default function PlantFormPage() {
   useEffect(() => {
     const loadLookups = async () => {
       try {
-        const [locations, frequencies, lights, tags] = await Promise.all([
+        const [locations, frequencies, lights, methods, types, seasons, tags] = await Promise.all([
           lookupsAPI.getLocations(),
           lookupsAPI.getWateringFrequencies(),
           lookupsAPI.getLightRequirements(),
+          lookupsAPI.getWateringMethods(),
+          lookupsAPI.getWaterTypes(),
+          lookupsAPI.getSeasons(),
           lookupsAPI.getTags(),
         ])
         setLookups({
           locations: locations.data || [],
           wateringFrequencies: frequencies.data || [],
           lightRequirements: lights.data || [],
+          wateringMethods: methods.data || [],
+          waterTypes: types.data || [],
+          seasons: seasons.data || [],
           tags: tags.data || [],
         })
       } catch (err) {
@@ -505,12 +514,8 @@ export default function PlantFormPage() {
                           type="button"
                           onClick={async () => {
                             try {
-                              const res = await fetch(`/api/plants/${id}/regenerate-reference`, {
-                                method: 'POST',
-                              })
-                              if (!res.ok) throw new Error('Erreur régénération')
-                              const updated = await res.json()
-                              setFormData(prev => ({ ...prev, reference: updated.reference }))
+                              const response = await plantsAPI.regenerateReference(id)
+                              setFormData(prev => ({ ...prev, reference: response.data.reference }))
                               alert('✅ Référence régénérée!')
                             } catch (err) {
                               alert('❌ Erreur: ' + err.message)
@@ -640,6 +645,67 @@ export default function PlantFormPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+          </fieldset>
+
+          {/* Préférences d'Arrosage */}
+          <fieldset>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">💧 Préférences d'Arrosage</legend>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold mb-2">Méthode d'arrosage préférée</label>
+                <select
+                  name="preferred_watering_method_id"
+                  value={formData.preferred_watering_method_id || ''}
+                  onChange={handleChange}
+                  className={getFieldClass('preferred_watering_method_id')}
+                >
+                  <option value="">Sélectionner...</option>
+                  {lookups.wateringMethods.map(method => (
+                    <option key={method.id} value={method.id}>
+                      {method.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-gray-600 text-xs mt-1">
+                  💡 {lookups.wateringMethods.find(m => m.id == formData.preferred_watering_method_id)?.description || ''}
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Type d'eau préféré</label>
+                <select
+                  name="preferred_water_type_id"
+                  value={formData.preferred_water_type_id || ''}
+                  onChange={handleChange}
+                  className={getFieldClass('preferred_water_type_id')}
+                >
+                  <option value="">Sélectionner...</option>
+                  {lookups.waterTypes.map(type => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-gray-600 text-xs mt-1">
+                  💡 {lookups.waterTypes.find(t => t.id == formData.preferred_water_type_id)?.description || ''}
+                </p>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block font-semibold mb-2">Saisons disponibles pour ajustements</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {lookups.seasons.map(season => (
+                    <div key={season.id} className="bg-blue-50 p-3 rounded border border-blue-200">
+                      <p className="font-semibold text-blue-900">{season.name}</p>
+                      <p className="text-xs text-blue-700">
+                        {`Mois ${season.start_month}-${season.end_month}`}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">{season.description}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </fieldset>

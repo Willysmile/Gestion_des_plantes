@@ -423,3 +423,28 @@ class SettingsService:
     def get_plant_health_status(db: Session, status_id: int) -> Optional[PlantHealthStatus]:
         """Récupère un état de santé par ID"""
         return db.query(PlantHealthStatus).filter(PlantHealthStatus.id == status_id).first()
+
+    # ===== WATERING METHODS =====
+
+    @staticmethod
+    def get_watering_methods(db: Session) -> List:
+        """Récupère toutes les méthodes d'arrosage"""
+        from app.models.lookup import WateringMethod
+        return db.query(WateringMethod).all()
+
+    # ===== WATER TYPES =====
+
+    @staticmethod
+    def get_water_types(db: Session) -> List:
+        """Récupère tous les types d'eau"""
+        from app.models.lookup import WaterType
+        return db.query(WaterType).all()
+
+    # ===== SEASONS =====
+
+    @staticmethod
+    def get_seasons(db: Session) -> List:
+        """Récupère toutes les saisons"""
+        from app.models.lookup import Season
+        return db.query(Season).all()
+

@@ -161,3 +161,37 @@ async def list_plant_health_statuses(
     """Récupère tous les états de santé des plantes"""
     statuses = SettingsService.get_plant_health_statuses(db)
     return [{"id": s.id, "name": s.name, "description": s.description} for s in statuses]
+
+
+# ===== WATERING METHODS =====
+
+@router.get("/watering-methods", response_model=List[dict])
+async def list_watering_methods(
+    db: Session = Depends(get_db),
+):
+    """Récupère toutes les méthodes d'arrosage"""
+    methods = SettingsService.get_watering_methods(db)
+    return [{"id": m.id, "name": m.name, "description": m.description} for m in methods]
+
+
+# ===== WATER TYPES =====
+
+@router.get("/water-types", response_model=List[dict])
+async def list_water_types(
+    db: Session = Depends(get_db),
+):
+    """Récupère tous les types d'eau"""
+    types = SettingsService.get_water_types(db)
+    return [{"id": t.id, "name": t.name, "description": t.description} for t in types]
+
+
+# ===== SEASONS =====
+
+@router.get("/seasons", response_model=List[dict])
+async def list_seasons(
+    db: Session = Depends(get_db),
+):
+    """Récupère toutes les saisons"""
+    seasons = SettingsService.get_seasons(db)
+    return [{"id": s.id, "name": s.name, "start_month": s.start_month, "end_month": s.end_month, "description": s.description} for s in seasons]
+
