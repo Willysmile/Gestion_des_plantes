@@ -2,8 +2,14 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useDiseaseHistory } from '../hooks/useDiseaseHistory'
 import { getTodayDateString } from '../utils/dateUtils'
+import { API_CONFIG, API_ENDPOINTS } from '../config'
 
-const API_BASE = 'http://127.0.0.1:8002/api'
+import axios from 'axios'
+
+const api = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+})
 
 export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -28,14 +34,14 @@ export function DiseaseFormModal({ plantId, onClose, onSuccess }) {
     const loadLookups = async () => {
       try {
         const [diseaseRes, treatmentRes, healthRes] = await Promise.all([
-          fetch(`${API_BASE}/lookups/disease-types`),
-          fetch(`${API_BASE}/lookups/treatment-types`),
-          fetch(`${API_BASE}/lookups/plant-health-statuses`)
+          api.get(API_ENDPOINTS.diseaseTypes),
+          api.get(API_ENDPOINTS.treatmentTypes),
+          api.get(API_ENDPOINTS.plantHealthStatuses)
         ])
         
-        if (diseaseRes.ok) setDiseaseTypes(await diseaseRes.json())
-        if (treatmentRes.ok) setTreatmentTypes(await treatmentRes.json())
-        if (healthRes.ok) setHealthStatuses(await healthRes.json())
+        setDiseaseTypes(diseaseRes.data || [])
+        setTreatmentTypes(treatmentRes.data || [])
+        setHealthStatuses(healthRes.data || [])
       } catch (error) {
         console.error('Erreur lors du chargement des lookups:', error)
       } finally {

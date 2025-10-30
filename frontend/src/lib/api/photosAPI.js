@@ -4,11 +4,10 @@
  */
 
 import axios from 'axios'
-
-const API_BASE_URL = 'http://127.0.0.1:8002/api'
+import { API_CONFIG } from '../../config'
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_CONFIG.BASE_URL,
   timeout: 60000, // 60 seconds for file uploads
 })
 
@@ -139,7 +138,7 @@ export const setPrimaryPhoto = async (plantId, photoId) => {
  * @returns {string} URL to photo
  */
 export const getPhotoUrl = (plantId, filename, type = 'full') => {
-  const url = `${API_BASE_URL}/photos/${plantId}/${filename}`
+  const url = `${API_CONFIG.BASE_URL}/photos/${plantId}/${filename}`
   return type === 'thumbnail' ? `${url}?thumb=true` : url
 }
 

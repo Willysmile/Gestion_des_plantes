@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-const API_BASE = 'http://127.0.0.1:8002/api/plants'
+import { API_CONFIG, API_ENDPOINTS } from '../config'
+
+const api = axios.create({ baseURL: API_CONFIG.BASE_URL })
 
 export function useWateringHistory(plantId) {
   const [wateringHistory, setWateringHistory] = useState([])
@@ -15,7 +17,7 @@ export function useWateringHistory(plantId) {
     setLoading(true)
     setError(null)
     try {
-      const response = await axios.get(`${API_BASE}/${plantId}/watering-history`)
+      const response = await api.get(API_ENDPOINTS.wateringHistory(plantId))
       setWateringHistory(response.data)
     } catch (err) {
       setError(err.message)
@@ -36,7 +38,7 @@ export function useWateringHistory(plantId) {
         amount_ml: wateringData.amount_ml ? parseInt(wateringData.amount_ml) : null,
         notes: wateringData.notes && wateringData.notes.trim() ? wateringData.notes : null
       }
-      const response = await axios.post(`${API_BASE}/${plantId}/watering-history`, cleanData)
+      const response = await api.post(API_ENDPOINTS.wateringHistory(plantId), cleanData)
       setWateringHistory(prev => [response.data, ...prev])
       return response.data
     } catch (err) {
@@ -52,7 +54,7 @@ export function useWateringHistory(plantId) {
     setLoading(true)
     setError(null)
     try {
-      const response = await axios.put(`${API_BASE}/${plantId}/watering-history/${wateringId}`, wateringData)
+      const response = await api.put(`${API_ENDPOINTS.wateringHistory(plantId)}/${wateringId}`, wateringData)
       setWateringHistory(prev =>
         prev.map(item => item.id === wateringId ? response.data : item)
       )
@@ -70,7 +72,7 @@ export function useWateringHistory(plantId) {
     setLoading(true)
     setError(null)
     try {
-      await axios.delete(`${API_BASE}/${plantId}/watering-history/${wateringId}`)
+      await api.delete(`${API_ENDPOINTS.wateringHistory(plantId)}/${wateringId}`)
       setWateringHistory(prev => prev.filter(item => item.id !== wateringId))
     } catch (err) {
       setError(err.message)

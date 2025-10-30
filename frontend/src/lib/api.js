@@ -1,13 +1,12 @@
 import axios from 'axios'
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8002/api'
+import { API_CONFIG } from '../config'
 
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_CONFIG.BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30s timeout
+  timeout: API_CONFIG.TIMEOUT,
 })
 
 // Retry logic pour les erreurs réseau
@@ -39,7 +38,7 @@ export const plantsAPI = {
   getAll: async (params = {}) => {
     try {
       console.log('📡 plantsAPI.getAll() called, params:', params)
-      console.log('📡 API_BASE:', API_BASE)
+      console.log('📡 API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL)
       const response = await api.get('/plants', { params })
       console.log('📡 plantsAPI.getAll() response:', response)
       return response

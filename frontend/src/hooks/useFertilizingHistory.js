@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import axios from 'axios'
+import { API_CONFIG, API_ENDPOINTS } from '../config'
 
-const API_BASE = 'http://127.0.0.1:8002/api/plants'
+const api = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+})
 
 export const useFertilizingHistory = (plantId) => {
   const [fertilizingHistory, setFertilizingHistory] = useState([])
@@ -13,7 +17,7 @@ export const useFertilizingHistory = (plantId) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await axios.get(`${API_BASE}/${plantId}/fertilizing-history`)
+      const response = await api.get(API_ENDPOINTS.fertilizingHistory(plantId))
       setFertilizingHistory(response.data || [])
       return response.data
     } catch (err) {
@@ -36,7 +40,7 @@ export const useFertilizingHistory = (plantId) => {
         amount: fertilizingData.amount && fertilizingData.amount.trim() ? fertilizingData.amount.trim() : null,
         notes: fertilizingData.notes && fertilizingData.notes.trim() ? fertilizingData.notes.trim() : null
       }
-      const response = await axios.post(`${API_BASE}/${plantId}/fertilizing-history`, cleanData)
+      const response = await api.post(API_ENDPOINTS.fertilizingHistory(plantId), cleanData)
       setFertilizingHistory(prev => [response.data, ...prev])
       return response.data
     } catch (err) {
@@ -58,8 +62,8 @@ export const useFertilizingHistory = (plantId) => {
         notes: fertilizingData.notes && fertilizingData.notes.trim() ? fertilizingData.notes.trim() : null
       }
       console.log('DEBUG updateFertilizing sending:', cleanData)
-      const response = await axios.put(
-        `${API_BASE}/${plantId}/fertilizing-history/${historyId}`,
+      const response = await api.put(
+        `${API_ENDPOINTS.fertilizingHistory(plantId)}/${historyId}`,
         cleanData
       )
       setFertilizingHistory(prev =>
@@ -79,7 +83,7 @@ export const useFertilizingHistory = (plantId) => {
     setLoading(true)
     setError(null)
     try {
-      await axios.delete(`${API_BASE}/${plantId}/fertilizing-history/${historyId}`)
+      await api.delete(`${API_ENDPOINTS.fertilizingHistory(plantId)}/${historyId}`)
       setFertilizingHistory(prev => prev.filter(item => item.id !== historyId))
       return true
     } catch (err) {

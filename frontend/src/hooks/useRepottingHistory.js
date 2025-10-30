@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import axios from 'axios'
 
-const API_BASE = 'http://127.0.0.1:8002/api/plants'
+import { API_CONFIG, API_ENDPOINTS } from '../config'
+
+const api = axios.create({ baseURL: API_CONFIG.BASE_URL })
 
 export const useRepottingHistory = (plantId) => {
   const [repottingHistory, setRepottingHistory] = useState([])
@@ -13,7 +15,7 @@ export const useRepottingHistory = (plantId) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await axios.get(`${API_BASE}/${plantId}/repotting-history`)
+      const response = await api.get(API_ENDPOINTS.repottingHistory(plantId))
       setRepottingHistory(response.data || [])
       return response.data
     } catch (err) {
@@ -36,7 +38,7 @@ export const useRepottingHistory = (plantId) => {
         pot_size: repottingData.pot_size && repottingData.pot_size.trim() ? repottingData.pot_size : null,
         notes: repottingData.notes && repottingData.notes.trim() ? repottingData.notes : null
       }
-      const response = await axios.post(`${API_BASE}/${plantId}/repotting-history`, cleanData)
+      const response = await api.post(API_ENDPOINTS.repottingHistory(plantId), cleanData)
       setRepottingHistory(prev => [response.data, ...prev])
       return response.data
     } catch (err) {
@@ -57,8 +59,8 @@ export const useRepottingHistory = (plantId) => {
         pot_size: repottingData.pot_size && repottingData.pot_size.trim() ? repottingData.pot_size : null,
         notes: repottingData.notes && repottingData.notes.trim() ? repottingData.notes : null
       }
-      const response = await axios.put(
-        `${API_BASE}/${plantId}/repotting-history/${historyId}`,
+      const response = await api.put(
+        `${API_ENDPOINTS.repottingHistory(plantId)}/${historyId}`,
         cleanData
       )
       setRepottingHistory(prev =>
@@ -78,7 +80,7 @@ export const useRepottingHistory = (plantId) => {
     setLoading(true)
     setError(null)
     try {
-      await axios.delete(`${API_BASE}/${plantId}/repotting-history/${historyId}`)
+      await api.delete(`${API_ENDPOINTS.repottingHistory(plantId)}/${historyId}`)
       setRepottingHistory(prev => prev.filter(item => item.id !== historyId))
       return true
     } catch (err) {

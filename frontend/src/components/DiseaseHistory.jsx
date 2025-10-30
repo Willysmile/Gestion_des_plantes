@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react'
 import { useDiseaseHistory } from '../hooks/useDiseaseHistory'
 import { getTodayDateString } from '../utils/dateUtils'
+import { API_CONFIG, API_ENDPOINTS } from '../config'
+import axios from 'axios'
 
-const API_BASE = 'http://127.0.0.1:8002/api'
+const api = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+})
 
 export default function DiseaseHistory({ plantId }) {
   const { diseaseHistory, loading, error, addDisease, updateDisease, deleteDisease, getAllDiseases } = useDiseaseHistory(plantId)
@@ -30,14 +35,15 @@ export default function DiseaseHistory({ plantId }) {
     const loadLookups = async () => {
       try {
         const [diseaseRes, treatmentRes, healthRes] = await Promise.all([
-          fetch(`${API_BASE}/lookups/disease-types`),
-          fetch(`${API_BASE}/lookups/treatment-types`),
-          fetch(`${API_BASE}/lookups/plant-health-statuses`)
+          api.get(API_ENDPOINTS.diseaseTypes),
+          api.get(API_ENDPOINTS.treatmentTypes),
+          api.get(API_ENDPOINTS.plantHealthStatuses)
         ])
-        const diseaseData = diseaseRes.ok ? await diseaseRes.json() : []
-        const treatmentData = treatmentRes.ok ? await treatmentRes.json() : []
-        const healthData = healthRes.ok ? await healthRes.json() : []
-        setLookups({ diseaseTypes: diseaseData, treatmentTypes: treatmentData, healthStatuses: healthData })
+        setLookups({ 
+          diseaseTypes: diseaseRes.data || [], 
+          treatmentTypes: treatmentRes.data || [], 
+          healthStatuses: healthRes.data || [] 
+        })
       } catch (error) {
         console.error('Erreur lookups:', error)
       } finally {
