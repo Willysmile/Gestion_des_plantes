@@ -30,7 +30,7 @@ export default function DiseaseHistory({ plantId }) {
   })
   const [lookupsLoading, setLookupsLoading] = useState(true)
 
-  // Charger les lookups
+    // Charger les lookups
   useEffect(() => {
     const loadLookups = async () => {
       try {

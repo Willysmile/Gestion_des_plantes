@@ -80,6 +80,30 @@ export const API_ENDPOINTS = {
   },
 }
 
+// Helper functions for common endpoint patterns
+export const getHistoryEndpoint = (type, plantId) => {
+  const endpoints = {
+    watering: API_ENDPOINTS.HISTORY.WATERING(plantId),
+    fertilizing: API_ENDPOINTS.HISTORY.FERTILIZING(plantId),
+    repotting: API_ENDPOINTS.HISTORY.REPOTTING(plantId),
+    disease: API_ENDPOINTS.HISTORY.DISEASE(plantId),
+    notes: API_ENDPOINTS.HISTORY.NOTES(plantId),
+  }
+  return endpoints[type]
+}
+
+// Add shortcut aliases to API_ENDPOINTS for backward compatibility
+API_ENDPOINTS.wateringHistory = (plantId) => API_ENDPOINTS.HISTORY.WATERING(plantId)
+API_ENDPOINTS.fertilizingHistory = (plantId) => API_ENDPOINTS.HISTORY.FERTILIZING(plantId)
+API_ENDPOINTS.repottingHistory = (plantId) => API_ENDPOINTS.HISTORY.REPOTTING(plantId)
+API_ENDPOINTS.diseaseHistory = (plantId) => API_ENDPOINTS.HISTORY.DISEASE(plantId)
+API_ENDPOINTS.notesHistory = (plantId) => API_ENDPOINTS.HISTORY.NOTES(plantId)
+
+// Add shortcut aliases for lookups
+API_ENDPOINTS.diseaseTypes = API_ENDPOINTS.LOOKUPS.DISEASE_TYPES
+API_ENDPOINTS.treatmentTypes = API_ENDPOINTS.LOOKUPS.TREATMENT_TYPES
+API_ENDPOINTS.plantHealthStatuses = API_ENDPOINTS.LOOKUPS.PLANT_HEALTH_STATUSES
+
 // Log configuration on load (debug mode)
 if (APP_CONFIG.DEBUG) {
   console.log('🔧 APP Configuration:', APP_CONFIG)
