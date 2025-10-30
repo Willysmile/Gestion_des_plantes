@@ -20,7 +20,6 @@ export default function DiseaseHistory({ plantId }) {
     treatment_type_id: '',
     health_status_id: '',
     treated_date: '',
-    recovered: false,
     notes: ''
   })
   const [lookups, setLookups] = useState({
@@ -88,7 +87,6 @@ export default function DiseaseHistory({ plantId }) {
       treatment_type_id: item.treatment_type_id || '',
       health_status_id: item.health_status_id || '',
       treated_date: item.treated_date || '',
-      recovered: item.recovered || false,
       notes: item.notes || ''
     })
     setShowForm(true)
@@ -113,15 +111,33 @@ export default function DiseaseHistory({ plantId }) {
       treatment_type_id: '',
       health_status_id: '',
       treated_date: '',
-      recovered: false,
       notes: ''
     })
   }
 
-  const getStatusBadge = (recovered) => {
-    return recovered 
-      ? { label: 'Rétablie', color: 'bg-green-100 text-green-800' }
-      : { label: 'En cours', color: 'bg-red-100 text-red-800' }
+  const getStatusBadge = (healthStatusId) => {
+    if (!healthStatusId) {
+      return { label: 'Non défini', color: 'bg-gray-100 text-gray-800' }
+    }
+
+    // Récupérer le statut de santé
+    const healthStatus = lookups.healthStatuses.find(h => h.id === healthStatusId)
+    if (!healthStatus) {
+      return { label: 'Non défini', color: 'bg-gray-100 text-gray-800' }
+    }
+
+    // Mapper les états de santé aux couleurs
+    const statusColors = {
+      'Sain': { color: 'bg-green-100 text-green-800', order: 1 },
+      'Rétablie': { color: 'bg-green-100 text-green-800', order: 2 },
+      'En traitement': { color: 'bg-orange-100 text-orange-800', order: 3 },
+      'En convalescence': { color: 'bg-yellow-100 text-yellow-800', order: 4 },
+      'Malade': { color: 'bg-red-100 text-red-800', order: 5 },
+      'Critique': { color: 'bg-red-200 text-red-900', order: 6 },
+    }
+
+    const config = statusColors[healthStatus.name] || { color: 'bg-gray-100 text-gray-800', order: 0 }
+    return { label: healthStatus.name, color: config.color }
   }
 
   if (loading && diseaseHistory.length === 0) {
@@ -221,17 +237,6 @@ export default function DiseaseHistory({ plantId }) {
               />
             </div>
             <div>
-              <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={formData.recovered}
-                  onChange={(e) => setFormData({...formData, recovered: e.target.checked})}
-                  className="w-4 h-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
-                Rétablie
-              </label>
-            </div>
-            <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
               <textarea
                 value={formData.notes}
@@ -268,7 +273,6 @@ export default function DiseaseHistory({ plantId }) {
       ) : (
         <div className="space-y-2">
           {diseaseHistory.map(item => {
-            const badge = getStatusBadge(item.recovered)
             return (
               <div key={item.id} className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start justify-between">
                 <div className="flex-1">
@@ -276,8 +280,8 @@ export default function DiseaseHistory({ plantId }) {
                     <p className="text-xs font-semibold text-gray-900">
                       {getNameFromId(item.disease_type_id, 'disease')}
                     </p>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${badge.color}`}>
-                      {badge.label}
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${getStatusBadge(item.health_status_id).color}`}>
+                      {getStatusBadge(item.health_status_id).label}
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 mt-1">{new Date(item.date).toLocaleDateString('fr-FR')}</p>
@@ -286,9 +290,6 @@ export default function DiseaseHistory({ plantId }) {
                   )}
                   {item.treated_date && (
                     <p className="text-xs text-gray-600">Traité le: {new Date(item.treated_date).toLocaleDateString('fr-FR')}</p>
-                  )}
-                  {item.health_status_id && (
-                    <p className="text-xs text-gray-600">État: {getNameFromId(item.health_status_id, 'health')}</p>
                   )}
                   {item.notes && (
                     <p className="text-xs text-gray-500 italic mt-1">{item.notes}</p>

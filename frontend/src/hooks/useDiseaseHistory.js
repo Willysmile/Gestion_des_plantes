@@ -38,7 +38,6 @@ export const useDiseaseHistory = (plantId) => {
         treatment_type_id: diseaseData.treatment_type_id || null,
         health_status_id: diseaseData.health_status_id || null,
         treated_date: diseaseData.treated_date || null,
-        recovered: diseaseData.recovered === true || diseaseData.recovered === 'true',
         notes: diseaseData.notes && diseaseData.notes.trim() ? diseaseData.notes : null
       }
       const response = await api.post(API_ENDPOINTS.diseaseHistory(plantId), cleanData)
@@ -62,7 +61,6 @@ export const useDiseaseHistory = (plantId) => {
         treatment_type_id: diseaseData.treatment_type_id || null,
         health_status_id: diseaseData.health_status_id || null,
         treated_date: diseaseData.treated_date || null,
-        recovered: diseaseData.recovered === true || diseaseData.recovered === 'true',
         notes: diseaseData.notes && diseaseData.notes.trim() ? diseaseData.notes : null
       }
       const response = await api.put(
