@@ -83,9 +83,10 @@ class StatsService:
             result = []
             
             # 1. Plantes jamais arrosées
+            # Plants without any watering history are considered 'never watered'
             never_watered = db.query(Plant).filter(
                 Plant.is_archived == False,
-                ~Plant.waterings.any()
+                ~Plant.watering_histories.any()
             ).all()
             
             for plant in never_watered:
@@ -100,7 +101,7 @@ class StatsService:
             # 2. Plantes arrosées avant cutoff_date
             recent_waterings = db.query(
                 WateringHistory.plant_id,
-                func.max(WateringHistory.watering_date).label("last_date")
+                func.max(WateringHistory.date).label("last_date")
             ).group_by(WateringHistory.plant_id).subquery()
             
             plants_to_water = db.query(Plant).join(
@@ -113,11 +114,11 @@ class StatsService:
             
             for plant in plants_to_water:
                 last_watering = db.query(
-                    func.max(WateringHistory.watering_date)
+                    func.max(WateringHistory.date)
                 ).filter(WateringHistory.plant_id == plant.id).scalar()
-                
-                days_since = (today - last_watering.date()).days if last_watering else None
-                
+
+                days_since = (today - last_watering).days if last_watering else None
+
                 result.append({
                     "id": plant.id,
                     "name": plant.name,
@@ -144,9 +145,10 @@ class StatsService:
             result = []
             
             # 1. Plantes jamais fertilisées
+            # Plants without any fertilizing history
             never_fertilized = db.query(Plant).filter(
                 Plant.is_archived == False,
-                ~Plant.fertilizings.any()
+                ~Plant.fertilizing_histories.any()
             ).all()
             
             for plant in never_fertilized:
@@ -161,7 +163,7 @@ class StatsService:
             # 2. Plantes fertilisées avant cutoff_date
             recent_fertilizings = db.query(
                 FertilizingHistory.plant_id,
-                func.max(FertilizingHistory.fertilizing_date).label("last_date")
+                func.max(FertilizingHistory.date).label("last_date")
             ).group_by(FertilizingHistory.plant_id).subquery()
             
             plants_to_fertilize = db.query(Plant).join(
@@ -174,11 +176,11 @@ class StatsService:
             
             for plant in plants_to_fertilize:
                 last_fertilizing = db.query(
-                    func.max(FertilizingHistory.fertilizing_date)
+                    func.max(FertilizingHistory.date)
                 ).filter(FertilizingHistory.plant_id == plant.id).scalar()
-                
-                days_since = (today - last_fertilizing.date()).days if last_fertilizing else None
-                
+
+                days_since = (today - last_fertilizing).days if last_fertilizing else None
+
                 result.append({
                     "id": plant.id,
                     "name": plant.name,

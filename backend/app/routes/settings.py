@@ -290,7 +290,7 @@ async def list_tags(
 ):
     """Récupère tous les tags"""
     tags = SettingsService.get_tags(db, skip=skip, limit=limit, category_id=category_id)
-    return [{"id": t.id, "category_id": t.category_id, "name": t.name} for t in tags]
+    return [{"id": t.id, "category_id": t.tag_category_id, "name": t.name} for t in tags]
 
 
 @router.post("/tags", status_code=201)
@@ -302,7 +302,7 @@ async def create_tag(
     tag = SettingsService.create_tag(db, data.category_id, data.name)
     if not tag:
         raise HTTPException(status_code=404, detail="Catégorie de tag non trouvée")
-    return {"id": tag.id, "category_id": tag.category_id, "name": tag.name}
+    return {"id": tag.id, "category_id": tag.tag_category_id, "name": tag.name}
 
 
 @router.put("/tags/{tag_id}")
@@ -315,7 +315,7 @@ async def update_tag(
     tag = SettingsService.update_tag(db, tag_id, data.name)
     if not tag:
         raise HTTPException(status_code=404, detail="Tag non trouvé")
-    return {"id": tag.id, "category_id": tag.category_id, "name": tag.name}
+    return {"id": tag.id, "category_id": tag.tag_category_id, "name": tag.name}
 
 
 @router.delete("/tags/{tag_id}", status_code=204)

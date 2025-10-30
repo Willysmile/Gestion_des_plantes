@@ -337,7 +337,8 @@ class SettingsService:
         if not category:
             return None
         
-        tag = Tag(category_id=category_id, name=name)
+        # Tag model uses 'tag_category_id' as the FK column name
+        tag = Tag(tag_category_id=category_id, name=name)
         db.add(tag)
         db.commit()
         db.refresh(tag)
@@ -353,7 +354,8 @@ class SettingsService:
         """Récupère tous les tags, optionnellement filtrés par catégorie"""
         query = db.query(Tag)
         if category_id:
-            query = query.filter(Tag.category_id == category_id)
+            # Tag model uses 'tag_category_id' as the FK column
+            query = query.filter(Tag.tag_category_id == category_id)
         return query.offset(skip).limit(limit).all()
     
     @staticmethod
