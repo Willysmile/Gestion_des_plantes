@@ -27,6 +27,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   const [showDiseaseForm, setShowDiseaseForm] = useState(false)
   const [seasonalWatering, setSeasonalWatering] = useState(null)
   const [nextSeasonalWatering, setNextSeasonalWatering] = useState(null)
+  const [seasonalFertilizing, setSeasonalFertilizing] = useState(null)
   const [lookups, setLookups] = useState({
     wateringFrequencies: [],
     lightRequirements: [],
@@ -91,6 +92,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
       if (currentSeason) {
         console.log(`🔍 Current season: ${currentSeason.name} (month ${month})`)
         loadSeasonalWatering(currentSeason.id)
+        loadSeasonalFertilizing(currentSeason.id)
         
         // Charger aussi la prochaine saison
         const nextIndex = (lookups.seasons.findIndex(s => s.id === currentSeason.id) + 1) % lookups.seasons.length
@@ -121,6 +123,17 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     } catch (err) {
       console.error('Error loading next seasonal watering:', err)
       setNextSeasonalWatering(null)
+    }
+  }
+
+  const loadSeasonalFertilizing = async (seasonId) => {
+    try {
+      const response = await api.get(`/plants/${plant.id}/seasonal-fertilizing/${seasonId}`)
+      setSeasonalFertilizing(response.data)
+      console.log('✅ Seasonal fertilizing loaded:', response.data)
+    } catch (err) {
+      console.error('Error loading seasonal fertilizing:', err)
+      setSeasonalFertilizing(null)
     }
   }
 
@@ -654,7 +667,11 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                       {/* Fertilisation */}
                       <div className="bg-white p-2 rounded border border-green-200 text-center">
                         <p className="text-xs font-medium text-gray-600 mb-1">Fertilisation</p>
-                        <p className="text-xs text-green-700 font-semibold">Coucou Bisounours</p>
+                        {seasonalFertilizing ? (
+                          <p className="text-xs text-green-700 font-semibold">{seasonalFertilizing.name}</p>
+                        ) : (
+                          <p className="text-xs text-gray-500">—</p>
+                        )}
                       </div>
                     </div>
                   </div>

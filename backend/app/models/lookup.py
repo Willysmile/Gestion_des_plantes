@@ -72,3 +72,11 @@ class PlantSeasonalWatering(BaseModel):
     season_id = Column(Integer, ForeignKey("seasons.id", ondelete="CASCADE"), nullable=False)
     watering_frequency_id = Column(Integer, ForeignKey("watering_frequencies.id"), nullable=True)
     __table_args__ = (UniqueConstraint('plant_id', 'season_id', name='_plant_season_uc'),)
+
+
+class PlantSeasonalFertilizing(BaseModel):
+    __tablename__ = "plant_seasonal_fertilizing"
+    plant_id = Column(Integer, ForeignKey("plants.id", ondelete="CASCADE"), nullable=False)
+    season_id = Column(Integer, ForeignKey("seasons.id", ondelete="CASCADE"), nullable=False)
+    fertilizer_frequency_id = Column(Integer, ForeignKey("watering_frequencies.id"), nullable=True)
+    __table_args__ = (UniqueConstraint('plant_id', 'season_id', name='_plant_season_fert_uc'),)

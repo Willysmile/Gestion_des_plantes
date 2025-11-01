@@ -320,3 +320,64 @@ async def update_seasonal_watering(
     
     return {"id": seasonal.id, "message": "Fréquence mise à jour"}
 
+
+@router.get("/{plant_id}/seasonal-fertilizing/{season_id}")
+async def get_seasonal_fertilizing(
+    plant_id: int,
+    season_id: int,
+    db: Session = Depends(get_db),
+):
+    """Récupère la fréquence de fertilisation pour une saison donnée"""
+    from app.models.lookup import PlantSeasonalFertilizing, WateringFrequency
+    
+    seasonal = db.query(PlantSeasonalFertilizing).filter(
+        PlantSeasonalFertilizing.plant_id == plant_id,
+        PlantSeasonalFertilizing.season_id == season_id
+    ).first()
+    
+    if not seasonal or not seasonal.fertilizer_frequency_id:
+        raise HTTPException(status_code=404, detail="Fréquence saisonnière non trouvée")
+    
+    freq = db.query(WateringFrequency).filter_by(id=seasonal.fertilizer_frequency_id).first()
+    if not freq:
+        raise HTTPException(status_code=404, detail="Fréquence non trouvée")
+    
+    return {"id": freq.id, "name": freq.name, "days_interval": freq.days_interval}
+
+
+@router.put("/{plant_id}/seasonal-fertilizing/{season_id}")
+async def update_seasonal_fertilizing(
+    plant_id: int,
+    season_id: int,
+    data: dict,
+    db: Session = Depends(get_db),
+):
+    """Met à jour la fréquence de fertilisation pour une saison donnée"""
+    from app.models.lookup import PlantSeasonalFertilizing, WateringFrequency
+    
+    seasonal = db.query(PlantSeasonalFertilizing).filter(
+        PlantSeasonalFertilizing.plant_id == plant_id,
+        PlantSeasonalFertilizing.season_id == season_id
+    ).first()
+    
+    if not seasonal:
+        # Créer un nouveau si n'existe pas
+        seasonal = PlantSeasonalFertilizing(
+            plant_id=plant_id,
+            season_id=season_id,
+            fertilizer_frequency_id=data.get("fertilizer_frequency_id")
+        )
+        db.add(seasonal)
+    else:
+        # Mettre à jour
+        seasonal.fertilizer_frequency_id = data.get("fertilizer_frequency_id")
+    
+    db.commit()
+    db.refresh(seasonal)
+    
+    if seasonal.fertilizer_frequency_id:
+        freq = db.query(WateringFrequency).filter_by(id=seasonal.fertilizer_frequency_id).first()
+        return {"id": freq.id, "name": freq.name, "days_interval": freq.days_interval}
+    
+    return {"id": seasonal.id, "message": "Fréquence mise à jour"}
+

@@ -132,6 +132,7 @@ export default function PlantFormPage() {
   useEffect(() => {
     if (id && lookups.seasons && lookups.seasons.length > 0) {
       loadSeasonalWatering()
+      loadSeasonalFertilizing()
     }
   }, [id, lookups.seasons.length])
 
@@ -150,6 +151,24 @@ export default function PlantFormPage() {
       }
     } catch (err) {
       console.error('Error loading seasonal watering:', err)
+    }
+  }
+
+  const loadSeasonalFertilizing = async () => {
+    try {
+      for (const season of lookups.seasons) {
+        try {
+          const response = await api.get(`/plants/${id}/seasonal-fertilizing/${season.id}`)
+          setFormData(prev => ({
+            ...prev,
+            [`seasonal_fertilizing_${season.id}`]: response.data.id
+          }))
+        } catch (err) {
+          // Pas de fréquence définie pour cette saison, c'est OK
+        }
+      }
+    } catch (err) {
+      console.error('Error loading seasonal fertilizing:', err)
     }
   }
 
@@ -319,6 +338,16 @@ export default function PlantFormPage() {
               console.error(`Error saving seasonal watering for season ${seasonId}:`, err)
             }
           }
+          if (key.startsWith('seasonal_fertilizing_') && value) {
+            const seasonId = parseInt(key.replace('seasonal_fertilizing_', ''), 10)
+            try {
+              await api.put(`/plants/${id}/seasonal-fertilizing/${seasonId}`, {
+                fertilizer_frequency_id: parseInt(value, 10)
+              })
+            } catch (err) {
+              console.error(`Error saving seasonal fertilizing for season ${seasonId}:`, err)
+            }
+          }
         }
       } else {
         const response = await plantsAPI.create(dataToSend)
@@ -327,18 +356,30 @@ export default function PlantFormPage() {
         
         // Sauvegarder les fréquences saisonnières
         if (newPlantId) {
-          console.log('📌 Saving seasonal watering for plant', newPlantId)
+          console.log('📌 Saving seasonal watering and fertilizing for plant', newPlantId)
           for (const [key, value] of Object.entries(formData)) {
             if (key.startsWith('seasonal_watering_') && value) {
               const seasonId = parseInt(key.replace('seasonal_watering_', ''), 10)
-              console.log(`  Saison ${seasonId}: Fréquence ${value}`)
+              console.log(`  Arrosage - Saison ${seasonId}: Fréquence ${value}`)
               try {
                 const resp = await api.put(`/plants/${newPlantId}/seasonal-watering/${seasonId}`, {
                   watering_frequency_id: parseInt(value, 10)
                 })
-                console.log(`  ✅ Saison ${seasonId} sauvegardée`)
+                console.log(`  ✅ Arrosage - Saison ${seasonId} sauvegardée`)
               } catch (err) {
                 console.error(`Error saving seasonal watering for season ${seasonId}:`, err)
+              }
+            }
+            if (key.startsWith('seasonal_fertilizing_') && value) {
+              const seasonId = parseInt(key.replace('seasonal_fertilizing_', ''), 10)
+              console.log(`  Fertilisation - Saison ${seasonId}: Fréquence ${value}`)
+              try {
+                const resp = await api.put(`/plants/${newPlantId}/seasonal-fertilizing/${seasonId}`, {
+                  fertilizer_frequency_id: parseInt(value, 10)
+                })
+                console.log(`  ✅ Fertilisation - Saison ${seasonId} sauvegardée`)
+              } catch (err) {
+                console.error(`Error saving seasonal fertilizing for season ${seasonId}:`, err)
               }
             }
           }
@@ -801,29 +842,63 @@ export default function PlantFormPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block font-semibold mb-2">Fréquence d'arrosage par saison</label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {lookups.seasons.map(season => (
-                    <div key={season.id} className="bg-blue-50 p-3 rounded border border-blue-200">
-                      <p className="font-semibold text-blue-900 text-sm">{season.name}</p>
-                      <p className="text-xs text-blue-700">
-                        {`Mois ${season.start_month}-${season.end_month}`}
-                      </p>
-                      <select
-                        name={`seasonal_watering_${season.id}`}
-                        value={formData[`seasonal_watering_${season.id}`] || ''}
-                        onChange={handleChange}
-                        className="w-full mt-2 px-2 py-1 text-xs border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Choisir...</option>
-                        {lookups.wateringFrequencies.map(freq => (
-                          <option key={freq.id} value={freq.id}>
-                            {freq.name}
-                          </option>
-                        ))}
-                      </select>
+                <label className="block font-semibold mb-2">Fréquence d'arrosage et fertilisation par saison</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Bloc Arrosage (bleu) */}
+                  <div>
+                    <h3 className="text-center font-semibold text-blue-900 mb-3">Arrosage</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {lookups.seasons.map(season => (
+                        <div key={season.id} className="bg-blue-50 p-3 rounded border border-blue-200">
+                          <p className="font-semibold text-blue-900 text-sm">{season.name}</p>
+                          <p className="text-xs text-blue-700">
+                            {`Mois ${season.start_month}-${season.end_month}`}
+                          </p>
+                          <select
+                            name={`seasonal_watering_${season.id}`}
+                            value={formData[`seasonal_watering_${season.id}`] || ''}
+                            onChange={handleChange}
+                            className="w-full mt-2 px-2 py-1 text-xs border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Choisir...</option>
+                            {lookups.wateringFrequencies.map(freq => (
+                              <option key={freq.id} value={freq.id}>
+                                {freq.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Bloc Fertilisation (jaune) */}
+                  <div>
+                    <h3 className="text-center font-semibold text-yellow-900 mb-3">Fertilisation</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {lookups.seasons.map(season => (
+                        <div key={season.id} className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                          <p className="font-semibold text-yellow-900 text-sm">{season.name}</p>
+                          <p className="text-xs text-yellow-700">
+                            {`Mois ${season.start_month}-${season.end_month}`}
+                          </p>
+                          <select
+                            name={`seasonal_fertilizing_${season.id}`}
+                            value={formData[`seasonal_fertilizing_${season.id}`] || ''}
+                            onChange={handleChange}
+                            className="w-full mt-2 px-2 py-1 text-xs border border-yellow-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                          >
+                            <option value="">Choisir...</option>
+                            {lookups.wateringFrequencies.map(freq => (
+                              <option key={freq.id} value={freq.id}>
+                                {freq.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
