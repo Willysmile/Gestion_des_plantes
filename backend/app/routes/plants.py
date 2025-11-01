@@ -328,7 +328,7 @@ async def get_seasonal_fertilizing(
     db: Session = Depends(get_db),
 ):
     """Récupère la fréquence de fertilisation pour une saison donnée"""
-    from app.models.lookup import PlantSeasonalFertilizing, WateringFrequency
+    from app.models.lookup import PlantSeasonalFertilizing, FertilizerFrequency
     
     seasonal = db.query(PlantSeasonalFertilizing).filter(
         PlantSeasonalFertilizing.plant_id == plant_id,
@@ -338,11 +338,11 @@ async def get_seasonal_fertilizing(
     if not seasonal or not seasonal.fertilizer_frequency_id:
         raise HTTPException(status_code=404, detail="Fréquence saisonnière non trouvée")
     
-    freq = db.query(WateringFrequency).filter_by(id=seasonal.fertilizer_frequency_id).first()
+    freq = db.query(FertilizerFrequency).filter_by(id=seasonal.fertilizer_frequency_id).first()
     if not freq:
         raise HTTPException(status_code=404, detail="Fréquence non trouvée")
     
-    return {"id": freq.id, "name": freq.name, "days_interval": freq.days_interval}
+    return {"id": freq.id, "name": freq.name, "weeks_interval": freq.weeks_interval}
 
 
 @router.put("/{plant_id}/seasonal-fertilizing/{season_id}")
@@ -353,7 +353,7 @@ async def update_seasonal_fertilizing(
     db: Session = Depends(get_db),
 ):
     """Met à jour la fréquence de fertilisation pour une saison donnée"""
-    from app.models.lookup import PlantSeasonalFertilizing, WateringFrequency
+    from app.models.lookup import PlantSeasonalFertilizing, FertilizerFrequency
     
     seasonal = db.query(PlantSeasonalFertilizing).filter(
         PlantSeasonalFertilizing.plant_id == plant_id,
@@ -376,8 +376,8 @@ async def update_seasonal_fertilizing(
     db.refresh(seasonal)
     
     if seasonal.fertilizer_frequency_id:
-        freq = db.query(WateringFrequency).filter_by(id=seasonal.fertilizer_frequency_id).first()
-        return {"id": freq.id, "name": freq.name, "days_interval": freq.days_interval}
+        freq = db.query(FertilizerFrequency).filter_by(id=seasonal.fertilizer_frequency_id).first()
+        return {"id": freq.id, "name": freq.name, "weeks_interval": freq.weeks_interval}
     
     return {"id": seasonal.id, "message": "Fréquence mise à jour"}
 

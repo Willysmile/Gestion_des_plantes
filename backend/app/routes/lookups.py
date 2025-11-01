@@ -84,6 +84,18 @@ async def list_watering_frequencies(
     return [{"id": f.id, "name": f.name, "days": f.days_interval} for f in frequencies]
 
 
+# ===== FERTILIZER FREQUENCIES =====
+
+@router.get("/fertilizer-frequencies", response_model=List[dict])
+async def list_fertilizer_frequencies(
+    db: Session = Depends(get_db),
+):
+    """Récupère toutes les fréquences de fertilisation"""
+    from app.models.lookup import FertilizerFrequency
+    frequencies = db.query(FertilizerFrequency).all()
+    return [{"id": f.id, "name": f.name, "weeks": f.weeks_interval} for f in frequencies]
+
+
 # ===== LIGHT REQUIREMENTS =====
 
 @router.get("/light-requirements", response_model=List[dict])

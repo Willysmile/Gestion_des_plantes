@@ -22,6 +22,11 @@ class WateringFrequency(BaseModel):
     name = Column(String(100), unique=True, nullable=False)
     days_interval = Column(Integer, nullable=True)
 
+class FertilizerFrequency(BaseModel):
+    __tablename__ = "fertilizer_frequencies"
+    name = Column(String(100), unique=True, nullable=False)
+    weeks_interval = Column(Integer, nullable=True)
+
 class LightRequirement(BaseModel):
     __tablename__ = "light_requirements"
     name = Column(String(100), unique=True, nullable=False)
@@ -78,5 +83,5 @@ class PlantSeasonalFertilizing(BaseModel):
     __tablename__ = "plant_seasonal_fertilizing"
     plant_id = Column(Integer, ForeignKey("plants.id", ondelete="CASCADE"), nullable=False)
     season_id = Column(Integer, ForeignKey("seasons.id", ondelete="CASCADE"), nullable=False)
-    fertilizer_frequency_id = Column(Integer, ForeignKey("watering_frequencies.id"), nullable=True)
+    fertilizer_frequency_id = Column(Integer, ForeignKey("fertilizer_frequencies.id"), nullable=True)
     __table_args__ = (UniqueConstraint('plant_id', 'season_id', name='_plant_season_fert_uc'),)

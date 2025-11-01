@@ -103,7 +103,7 @@ export default function PlantFormPage() {
   useEffect(() => {
     const loadLookups = async () => {
       try {
-        const [locations, frequencies, lights, methods, types, seasons, tags] = await Promise.all([
+        const [locations, frequencies, lights, methods, types, seasons, tags, fertilizerFreq] = await Promise.all([
           lookupsAPI.getLocations(),
           lookupsAPI.getWateringFrequencies(),
           lookupsAPI.getLightRequirements(),
@@ -111,6 +111,7 @@ export default function PlantFormPage() {
           lookupsAPI.getWaterTypes(),
           lookupsAPI.getSeasons(),
           lookupsAPI.getTags(),
+          lookupsAPI.getFertilizerFrequencies(),
         ])
         setLookups({
           locations: locations.data || [],
@@ -120,6 +121,7 @@ export default function PlantFormPage() {
           waterTypes: types.data || [],
           seasons: seasons.data || [],
           tags: tags.data || [],
+          fertilizerFrequencies: fertilizerFreq.data || [],
         })
       } catch (err) {
         console.error('Erreur lors du chargement des données:', err)
@@ -889,7 +891,7 @@ export default function PlantFormPage() {
                             className="w-full mt-2 px-2 py-1 text-xs border border-yellow-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           >
                             <option value="">Choisir...</option>
-                            {lookups.wateringFrequencies.map(freq => (
+                            {lookups.fertilizerFrequencies?.map(freq => (
                               <option key={freq.id} value={freq.id}>
                                 {freq.name}
                               </option>

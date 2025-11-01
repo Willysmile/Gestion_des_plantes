@@ -8,6 +8,7 @@ from app.models.lookup import (
     Location,
     PurchasePlace,
     WateringFrequency,
+    FertilizerFrequency,
     LightRequirement,
     Unit,
     FertilizerType,
@@ -73,6 +74,23 @@ def seed_watering_frequencies(db: Session) -> None:
     
     for freq in frequencies:
         if not db.query(WateringFrequency).filter(WateringFrequency.name == freq.name).first():
+            db.add(freq)
+    
+    db.commit()
+
+
+def seed_fertilizer_frequencies(db: Session) -> None:
+    """Pré-remplit les fréquences de fertilisation"""
+    frequencies = [
+        FertilizerFrequency(name="Hebdomadaire", weeks_interval=1),
+        FertilizerFrequency(name="Bi-hebdomadaire", weeks_interval=2),
+        FertilizerFrequency(name="Mensuel", weeks_interval=4),
+        FertilizerFrequency(name="Tous les 6 semaines", weeks_interval=6),
+        FertilizerFrequency(name="Trimestriel", weeks_interval=12),
+    ]
+    
+    for freq in frequencies:
+        if not db.query(FertilizerFrequency).filter(FertilizerFrequency.name == freq.name).first():
             db.add(freq)
     
     db.commit()
@@ -244,6 +262,9 @@ def seed_all(db: Session) -> None:
     seed_watering_frequencies(db)
     print("✅ Watering frequencies seeded")
     
+    seed_fertilizer_frequencies(db)
+    print("✅ Fertilizer frequencies seeded")
+
     seed_light_requirements(db)
     print("✅ Light requirements seeded")
     

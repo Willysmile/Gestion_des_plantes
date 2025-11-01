@@ -123,6 +123,14 @@ export const lookupsAPI = {
       throw error
     }
   },
+  getFertilizerFrequencies: async () => {
+    try {
+      return await api.get('/lookups/fertilizer-frequencies')
+    } catch (error) {
+      console.error('Error fetching fertilizer frequencies:', error)
+      throw error
+    }
+  },
   getLightRequirements: async () => {
     try {
       return await api.get('/lookups/light-requirements')
