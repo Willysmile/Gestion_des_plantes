@@ -22,7 +22,7 @@ init_db()
 db = next(get_db())
 try:
     seed_all(db)
-    seed_plants(db)
+    # seed_plants(db)  # Disabled - create plants manually with new fields
 finally:
     db.close()
 

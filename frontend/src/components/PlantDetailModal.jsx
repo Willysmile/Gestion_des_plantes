@@ -461,11 +461,6 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                         <p className="text-xs text-gray-500 mt-1">
                           Pot: {lastRepotting.pot_size_before || '?'}{pluralizeCm(lastRepotting.pot_size_before)} → {lastRepotting.pot_size_after || '?'}{pluralizeCm(lastRepotting.pot_size_after)}
                         </p>
-                        {lastRepotting.soil_type && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Substrat: {lastRepotting.soil_type}
-                          </p>
-                        )}
                       </>
                     )}
                   </div>

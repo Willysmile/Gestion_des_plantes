@@ -23,10 +23,10 @@ export function RepottingFormModal({ plantId, onClose, onSuccess }) {
     try {
       await addRepotting({
         date: formData.date,
-        soil_type: formData.soil_type,
-        pot_size_before: formData.pot_size_before ? parseFloat(formData.pot_size_before) : null,
-        pot_size_after: formData.pot_size_after ? parseFloat(formData.pot_size_after) : null,
-        notes: formData.notes
+        soil_type: formData.soil_type || null,
+        pot_size_before: formData.pot_size_before ? parseInt(formData.pot_size_before, 10) : null,
+        pot_size_after: formData.pot_size_after ? parseInt(formData.pot_size_after, 10) : null,
+        notes: formData.notes || null
       })
 
       onSuccess?.()
