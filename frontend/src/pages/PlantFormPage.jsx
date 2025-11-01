@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { plantsAPI, lookupsAPI, photosAPI } from '../lib/api'
+import api from '../lib/api'
 import { usePlant } from '../hooks/usePlants'
 import { validatePlant } from '../lib/schemas'
 import { ArrowLeft } from 'lucide-react'
@@ -127,6 +128,31 @@ export default function PlantFormPage() {
     loadLookups()
   }, [])
 
+  // Charger les fréquences saisonnières après les lookups
+  useEffect(() => {
+    if (id && lookups.seasons && lookups.seasons.length > 0) {
+      loadSeasonalWatering()
+    }
+  }, [id, lookups.seasons.length])
+
+  const loadSeasonalWatering = async () => {
+    try {
+      for (const season of lookups.seasons) {
+        try {
+          const response = await api.get(`/plants/${id}/seasonal-watering/${season.id}`)
+          setFormData(prev => ({
+            ...prev,
+            [`seasonal_watering_${season.id}`]: response.data.id
+          }))
+        } catch (err) {
+          // Pas de fréquence définie pour cette saison, c'est OK
+        }
+      }
+    } catch (err) {
+      console.error('Error loading seasonal watering:', err)
+    }
+  }
+
   // Load photos when plant ID changes
   useEffect(() => {
     if (id && existingPlant) {
@@ -232,6 +258,14 @@ export default function PlantFormPage() {
 
     setLoading(true)
     try {
+      // Log les données saisonnières avant correction
+      console.log('📋 Form data avant correction:')
+      for (const [key, value] of Object.entries(formData)) {
+        if (key.startsWith('seasonal_watering_')) {
+          console.log(`  ${key}: ${value}`)
+        }
+      }
+
       // Auto-corriger les données selon les règles métier
       let correctedData = autoCorrectData(formData)
       console.log('Corrected data:', {
@@ -272,8 +306,43 @@ export default function PlantFormPage() {
       if (id) {
         await plantsAPI.update(id, dataToSend)
         alert('Plante mise à jour avec succès!')
+        
+        // Sauvegarder aussi les fréquences saisonnières pour l'update
+        for (const [key, value] of Object.entries(formData)) {
+          if (key.startsWith('seasonal_watering_') && value) {
+            const seasonId = parseInt(key.replace('seasonal_watering_', ''), 10)
+            try {
+              await api.put(`/plants/${id}/seasonal-watering/${seasonId}`, {
+                watering_frequency_id: parseInt(value, 10)
+              })
+            } catch (err) {
+              console.error(`Error saving seasonal watering for season ${seasonId}:`, err)
+            }
+          }
+        }
       } else {
-        await plantsAPI.create(dataToSend)
+        const response = await plantsAPI.create(dataToSend)
+        // Récupérer l'ID de la plante créée
+        const newPlantId = response.data.id || id
+        
+        // Sauvegarder les fréquences saisonnières
+        if (newPlantId) {
+          console.log('📌 Saving seasonal watering for plant', newPlantId)
+          for (const [key, value] of Object.entries(formData)) {
+            if (key.startsWith('seasonal_watering_') && value) {
+              const seasonId = parseInt(key.replace('seasonal_watering_', ''), 10)
+              console.log(`  Saison ${seasonId}: Fréquence ${value}`)
+              try {
+                const resp = await api.put(`/plants/${newPlantId}/seasonal-watering/${seasonId}`, {
+                  watering_frequency_id: parseInt(value, 10)
+                })
+                console.log(`  ✅ Saison ${seasonId} sauvegardée`)
+              } catch (err) {
+                console.error(`Error saving seasonal watering for season ${seasonId}:`, err)
+              }
+            }
+          }
+        }
         alert('Plante créée avec succès!')
       }
       navigate('/')
@@ -732,15 +801,27 @@ export default function PlantFormPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block font-semibold mb-2">Saisons disponibles pour ajustements</label>
+                <label className="block font-semibold mb-2">Fréquence d'arrosage par saison</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {lookups.seasons.map(season => (
                     <div key={season.id} className="bg-blue-50 p-3 rounded border border-blue-200">
-                      <p className="font-semibold text-blue-900">{season.name}</p>
+                      <p className="font-semibold text-blue-900 text-sm">{season.name}</p>
                       <p className="text-xs text-blue-700">
                         {`Mois ${season.start_month}-${season.end_month}`}
                       </p>
-                      <p className="text-xs text-gray-600 mt-1">{season.description}</p>
+                      <select
+                        name={`seasonal_watering_${season.id}`}
+                        value={formData[`seasonal_watering_${season.id}`] || ''}
+                        onChange={handleChange}
+                        className="w-full mt-2 px-2 py-1 text-xs border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Choisir...</option>
+                        {lookups.wateringFrequencies.map(freq => (
+                          <option key={freq.id} value={freq.id}>
+                            {freq.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   ))}
                 </div>

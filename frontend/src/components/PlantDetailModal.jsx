@@ -25,6 +25,8 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   const [showRepottingForm, setShowRepottingForm] = useState(false)
   const [lastDisease, setLastDisease] = useState(null)
   const [showDiseaseForm, setShowDiseaseForm] = useState(false)
+  const [seasonalWatering, setSeasonalWatering] = useState(null)
+  const [nextSeasonalWatering, setNextSeasonalWatering] = useState(null)
   const [lookups, setLookups] = useState({
     wateringFrequencies: [],
     lightRequirements: [],
@@ -73,6 +75,33 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     loadLookups()
   }, [])
 
+  // Charger la fréquence saisonnière une seule fois quand les lookups sont chargés
+  useEffect(() => {
+    if (plant.id && lookups.seasons?.length > 0) {
+      const month = new Date().getMonth() + 1 // 1-12
+      const currentSeason = lookups.seasons.find(s => {
+        if (s.start_month <= s.end_month) {
+          return month >= s.start_month && month <= s.end_month
+        } else {
+          // Pour l'hiver (12->2)
+          return month >= s.start_month || month <= s.end_month
+        }
+      })
+      
+      if (currentSeason) {
+        console.log(`🔍 Current season: ${currentSeason.name} (month ${month})`)
+        loadSeasonalWatering(currentSeason.id)
+        
+        // Charger aussi la prochaine saison
+        const nextIndex = (lookups.seasons.findIndex(s => s.id === currentSeason.id) + 1) % lookups.seasons.length
+        const nextSeason = lookups.seasons[nextIndex]
+        if (nextSeason) {
+          loadNextSeasonalWatering(nextSeason.id)
+        }
+      }
+    }
+  }, [plant.id, lookups.seasons?.length])
+
   const loadSeasonalWatering = async (seasonId) => {
     try {
       const response = await api.get(`/plants/${plant.id}/seasonal-watering/${seasonId}`)
@@ -81,6 +110,17 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     } catch (err) {
       console.error('Error loading seasonal watering:', err)
       setSeasonalWatering(null)
+    }
+  }
+
+  const loadNextSeasonalWatering = async (seasonId) => {
+    try {
+      const response = await api.get(`/plants/${plant.id}/seasonal-watering/${seasonId}`)
+      setNextSeasonalWatering(response.data)
+      console.log('✅ Next seasonal watering loaded:', response.data)
+    } catch (err) {
+      console.error('Error loading next seasonal watering:', err)
+      setNextSeasonalWatering(null)
     }
   }
 
@@ -278,6 +318,32 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
         return month >= s.start_month || month <= s.end_month
       }
     })
+  }
+
+  // Obtenir la prochaine saison
+  const getNextSeason = () => {
+    const currentSeason = getCurrentSeason()
+    if (!currentSeason) return null
+    
+    const seasons = lookups.seasons || []
+    const currentIndex = seasons.findIndex(s => s.id === currentSeason.id)
+    if (currentIndex === -1) return null
+    
+    // La prochaine saison est la suivante dans la liste
+    return seasons[(currentIndex + 1) % seasons.length]
+  }
+
+  // Obtenir la fréquence de la prochaine saison
+  const getNextSeasonalWatering = async () => {
+    const nextSeason = getNextSeason()
+    if (!nextSeason || !plant.id) return null
+    
+    try {
+      const response = await api.get(`/plants/${plant.id}/seasonal-watering/${nextSeason.id}`)
+      return response.data
+    } catch (err) {
+      return null
+    }
   }
 
   // Obtenir le nom de la méthode d'arrosage
@@ -552,20 +618,27 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                       💧 Arrosage
                     </h3>
                     <div className="grid grid-cols-4 gap-2">
-                      {/* Fréquence */}
-                      <div className="bg-white p-2 rounded border border-blue-200 text-center">
-                        <p className="text-xs font-medium text-gray-600 mb-1">Fréquence</p>
-                        <p className="text-xs text-blue-700 font-semibold">{getWateringFrequencyName()}</p>
-                      </div>
-
                       {/* Saison actuelle */}
                       <div className="bg-white p-2 rounded border border-green-200 text-center">
-                        <p className="text-xs font-medium text-gray-600 mb-1">Saison</p>
-                        {getCurrentSeason() ? (
-                          <>
-                            <p className="text-xs text-green-700 font-semibold">{getCurrentSeason().name}</p>
-                            <p className="text-xs text-gray-600">{getCurrentSeason().description}</p>
-                          </>
+                        <p className="text-xs font-medium text-gray-600 mb-1">Saison actuelle</p>
+                        {getCurrentSeason() && (
+                          <p className="text-xs text-gray-500 mb-1">{getCurrentSeason().name}</p>
+                        )}
+                        {seasonalWatering ? (
+                          <p className="text-xs text-green-700 font-semibold">{seasonalWatering.name}</p>
+                        ) : (
+                          <p className="text-xs text-gray-500">—</p>
+                        )}
+                      </div>
+
+                      {/* Saison future */}
+                      <div className="bg-white p-2 rounded border border-yellow-200 text-center">
+                        <p className="text-xs font-medium text-gray-600 mb-1">Saison future</p>
+                        {getNextSeason() && (
+                          <p className="text-xs text-gray-500 mb-1">{getNextSeason().name}</p>
+                        )}
+                        {nextSeasonalWatering ? (
+                          <p className="text-xs text-yellow-700 font-semibold">{nextSeasonalWatering.name}</p>
                         ) : (
                           <p className="text-xs text-gray-500">—</p>
                         )}
@@ -761,3 +834,4 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     </div>
   )
 }
+

@@ -283,3 +283,40 @@ async def get_seasonal_watering(
     
     return {"id": freq.id, "name": freq.name, "days_interval": freq.days_interval}
 
+
+@router.put("/{plant_id}/seasonal-watering/{season_id}")
+async def update_seasonal_watering(
+    plant_id: int,
+    season_id: int,
+    data: dict,
+    db: Session = Depends(get_db),
+):
+    """Met à jour la fréquence d'arrosage pour une saison donnée"""
+    from app.models.lookup import PlantSeasonalWatering, WateringFrequency
+    
+    seasonal = db.query(PlantSeasonalWatering).filter(
+        PlantSeasonalWatering.plant_id == plant_id,
+        PlantSeasonalWatering.season_id == season_id
+    ).first()
+    
+    if not seasonal:
+        # Créer un nouveau si n'existe pas
+        seasonal = PlantSeasonalWatering(
+            plant_id=plant_id,
+            season_id=season_id,
+            watering_frequency_id=data.get("watering_frequency_id")
+        )
+        db.add(seasonal)
+    else:
+        # Mettre à jour
+        seasonal.watering_frequency_id = data.get("watering_frequency_id")
+    
+    db.commit()
+    db.refresh(seasonal)
+    
+    if seasonal.watering_frequency_id:
+        freq = db.query(WateringFrequency).filter_by(id=seasonal.watering_frequency_id).first()
+        return {"id": freq.id, "name": freq.name, "days_interval": freq.days_interval}
+    
+    return {"id": seasonal.id, "message": "Fréquence mise à jour"}
+
