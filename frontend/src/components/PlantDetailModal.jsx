@@ -644,16 +644,17 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                         )}
                       </div>
 
-                      {/* Méthode d'arrosage */}
-                      <div className="bg-white p-2 rounded border border-cyan-200 text-center">
-                        <p className="text-xs font-medium text-gray-600 mb-1">Méthode</p>
+                      {/* Méthode & Type d'eau */}
+                      <div className="bg-white p-2 rounded border border-purple-200 text-center">
+                        <p className="text-xs font-medium text-gray-600 mb-1">Type d'eau</p>
+                        <p className="text-xs text-indigo-700 font-semibold mb-2">{getWaterTypeName()}</p>
                         <p className="text-xs text-cyan-700 font-semibold">{getWateringMethodName()}</p>
                       </div>
 
-                      {/* Type d'eau */}
-                      <div className="bg-white p-2 rounded border border-indigo-200 text-center">
-                        <p className="text-xs font-medium text-gray-600 mb-1">Type d'eau</p>
-                        <p className="text-xs text-indigo-700 font-semibold">{getWaterTypeName()}</p>
+                      {/* Fertilisation */}
+                      <div className="bg-white p-2 rounded border border-green-200 text-center">
+                        <p className="text-xs font-medium text-gray-600 mb-1">Fertilisation</p>
+                        <p className="text-xs text-green-700 font-semibold">Coucou Bisounours</p>
                       </div>
                     </div>
                   </div>
