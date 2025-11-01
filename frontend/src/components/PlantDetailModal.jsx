@@ -32,6 +32,8 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     diseaseTypes: [],
     healthStatuses: [],
     seasons: [],
+    wateringMethods: [],
+    waterTypes: [],
   })
 
   // Charger la plante complète depuis l'API
@@ -73,13 +75,15 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   const loadLookups = async () => {
     try {
-      const [freqRes, lightRes, fertRes, diseaseRes, healthRes, seasonsRes] = await Promise.all([
+      const [freqRes, lightRes, fertRes, diseaseRes, healthRes, seasonsRes, methodsRes, typesRes] = await Promise.all([
         lookupsAPI.getWateringFrequencies(),
         lookupsAPI.getLightRequirements(),
         lookupsAPI.getFertilizerTypes(),
         lookupsAPI.getDiseaseTypes(),
         api.get('/lookups/plant-health-statuses'),
         api.get('/lookups/seasons'),
+        api.get('/lookups/watering-methods'),
+        api.get('/lookups/water-types'),
       ])
       setLookups({
         wateringFrequencies: freqRes.data || [],
@@ -88,6 +92,8 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
         diseaseTypes: diseaseRes.data || [],
         healthStatuses: healthRes.data || [],
         seasons: seasonsRes.data || [],
+        wateringMethods: methodsRes.data || [],
+        waterTypes: typesRes.data || [],
       })
     } catch (err) {
       console.error('Error loading lookups:', err)
@@ -248,6 +254,33 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     if (!healthStatusId) return 'N/A'
     const status = lookups.healthStatuses?.find(s => s.id === healthStatusId)
     return status ? status.name : 'État inconnu'
+  }
+
+  // Obtenir la saison actuelle
+  const getCurrentSeason = () => {
+    const month = new Date().getMonth() + 1 // 1-12
+    return lookups.seasons?.find(s => {
+      if (s.start_month <= s.end_month) {
+        return month >= s.start_month && month <= s.end_month
+      } else {
+        // Pour l'hiver (12->2)
+        return month >= s.start_month || month <= s.end_month
+      }
+    })
+  }
+
+  // Obtenir le nom de la méthode d'arrosage
+  const getWateringMethodName = () => {
+    if (!plant.preferred_watering_method_id) return '—'
+    const method = lookups.wateringMethods?.find(m => m.id === plant.preferred_watering_method_id)
+    return method?.name || '—'
+  }
+
+  // Obtenir le nom du type d'eau
+  const getWaterTypeName = () => {
+    if (!plant.preferred_water_type_id) return '—'
+    const type = lookups.waterTypes?.find(t => t.id === plant.preferred_water_type_id)
+    return type?.name || '—'
   }
 
   // Galerie: max 2 photos, excluant la photo principale
@@ -507,32 +540,43 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
               {/* Cartes scrollables */}
               <div className="overflow-y-auto pr-2 flex-1">
                 <div className="grid grid-cols-2 gap-3">
-                  {/* Arrosage Amélioré */}
-                  <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500 col-span-2">
-                    <div className="text-center mb-2">
-                      <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">💧 Arrosage</h3>
-                    </div>
-                    
-                    {/* Fréquence générale */}
-                    <div className="mb-2 pb-2 border-b border-blue-200">
-                      <p className="text-xs font-medium text-gray-700">Fréquence</p>
-                      <p className="text-xs text-blue-700 font-semibold">{getWateringFrequencyName()}</p>
-                    </div>
-
-                    {/* Fréquences par saison */}
-                    {lookups.seasons && lookups.seasons.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium text-gray-700 mb-1">Par saison</p>
-                        <div className="grid grid-cols-2 gap-1 text-xs">
-                          {lookups.seasons.map(season => (
-                            <div key={season.id} className="bg-white/60 p-1 rounded border-l-2 border-blue-300">
-                              <p className="font-medium text-gray-800">{season.name}</p>
-                              <p className="text-gray-600 text-xs">{season.description}</p>
-                            </div>
-                          ))}
-                        </div>
+                  {/* Arrosage - 4 sous-cartes sur la même ligne */}
+                  <div className="col-span-2">
+                    <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                      💧 Arrosage
+                    </h3>
+                    <div className="grid grid-cols-4 gap-2">
+                      {/* Fréquence */}
+                      <div className="bg-blue-50 p-2 rounded-lg border-l-4 border-blue-500 text-center">
+                        <p className="text-xs font-medium text-gray-700 mb-1">Fréquence</p>
+                        <p className="text-xs text-blue-700 font-semibold">{getWateringFrequencyName()}</p>
                       </div>
-                    )}
+
+                      {/* Saison actuelle */}
+                      <div className="bg-green-50 p-2 rounded-lg border-l-4 border-green-500 text-center">
+                        <p className="text-xs font-medium text-gray-700 mb-1">Saison</p>
+                        {getCurrentSeason() ? (
+                          <>
+                            <p className="text-xs text-green-700 font-semibold">{getCurrentSeason().name}</p>
+                            <p className="text-xs text-gray-600">{getCurrentSeason().description}</p>
+                          </>
+                        ) : (
+                          <p className="text-xs text-gray-500">—</p>
+                        )}
+                      </div>
+
+                      {/* Méthode d'arrosage */}
+                      <div className="bg-cyan-50 p-2 rounded-lg border-l-4 border-cyan-500 text-center">
+                        <p className="text-xs font-medium text-gray-700 mb-1">Méthode</p>
+                        <p className="text-xs text-cyan-700 font-semibold">{getWateringMethodName()}</p>
+                      </div>
+
+                      {/* Type d'eau */}
+                      <div className="bg-indigo-50 p-2 rounded-lg border-l-4 border-indigo-500 text-center">
+                        <p className="text-xs font-medium text-gray-700 mb-1">Type d'eau</p>
+                        <p className="text-xs text-indigo-700 font-semibold">{getWaterTypeName()}</p>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Lumière */}

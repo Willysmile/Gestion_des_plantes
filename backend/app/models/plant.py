@@ -35,6 +35,8 @@ class Plant(BaseModel):
     # Environment
     watering_frequency_id = Column(Integer, ForeignKey("watering_frequencies.id"))
     light_requirement_id = Column(Integer, ForeignKey("light_requirements.id"))
+    preferred_watering_method_id = Column(Integer, ForeignKey("watering_methods.id"))
+    preferred_water_type_id = Column(Integer, ForeignKey("water_types.id"))
     temperature_min = Column(Integer)
     temperature_max = Column(Integer)
     humidity_level = Column(Integer)
