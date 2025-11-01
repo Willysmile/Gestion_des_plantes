@@ -713,23 +713,6 @@ export default function PlantFormPage() {
               </div>
 
               <div>
-                <label className="block font-semibold mb-2">Fréquence d'arrosage</label>
-                <select
-                  name="watering_frequency_id"
-                  value={formData.watering_frequency_id || ''}
-                  onChange={handleChange}
-                  className={getFieldClass('watering_frequency_id')}
-                >
-                  <option value="">Sélectionner...</option>
-                  {lookups.wateringFrequencies.map(freq => (
-                    <option key={freq.id} value={freq.id}>
-                      {freq.name} ({freq.days} jours)
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
                 <label className="block font-semibold mb-2">Besoin en lumière</label>
                 <select
                   name="light_requirement_id"
@@ -741,40 +724,6 @@ export default function PlantFormPage() {
                   {lookups.lightRequirements.map(light => (
                     <option key={light.id} value={light.id}>
                       {light.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2">Méthode d'arrosage</label>
-                <select
-                  name="preferred_watering_method_id"
-                  value={formData.preferred_watering_method_id || ''}
-                  onChange={handleChange}
-                  className={getFieldClass('preferred_watering_method_id')}
-                >
-                  <option value="">Sélectionner...</option>
-                  {lookups.wateringMethods.map(method => (
-                    <option key={method.id} value={method.id}>
-                      {method.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2">Type d'eau</label>
-                <select
-                  name="preferred_water_type_id"
-                  value={formData.preferred_water_type_id || ''}
-                  onChange={handleChange}
-                  className={getFieldClass('preferred_water_type_id')}
-                >
-                  <option value="">Sélectionner...</option>
-                  {lookups.waterTypes.map(type => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
                     </option>
                   ))}
                 </select>

@@ -31,6 +31,7 @@ export default function PhotoCarousel({ photos, initialIndex = 0, plantId, onClo
 
   // Fermer au clic sur l'arrière-plan
   const handleBackgroundClick = (e) => {
+    e.stopPropagation()
     if (e.target === e.currentTarget) {
       onClose()
     }

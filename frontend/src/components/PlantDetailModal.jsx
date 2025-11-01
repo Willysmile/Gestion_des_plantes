@@ -676,14 +676,34 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                     </div>
                   </div>
 
-                  {/* Lumière */}
-                  <div className="bg-yellow-50 p-2 rounded-lg border-l-4 border-yellow-500">
-                    <div className="text-center">
-                      <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Lumière</h3>
+                  {/* Besoins - 3 colonnes: Lumière, Température, Humidité */}
+                  <div className="bg-gradient-to-r from-yellow-50 via-red-50 to-cyan-50 p-3 rounded-lg border-l-4 border-yellow-500 col-span-2">
+                    <div className="text-center mb-3">
+                      <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Besoins</h3>
                     </div>
-                    <div className="mt-2 flex flex-col items-center gap-1">
-                      <Sun className="w-5 h-5 text-yellow-500" />
-                      <span className="text-xs text-gray-600 font-medium">{getLightRequirementName()}</span>
+                    <div className="grid grid-cols-3 gap-3">
+                      {/* Colonne 1: Lumière */}
+                      <div className="flex flex-col items-center gap-1 pb-3 border-r border-gray-200">
+                        <Sun className="w-5 h-5 text-yellow-500" />
+                        <span className="text-xs text-gray-600 font-semibold">Lumière</span>
+                        <span className="text-xs text-gray-700 font-medium text-center">{getLightRequirementName()}</span>
+                      </div>
+                      
+                      {/* Colonne 2: Température */}
+                      <div className="flex flex-col items-center gap-1 pb-3 border-r border-gray-200">
+                        <span className="text-xs text-gray-600 font-semibold">Température</span>
+                        <div className="text-gray-800 text-xs font-medium">
+                          {(plant.temperature_min || plant.temperature_max) 
+                            ? `${plant.temperature_min || '?'}°C-${plant.temperature_max || '?'}°C`
+                            : '—'}
+                        </div>
+                      </div>
+                      
+                      {/* Colonne 3: Humidité */}
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-xs text-gray-600 font-semibold">Humidité</span>
+                        <div className="text-gray-800 text-xs font-medium">{plant.humidity_level || '—'}%</div>
+                      </div>
                     </div>
                   </div>
 
@@ -694,32 +714,6 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                     </div>
                     <div className="mt-2 text-center text-xs text-gray-800">
                       {plant.tags?.length > 0 ? plant.tags.map(t => t.name).join(', ') : '—'}
-                    </div>
-                  </div>
-
-                  {/* Température */}
-                  {(plant.temperature_min || plant.temperature_max) && (
-                    <div className="bg-red-50 p-2 rounded-lg border-l-4 border-red-500">
-                      <div className="text-center">
-                        <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Température</h3>
-                      </div>
-                      <div className="mt-2 flex flex-col items-center gap-1">
-                        <span className="text-xs text-gray-600">Valeurs</span>
-                        <div className="text-gray-800 text-xs font-medium">
-                          {plant.temperature_min || '?'}°C-{plant.temperature_max || '?'}°C
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Humidité - Toujours visible */}
-                  <div className="bg-cyan-50 p-2 rounded-lg border-l-4 border-cyan-500">
-                    <div className="text-center">
-                      <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Humidité</h3>
-                    </div>
-                    <div className="mt-2 flex flex-col items-center gap-1">
-                      <span className="text-xs text-gray-600">Taux</span>
-                      <div className="text-gray-800 text-xs font-medium">{plant.humidity_level || '—'}%</div>
                     </div>
                   </div>
 
