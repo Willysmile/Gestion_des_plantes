@@ -31,6 +31,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     fertilizerTypes: [],
     diseaseTypes: [],
     healthStatuses: [],
+    seasons: [],
   })
 
   // Charger la plante complète depuis l'API
@@ -72,12 +73,13 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   const loadLookups = async () => {
     try {
-      const [freqRes, lightRes, fertRes, diseaseRes, healthRes] = await Promise.all([
+      const [freqRes, lightRes, fertRes, diseaseRes, healthRes, seasonsRes] = await Promise.all([
         lookupsAPI.getWateringFrequencies(),
         lookupsAPI.getLightRequirements(),
         lookupsAPI.getFertilizerTypes(),
         lookupsAPI.getDiseaseTypes(),
         api.get('/lookups/plant-health-statuses'),
+        api.get('/lookups/seasons'),
       ])
       setLookups({
         wateringFrequencies: freqRes.data || [],
@@ -85,6 +87,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
         fertilizerTypes: fertRes.data || [],
         diseaseTypes: diseaseRes.data || [],
         healthStatuses: healthRes.data || [],
+        seasons: seasonsRes.data || [],
       })
     } catch (err) {
       console.error('Error loading lookups:', err)
@@ -504,22 +507,42 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
               {/* Cartes scrollables */}
               <div className="overflow-y-auto pr-2 flex-1">
                 <div className="grid grid-cols-2 gap-3">
-                  {/* Besoins */}
+                  {/* Arrosage Amélioré */}
+                  <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500 col-span-2">
+                    <div className="text-center mb-2">
+                      <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">💧 Arrosage</h3>
+                    </div>
+                    
+                    {/* Fréquence générale */}
+                    <div className="mb-2 pb-2 border-b border-blue-200">
+                      <p className="text-xs font-medium text-gray-700">Fréquence</p>
+                      <p className="text-xs text-blue-700 font-semibold">{getWateringFrequencyName()}</p>
+                    </div>
+
+                    {/* Fréquences par saison */}
+                    {lookups.seasons && lookups.seasons.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-gray-700 mb-1">Par saison</p>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          {lookups.seasons.map(season => (
+                            <div key={season.id} className="bg-white/60 p-1 rounded border-l-2 border-blue-300">
+                              <p className="font-medium text-gray-800">{season.name}</p>
+                              <p className="text-gray-600 text-xs">{season.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Lumière */}
                   <div className="bg-yellow-50 p-2 rounded-lg border-l-4 border-yellow-500">
                     <div className="text-center">
-                      <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Besoins</h3>
+                      <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Lumière</h3>
                     </div>
-                    <div className="mt-2 flex items-center justify-around gap-3">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-xs text-gray-600">Arrosage</span>
-                        <Droplet className="w-5 h-5 text-blue-500" />
-                        <span className="text-xs text-gray-600 font-medium">{getWateringFrequencyName()}</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-xs text-gray-600">Lumière</span>
-                        <Sun className="w-5 h-5 text-yellow-500" />
-                        <span className="text-xs text-gray-600 font-medium">{getLightRequirementName()}</span>
-                      </div>
+                    <div className="mt-2 flex flex-col items-center gap-1">
+                      <Sun className="w-5 h-5 text-yellow-500" />
+                      <span className="text-xs text-gray-600 font-medium">{getLightRequirementName()}</span>
                     </div>
                   </div>
 
