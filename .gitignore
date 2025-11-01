@@ -1,4 +1,4 @@
-# Python
+# ============= Python =============
 __pycache__/
 *.py[cod]
 *$py.class
@@ -10,7 +10,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-# lib/  # commented out because it conflicts with frontend/src/lib
 lib64/
 parts/
 sdist/
@@ -29,25 +28,48 @@ env/
 ENV/
 .venv
 
-# IDE
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ============= IDE =============
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 .DS_Store
+*.sublime-project
+*.sublime-workspace
 
-# Project-specific
-data/plants.db
-data/plants.db-*
+# ============= Node.js =============
+node_modules/
+package-lock.json
+yarn.lock
+dist/
+.cache/
+
+# ============= Build & Artifacts =============
+backend/htmlcov/
+*.db
+*.db-*
+
+# ============= Data & Logs =============
 data/photos/
 data/exports/
 storage/
 logs/
 
-# Environment
+# ============= Temporary Files =============
+.temp/
+.tmp/
+
+# ============= Environment =============
 .env
 .env.local
+.env.*.local
 .env.*.local
 
 # OS
