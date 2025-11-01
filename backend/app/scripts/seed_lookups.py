@@ -63,13 +63,13 @@ def seed_purchase_places(db: Session) -> None:
 def seed_watering_frequencies(db: Session) -> None:
     """Pré-remplit les fréquences d'arrosage"""
     frequencies = [
-        WateringFrequency(name="Très rare (1x/mois)", days_interval=30),
-        WateringFrequency(name="Rare (2x/mois)", days_interval=15),
-        WateringFrequency(name="Normal (1x/semaine)", days_interval=7),
+        WateringFrequency(name="Fréquent (quotidien)", days_interval=1),
         WateringFrequency(name="Régulier (2-3x/semaine)", days_interval=3),
-        WateringFrequency(name="Fréquent (tous les jours)", days_interval=1),
-        WateringFrequency(name="Laisser sécher entre arrosages", days_interval=14),
-        WateringFrequency(name="Garder humide", days_interval=2),
+        WateringFrequency(name="Normal (1x/semaine)", days_interval=7),
+        WateringFrequency(name="Rare (2x/mois)", days_interval=15),
+        WateringFrequency(name="Très rare (1x/mois)", days_interval=30),
+        WateringFrequency(name="Garder humide", days_interval=None),
+        WateringFrequency(name="Laisser sécher entre arrosages", days_interval=None),
     ]
     
     for freq in frequencies:
