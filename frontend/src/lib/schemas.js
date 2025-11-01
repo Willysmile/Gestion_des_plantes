@@ -172,6 +172,24 @@ export const plantSchema = z.object({
     .nullable()
     .optional(),
 
+  preferred_watering_method_id: z
+    .union([z.string(), z.number()])
+    .transform(val => {
+      if (val === '' || val === null) return null
+      return Number(val)
+    })
+    .nullable()
+    .optional(),
+
+  preferred_water_type_id: z
+    .union([z.string(), z.number()])
+    .transform(val => {
+      if (val === '' || val === null) return null
+      return Number(val)
+    })
+    .nullable()
+    .optional(),
+
   location_id: z
     .union([z.string(), z.number()])
     .transform(val => {

@@ -40,6 +40,8 @@ class PlantCreate(BaseModel):
     # Environment
     watering_frequency_id: Optional[int] = None
     light_requirement_id: Optional[int] = None
+    preferred_watering_method_id: Optional[int] = None
+    preferred_water_type_id: Optional[int] = None
     temperature_min: Optional[int] = None
     temperature_max: Optional[int] = None
     humidity_level: Optional[int] = None
@@ -127,6 +129,8 @@ class PlantResponse(BaseModel):
     purchase_price: Optional[float] = None
     watering_frequency_id: Optional[int] = None
     light_requirement_id: Optional[int] = None
+    preferred_watering_method_id: Optional[int] = None
+    preferred_water_type_id: Optional[int] = None
     temperature_min: Optional[int] = None
     temperature_max: Optional[int] = None
     humidity_level: Optional[int] = None

@@ -39,6 +39,8 @@ export default function PlantFormPage() {
     is_toxic: false,
     watering_frequency_id: null,
     light_requirement_id: null,
+    preferred_watering_method_id: null,
+    preferred_water_type_id: null,
     location_id: null,
     tags: [],
   })
@@ -88,6 +90,8 @@ export default function PlantFormPage() {
         is_toxic: existingPlant.is_toxic || false,
         watering_frequency_id: existingPlant.watering_frequency_id || null,
         light_requirement_id: existingPlant.light_requirement_id || null,
+        preferred_watering_method_id: existingPlant.preferred_watering_method_id || null,
+        preferred_water_type_id: existingPlant.preferred_water_type_id || null,
         location_id: existingPlant.location_id || null,
         tags: existingPlant.tags?.map(tag => tag.id) || [],
       })
@@ -625,6 +629,40 @@ export default function PlantFormPage() {
                   {lookups.lightRequirements.map(light => (
                     <option key={light.id} value={light.id}>
                       {light.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Méthode d'arrosage</label>
+                <select
+                  name="preferred_watering_method_id"
+                  value={formData.preferred_watering_method_id || ''}
+                  onChange={handleChange}
+                  className={getFieldClass('preferred_watering_method_id')}
+                >
+                  <option value="">Sélectionner...</option>
+                  {lookups.wateringMethods.map(method => (
+                    <option key={method.id} value={method.id}>
+                      {method.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-2">Type d'eau</label>
+                <select
+                  name="preferred_water_type_id"
+                  value={formData.preferred_water_type_id || ''}
+                  onChange={handleChange}
+                  className={getFieldClass('preferred_water_type_id')}
+                >
+                  <option value="">Sélectionner...</option>
+                  {lookups.waterTypes.map(type => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
                     </option>
                   ))}
                 </select>
