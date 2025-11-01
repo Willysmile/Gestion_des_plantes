@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Text
+from sqlalchemy import Column, String, Integer, Text, ForeignKey, UniqueConstraint
 from app.models.base import BaseModel
 
 class Unit(BaseModel):
@@ -65,3 +65,10 @@ class Season(BaseModel):
     end_month = Column(Integer, nullable=False)  # 1-12
     description = Column(Text, nullable=True)
 
+
+class PlantSeasonalWatering(BaseModel):
+    __tablename__ = "plant_seasonal_watering"
+    plant_id = Column(Integer, ForeignKey("plants.id", ondelete="CASCADE"), nullable=False)
+    season_id = Column(Integer, ForeignKey("seasons.id", ondelete="CASCADE"), nullable=False)
+    watering_frequency_id = Column(Integer, ForeignKey("watering_frequencies.id"), nullable=True)
+    __table_args__ = (UniqueConstraint('plant_id', 'season_id', name='_plant_season_uc'),)

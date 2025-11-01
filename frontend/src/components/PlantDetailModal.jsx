@@ -73,6 +73,17 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     loadLookups()
   }, [])
 
+  const loadSeasonalWatering = async (seasonId) => {
+    try {
+      const response = await api.get(`/plants/${plant.id}/seasonal-watering/${seasonId}`)
+      setSeasonalWatering(response.data)
+      console.log('✅ Seasonal watering loaded:', response.data)
+    } catch (err) {
+      console.error('Error loading seasonal watering:', err)
+      setSeasonalWatering(null)
+    }
+  }
+
   const loadLookups = async () => {
     try {
       const [freqRes, lightRes, fertRes, diseaseRes, healthRes, seasonsRes, methodsRes, typesRes] = await Promise.all([

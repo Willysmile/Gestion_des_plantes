@@ -258,3 +258,28 @@ async def restore_plant(
     if not plant:
         raise HTTPException(status_code=404, detail="Plante non trouvée")
     return plant
+
+
+@router.get("/{plant_id}/seasonal-watering/{season_id}")
+async def get_seasonal_watering(
+    plant_id: int,
+    season_id: int,
+    db: Session = Depends(get_db),
+):
+    """Récupère la fréquence d'arrosage pour une saison donnée"""
+    from app.models.lookup import PlantSeasonalWatering, WateringFrequency
+    
+    seasonal = db.query(PlantSeasonalWatering).filter(
+        PlantSeasonalWatering.plant_id == plant_id,
+        PlantSeasonalWatering.season_id == season_id
+    ).first()
+    
+    if not seasonal or not seasonal.watering_frequency_id:
+        raise HTTPException(status_code=404, detail="Fréquence saisonnière non trouvée")
+    
+    freq = db.query(WateringFrequency).filter_by(id=seasonal.watering_frequency_id).first()
+    if not freq:
+        raise HTTPException(status_code=404, detail="Fréquence non trouvée")
+    
+    return {"id": freq.id, "name": freq.name, "days_interval": freq.days_interval}
+
