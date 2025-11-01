@@ -540,21 +540,21 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
               {/* Cartes scrollables */}
               <div className="overflow-y-auto pr-2 flex-1">
                 <div className="grid grid-cols-2 gap-3">
-                  {/* Arrosage - 4 sous-cartes sur la même ligne */}
-                  <div className="col-span-2">
-                    <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  {/* Carte Arrosage - Grande carte contenant 4 petites cartes */}
+                  <div className="col-span-2 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                    <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-1">
                       💧 Arrosage
                     </h3>
                     <div className="grid grid-cols-4 gap-2">
                       {/* Fréquence */}
-                      <div className="bg-blue-50 p-2 rounded-lg border-l-4 border-blue-500 text-center">
-                        <p className="text-xs font-medium text-gray-700 mb-1">Fréquence</p>
+                      <div className="bg-white p-2 rounded border border-blue-200 text-center">
+                        <p className="text-xs font-medium text-gray-600 mb-1">Fréquence</p>
                         <p className="text-xs text-blue-700 font-semibold">{getWateringFrequencyName()}</p>
                       </div>
 
                       {/* Saison actuelle */}
-                      <div className="bg-green-50 p-2 rounded-lg border-l-4 border-green-500 text-center">
-                        <p className="text-xs font-medium text-gray-700 mb-1">Saison</p>
+                      <div className="bg-white p-2 rounded border border-green-200 text-center">
+                        <p className="text-xs font-medium text-gray-600 mb-1">Saison</p>
                         {getCurrentSeason() ? (
                           <>
                             <p className="text-xs text-green-700 font-semibold">{getCurrentSeason().name}</p>
@@ -566,14 +566,14 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                       </div>
 
                       {/* Méthode d'arrosage */}
-                      <div className="bg-cyan-50 p-2 rounded-lg border-l-4 border-cyan-500 text-center">
-                        <p className="text-xs font-medium text-gray-700 mb-1">Méthode</p>
+                      <div className="bg-white p-2 rounded border border-cyan-200 text-center">
+                        <p className="text-xs font-medium text-gray-600 mb-1">Méthode</p>
                         <p className="text-xs text-cyan-700 font-semibold">{getWateringMethodName()}</p>
                       </div>
 
                       {/* Type d'eau */}
-                      <div className="bg-indigo-50 p-2 rounded-lg border-l-4 border-indigo-500 text-center">
-                        <p className="text-xs font-medium text-gray-700 mb-1">Type d'eau</p>
+                      <div className="bg-white p-2 rounded border border-indigo-200 text-center">
+                        <p className="text-xs font-medium text-gray-600 mb-1">Type d'eau</p>
                         <p className="text-xs text-indigo-700 font-semibold">{getWaterTypeName()}</p>
                       </div>
                     </div>
