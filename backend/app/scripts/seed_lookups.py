@@ -82,11 +82,12 @@ def seed_watering_frequencies(db: Session) -> None:
 def seed_fertilizer_frequencies(db: Session) -> None:
     """Pré-remplit les fréquences de fertilisation"""
     frequencies = [
-        FertilizerFrequency(name="Hebdomadaire", weeks_interval=1),
-        FertilizerFrequency(name="Bi-hebdomadaire", weeks_interval=2),
-        FertilizerFrequency(name="Mensuel", weeks_interval=4),
-        FertilizerFrequency(name="Tous les 6 semaines", weeks_interval=6),
-        FertilizerFrequency(name="Trimestriel", weeks_interval=12),
+        FertilizerFrequency(name="Fréquent (hebdomadaire)", weeks_interval=1),
+        FertilizerFrequency(name="Régulier (bi-hebdomadaire)", weeks_interval=2),
+        FertilizerFrequency(name="Normal (mensuel)", weeks_interval=4),
+        FertilizerFrequency(name="Rare (tous les 6 semaines)", weeks_interval=6),
+        FertilizerFrequency(name="Très rare (trimestriel)", weeks_interval=12),
+        FertilizerFrequency(name="Aucune fertilisation", weeks_interval=None),
     ]
     
     for freq in frequencies:
