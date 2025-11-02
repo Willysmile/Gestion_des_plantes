@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { X, Edit, Droplet, Sun, Eye, Leaf, Flower2, AlertCircle, Thermometer, Droplets } from 'lucide-react'
+import { X, Edit, Droplet, Sun, Eye, Leaf, Flower2, AlertCircle, Thermometer, Droplets, RefreshCw } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { photosAPI, lookupsAPI, plantsAPI } from '../lib/api'
 import api from '../lib/api'
@@ -19,6 +19,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   const [primaryPhoto, setPrimaryPhoto] = useState(null)
   const [photosLoading, setPhotosLoading] = useState(false)
   const [isCarouselOpen, setIsCarouselOpen] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastWatering, setLastWatering] = useState(null)
   const [showWateringForm, setShowWateringForm] = useState(false)
   const [lastFertilizing, setLastFertilizing] = useState(null)
@@ -51,6 +52,22 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     } catch (err) {
       console.error('Error loading full plant:', err)
       setPlant(initialPlant)
+    }
+  }
+
+  // Fonction pour rafraîchir la modale
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await loadFullPlant()
+      await loadLastWatering()
+      await loadLastFertilizing()
+      await loadLastRepotting()
+      await loadLastDisease()
+    } catch (err) {
+      console.error('Error refreshing modal:', err)
+    } finally {
+      setIsRefreshing(false)
     }
   }
 
@@ -504,6 +521,15 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
             {/* Boutons */}
             <div className="flex items-center gap-2 ml-4">
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition flex items-center gap-1 disabled:opacity-50"
+                title="Rafraîchir la modale"
+              >
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Chargement...' : 'Rafraîchir'}
+              </button>
               <Link
                 to={`/plants/${plant.id}/edit`}
                 className="px-3 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600 transition flex items-center gap-1"
