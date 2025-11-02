@@ -9,6 +9,7 @@ from typing import List
 from app.utils.db import get_db
 from app.schemas.plant_schema import PlantCreate, PlantUpdate, PlantResponse, PlantListResponse
 from app.services import PlantService
+from app.models.lookup import Location
 
 
 router = APIRouter(
@@ -165,6 +166,13 @@ async def get_plant(
     plant = PlantService.get_by_id(db, plant_id)
     if not plant:
         raise HTTPException(status_code=404, detail="Plante non trouvée")
+    
+    # Enrichir avec le nom de l'emplacement
+    if plant.location_id:
+        location = db.query(Location).filter(Location.id == plant.location_id).first()
+        if location:
+            plant.location_name = location.name
+    
     return plant
 
 

@@ -148,6 +148,7 @@ class PlantResponse(BaseModel):
     growth_speed: Optional[str] = None
     flowering_season: Optional[str] = None
     location_id: Optional[int] = None
+    location_name: Optional[str] = None  # Nom de l'emplacement pour le frontend
     purchase_date: Optional[str] = None
     purchase_place_id: Optional[int] = None
     purchase_price: Optional[float] = None

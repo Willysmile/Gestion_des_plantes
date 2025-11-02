@@ -410,21 +410,24 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
               </div>
             </div>
 
-            {/* Référence badge */}
-            {plant.reference && (
-              <div className="bg-purple-50 px-2 py-1 rounded border border-purple-200 text-xs">
-                <p className="text-gray-600 font-medium">Référence</p>
-                <p className="text-purple-700 font-mono font-semibold">{plant.reference}</p>
-              </div>
-            )}
+            {/* Référence et Emplacement badges */}
+            <div className="flex items-center gap-3">
+              {/* Référence badge */}
+              {plant.reference && (
+                <div className="bg-purple-50 px-4 py-2 rounded border border-purple-200 text-xs text-center">
+                  <p className="text-gray-600 font-medium">Référence</p>
+                  <p className="text-purple-700 font-mono font-semibold mt-1">{plant.reference}</p>
+                </div>
+              )}
 
-            {/* Emplacement badge */}
-            {plant.location && (
-              <div className="bg-green-50 px-2 py-1 rounded border border-green-200 text-xs">
-                <p className="text-gray-600 font-medium">📍 Emplacement</p>
-                <p className="text-green-700 font-semibold">{plant.location}</p>
-              </div>
-            )}
+              {/* Emplacement badge */}
+              {plant.location_name && (
+                <div className="bg-green-50 px-4 py-2 rounded border border-green-200 text-xs text-center">
+                  <p className="text-gray-600 font-medium">📍 Emplacement</p>
+                  <p className="text-green-700 font-semibold mt-1">{plant.location_name}</p>
+                </div>
+              )}
+            </div>
 
             {/* Boutons */}
             <div className="flex items-center gap-2 ml-4">
