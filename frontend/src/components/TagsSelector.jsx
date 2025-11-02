@@ -162,7 +162,6 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
 
   const deselectTag = (tagId) => {
     onChange(selectedTagIds.filter(id => id !== tagId));
-    setShowConfirm(null);
   };
 
   if (categories.length === 0) {
