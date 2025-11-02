@@ -138,6 +138,16 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
       return;
     }
 
+    // Les tags des catégories auto ne peuvent pas être sélectionnés manuellement
+    const tag = categories.flatMap(c => c.tags).find(t => t.id === tagId);
+    if (tag) {
+      const catName = tag.tag_category?.name || tag.category?.name;
+      const autoCategoryNames = ['Emplacement', 'État de la plante', 'Luminosité'];
+      if (autoCategoryNames.includes(catName)) {
+        return; // Bloquer la sélection manuelle
+      }
+    }
+
     // Pour les tags manuels, toggle normal
     if (selectedTagIds.includes(tagId)) {
       deselectTag(tagId);
@@ -177,27 +187,37 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
                 {category.tags?.length > 0 ? (
                   category.tags.map(tag => {
                     const isSelected = selectedTagIds.includes(tag.id);
-                    const isAuto = autoCategories.includes(category.name);
+                    const isAutoCategory = autoCategories.includes(category.name);
                     const isAutoTag = autoTagIds.includes(tag.id);
+                    // Les tags auto des catégories auto sont toujours désactivés
+                    const isAutoManaged = isAutoCategory && isAutoTag;
                     
                     return (
                       <button
                         key={tag.id}
                         type="button"
                         onClick={() => toggleTag(tag.id)}
-                        disabled={isAutoTag && isSelected}
+                        disabled={isAutoManaged || (isAutoCategory && !isAutoTag)}
                         className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                          isAutoTag && isSelected
-                            ? 'cursor-not-allowed opacity-100'
+                          isAutoManaged || (isAutoCategory && !isAutoTag)
+                            ? 'cursor-not-allowed'
                             : 'cursor-pointer'
                         } ${
-                          isSelected
-                            ? isAuto
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-indigo-500 text-white'
+                          isAutoManaged
+                            ? 'bg-green-500 text-white'
+                            : isAutoCategory
+                            ? 'bg-gray-300 text-gray-600'
+                            : isSelected
+                            ? 'bg-indigo-500 text-white hover:bg-indigo-600'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
-                        title={isAutoTag && isSelected ? 'Ce tag auto ne peut pas être désélectionné' : ''}
+                        title={
+                          isAutoManaged
+                            ? 'Ce tag est défini automatiquement'
+                            : isAutoCategory && !isAutoTag
+                            ? 'Les tags de cette catégorie auto ne peuvent pas être sélectionnés manuellement'
+                            : ''
+                        }
                       >
                         {tag.name}
                       </button>
