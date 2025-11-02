@@ -932,6 +932,7 @@ export default function PlantFormPage() {
             <legend className="text-xl font-bold mb-4 pb-2 border-b">Tags 🏷️</legend>
             <TagsSelector 
               formData={formData}
+              lookups={lookups}
               selectedTagIds={formData.tags}
               onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
             />

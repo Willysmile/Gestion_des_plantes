@@ -120,15 +120,19 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
     // Tag Luminosité
     if (lightRequirementId) {
-      const lightTag = allTags.find(t => {
-        const catName = t.tag_category?.name || t.category?.name;
-        return catName === 'Luminosité';
-      });
-      if (lightTag) autoTags.push(lightTag);
+      // Trouver le nom du light requirement correspondant
+      const lightReq = lookups.lightRequirements?.find(lr => lr.id === lightRequirementId);
+      if (lightReq) {
+        const lightTag = allTags.find(t => {
+          const catName = t.tag_category?.name || t.category?.name;
+          return catName === 'Luminosité' && t.name === lightReq.name;
+        });
+        if (lightTag) autoTags.push(lightTag);
+      }
     }
 
     return autoTags;
-  }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, getAutoTagCategories])
+  }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, getAutoTagCategories, lookups.lightRequirements])
 
   // Combine auto tags + manual tags
   const allDisplayTags = useMemo(() => {

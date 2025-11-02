@@ -7,7 +7,7 @@ import useTags from '../hooks/useTags';
  * Tags auto = couleur bleue, Tags manuels = couleur indigo
  * Confirmation nécessaire pour désélectionner les tags auto
  */
-export default function TagsSelector({ formData, selectedTagIds = [], onChange }) {
+export default function TagsSelector({ formData, lookups = {}, selectedTagIds = [], onChange }) {
   const { categories, getAutoTagCategories, getManualTagCategories } = useTags();
 
   const autoCategories = getAutoTagCategories();
@@ -62,15 +62,19 @@ export default function TagsSelector({ formData, selectedTagIds = [], onChange }
 
     // Tag Luminosité
     if (lightRequirementId) {
-      const lightTag = allTags.find(t => {
-        const catName = t.tag_category?.name || t.category?.name;
-        return catName === 'Luminosité';
-      });
-      if (lightTag) autoTags.push(lightTag.id);
+      // Trouver le nom du light requirement correspondant
+      const lightReq = lookups.lightRequirements?.find(lr => lr.id === lightRequirementId);
+      if (lightReq) {
+        const lightTag = allTags.find(t => {
+          const catName = t.tag_category?.name || t.category?.name;
+          return catName === 'Luminosité' && t.name === lightReq.name;
+        });
+        if (lightTag) autoTags.push(lightTag.id);
+      }
     }
 
     return autoTags;
-  }, [formData?.location_id, formData?.health_status, formData?.light_requirement_id, allTags, autoCategories]);
+  }, [formData?.location_id, formData?.health_status, formData?.light_requirement_id, allTags, autoCategories, lookups.lightRequirements]);
 
   // Toggle la sélection d'un tag
   const [previousAutoTagIds, setPreviousAutoTagIds] = useState([]);
