@@ -180,31 +180,19 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   // Combine auto tags + manual tags
   const allDisplayTags = useMemo(() => {
     const tagIds = new Set(autoTagIds.map(t => t.id));
-    // Exclure aussi les tags de catégories "auto" (même s'ils sont manuels)
-    const autoCategories = getAutoTagCategories();
-    const autoCategoryNames = new Set(autoCategories.map(c => c.name));
-    
-    console.log('🏷️ Auto categories:', autoCategories.map(c => c.name));
-    console.log('🏷️ Plant tags before filtering:', plant.tags?.map(t => ({ name: t.name, cat: t.tag_category?.name || t.category?.name })));
+    // Noms des catégories auto
+    const autoCategoryNames = new Set(['Emplacement', 'État de la plante', 'Luminosité']);
     
     const manualTags = (plant.tags || []).filter(t => {
       // Exclure si déjà dans les autoTags
-      if (tagIds.has(t.id)) {
-        console.log(`❌ Excluding ${t.name} - already in autoTags`);
-        return false;
-      }
+      if (tagIds.has(t.id)) return false;
       // Exclure si c'est un tag de catégorie auto
       const catName = t.tag_category?.name || t.category?.name;
-      if (autoCategoryNames.has(catName)) {
-        console.log(`❌ Excluding ${t.name} (${catName}) - auto category`);
-        return false;
-      }
-      console.log(`✅ Keeping ${t.name} (${catName})`);
+      if (autoCategoryNames.has(catName)) return false;
       return true;
     });
-    console.log('🏷️ Final manual tags:', manualTags.map(t => t.name));
     return [...autoTagIds, ...manualTags];
-  }, [autoTagIds, plant?.tags, getAutoTagCategories])
+  }, [autoTagIds, plant?.tags])
 
   // Charger la fréquence saisonnière une seule fois quand les lookups sont chargés
   useEffect(() => {
