@@ -42,17 +42,19 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   })
 
   // Charger la plante complète depuis l'API
-  useEffect(() => {
-    const loadFullPlant = async () => {
-      try {
-        const response = await plantsAPI.getById(initialPlant.id)
-        setPlant(response.data)
-        console.log('✅ Full plant loaded from API:', response.data)
-      } catch (err) {
-        console.error('Error loading full plant:', err)
-        setPlant(initialPlant)
-      }
+  // Charger la plante complète depuis l'API
+  const loadFullPlant = async () => {
+    try {
+      const response = await plantsAPI.getById(initialPlant.id)
+      setPlant(response.data)
+      console.log('✅ Full plant loaded from API:', response.data)
+    } catch (err) {
+      console.error('Error loading full plant:', err)
+      setPlant(initialPlant)
     }
+  }
+
+  useEffect(() => {
     loadFullPlant()
   }, [initialPlant.id])
 
