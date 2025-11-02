@@ -29,9 +29,6 @@ export default function PlantFormPage() {
     reference: '',
     description: '',
     care_instructions: '',
-    difficulty_level: '',
-    growth_speed: '',
-    flowering_season: '',
     temperature_min: '',
     temperature_max: '',
     humidity_level: '',
@@ -79,9 +76,6 @@ export default function PlantFormPage() {
         reference: existingPlant.reference || '',
         description: existingPlant.description || '',
         care_instructions: existingPlant.care_instructions || '',
-        difficulty_level: existingPlant.difficulty_level || '',
-        growth_speed: existingPlant.growth_speed || '',
-        flowering_season: existingPlant.flowering_season || '',
         temperature_min: existingPlant.temperature_min || '',
         temperature_max: existingPlant.temperature_max || '',
         humidity_level: existingPlant.humidity_level || '',
@@ -647,6 +641,24 @@ export default function PlantFormPage() {
             </div>
           </fieldset>
 
+          {/* Description */}
+          <fieldset>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Description</legend>
+            <div className="space-y-4">
+              <div>
+                <label className="block font-semibold mb-2">Description générale</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  className={getFieldClass('description')}
+                  placeholder="Décrivez votre plante..."
+                  rows="3"
+                />
+              </div>
+            </div>
+          </fieldset>
+
           {/* Santé */}
           <fieldset>
             <legend className="text-xl font-bold mb-4 pb-2 border-b">Santé</legend>
@@ -765,188 +777,6 @@ export default function PlantFormPage() {
             </div>
           </fieldset>
 
-          {/* Préférences d'Arrosage */}
-          <fieldset>
-            <legend className="text-xl font-bold mb-4 pb-2 border-b">💧 Préférences d'Arrosage</legend>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold mb-2">Méthode d'arrosage préférée</label>
-                <select
-                  name="preferred_watering_method_id"
-                  value={formData.preferred_watering_method_id || ''}
-                  onChange={handleChange}
-                  className={getFieldClass('preferred_watering_method_id')}
-                >
-                  <option value="">Sélectionner...</option>
-                  {lookups.wateringMethods.map(method => (
-                    <option key={method.id} value={method.id}>
-                      {method.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-gray-600 text-xs mt-1">
-                  💡 {lookups.wateringMethods.find(m => m.id == formData.preferred_watering_method_id)?.description || ''}
-                </p>
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-2">Type d'eau préféré</label>
-                <select
-                  name="preferred_water_type_id"
-                  value={formData.preferred_water_type_id || ''}
-                  onChange={handleChange}
-                  className={getFieldClass('preferred_water_type_id')}
-                >
-                  <option value="">Sélectionner...</option>
-                  {lookups.waterTypes.map(type => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-gray-600 text-xs mt-1">
-                  💡 {lookups.waterTypes.find(t => t.id == formData.preferred_water_type_id)?.description || ''}
-                </p>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block font-semibold mb-2">Fréquence d'arrosage et fertilisation par saison</label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Bloc Arrosage (bleu) */}
-                  <div>
-                    <h3 className="text-center font-semibold text-blue-900 mb-3">Arrosage</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {lookups.seasons.map(season => (
-                        <div key={season.id} className="bg-blue-50 p-3 rounded border border-blue-200">
-                          <p className="font-semibold text-blue-900 text-sm">{season.name}</p>
-                          <p className="text-xs text-blue-700">
-                            {`Mois ${season.start_month}-${season.end_month}`}
-                          </p>
-                          <select
-                            name={`seasonal_watering_${season.id}`}
-                            value={formData[`seasonal_watering_${season.id}`] || ''}
-                            onChange={handleChange}
-                            className="w-full mt-2 px-2 py-1 text-xs border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="">Choisir...</option>
-                            {lookups.wateringFrequencies.map(freq => (
-                              <option key={freq.id} value={freq.id}>
-                                {freq.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Bloc Fertilisation (jaune) */}
-                  <div>
-                    <h3 className="text-center font-semibold text-yellow-900 mb-3">Fertilisation</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {lookups.seasons.map(season => (
-                        <div key={season.id} className="bg-yellow-50 p-3 rounded border border-yellow-200">
-                          <p className="font-semibold text-yellow-900 text-sm">{season.name}</p>
-                          <p className="text-xs text-yellow-700">
-                            {`Mois ${season.start_month}-${season.end_month}`}
-                          </p>
-                          <select
-                            name={`seasonal_fertilizing_${season.id}`}
-                            value={formData[`seasonal_fertilizing_${season.id}`] || ''}
-                            onChange={handleChange}
-                            className="w-full mt-2 px-2 py-1 text-xs border border-yellow-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                          >
-                            <option value="">Choisir...</option>
-                            {lookups.fertilizerFrequencies?.map(freq => (
-                              <option key={freq.id} value={freq.id}>
-                                {freq.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </fieldset>
-
-          {/* Description */}
-          <fieldset>
-            <legend className="text-xl font-bold mb-4 pb-2 border-b">Description</legend>
-            <div className="space-y-4">
-              <div>
-                <label className="block font-semibold mb-2">Description générale</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  className={getFieldClass('description')}
-                  placeholder="Décrivez votre plante..."
-                  rows="3"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block font-semibold mb-2">
-                    Niveau de difficulté <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="difficulty_level"
-                    value={formData.difficulty_level || ''}
-                    onChange={handleChange}
-                    className={getFieldClass('difficulty_level')}
-                  >
-                    <option value="">Sélectionner...</option>
-                    <option value="easy">Facile 😊</option>
-                    <option value="medium">Moyen 🤔</option>
-                    <option value="hard">Difficile 😅</option>
-                  </select>
-                  {fieldErrors.difficulty_level && (
-                    <p className="text-red-600 text-sm mt-1">{fieldErrors.difficulty_level}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block font-semibold mb-2">
-                    Vitesse de croissance <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="growth_speed"
-                    value={formData.growth_speed || ''}
-                    onChange={handleChange}
-                    className={getFieldClass('growth_speed')}
-                  >
-                    <option value="">Sélectionner...</option>
-                    <option value="slow">Lente 🐢</option>
-                    <option value="medium">Normale 🚶</option>
-                    <option value="fast">Rapide 🚀</option>
-                  </select>
-                  {fieldErrors.growth_speed && (
-                    <p className="text-red-600 text-sm mt-1">{fieldErrors.growth_speed}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block font-semibold mb-2">Saison de floraison</label>
-                  <input
-                    type="text"
-                    name="flowering_season"
-                    value={formData.flowering_season}
-                    onChange={handleChange}
-                    className={getFieldClass('flowering_season')}
-                    placeholder="Ex: Printemps-Été"
-                  />
-                  {fieldErrors.flowering_season && (
-                    <p className="text-red-600 text-sm mt-1">{fieldErrors.flowering_season}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </fieldset>
-
           {/* Tags */}
           <fieldset>
             <legend className="text-xl font-bold mb-4 pb-2 border-b">Tags 🏷️</legend>
@@ -958,8 +788,115 @@ export default function PlantFormPage() {
           </fieldset>
           </div>
 
-          {/* Colonne droite - Photos */}
+          {/* Colonne droite - Préférences & Photos */}
           <div className="space-y-8">
+            {/* Préférences d'Arrosage */}
+            <fieldset>
+              <legend className="text-xl font-bold mb-4 pb-2 border-b">💧 Préférences d'Arrosage</legend>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold mb-2">Méthode d'arrosage préférée</label>
+                  <select
+                    name="preferred_watering_method_id"
+                    value={formData.preferred_watering_method_id || ''}
+                    onChange={handleChange}
+                    className={getFieldClass('preferred_watering_method_id')}
+                  >
+                    <option value="">Sélectionner...</option>
+                    {lookups.wateringMethods.map(method => (
+                      <option key={method.id} value={method.id}>
+                        {method.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-gray-600 text-xs mt-1">
+                    💡 {lookups.wateringMethods.find(m => m.id == formData.preferred_watering_method_id)?.description || ''}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-2">Type d'eau préféré</label>
+                  <select
+                    name="preferred_water_type_id"
+                    value={formData.preferred_water_type_id || ''}
+                    onChange={handleChange}
+                    className={getFieldClass('preferred_water_type_id')}
+                  >
+                    <option value="">Sélectionner...</option>
+                    {lookups.waterTypes.map(type => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-gray-600 text-xs mt-1">
+                    💡 {lookups.waterTypes.find(t => t.id == formData.preferred_water_type_id)?.description || ''}
+                  </p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block font-semibold mb-2">Fréquence d'arrosage et fertilisation par saison</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Bloc Arrosage (bleu) */}
+                    <div>
+                      <h3 className="text-center font-semibold text-blue-900 mb-3">Arrosage</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {lookups.seasons.map(season => (
+                          <div key={season.id} className="bg-blue-50 p-3 rounded border border-blue-200">
+                            <p className="font-semibold text-blue-900 text-sm">{season.name}</p>
+                            <p className="text-xs text-blue-700">
+                              {`Mois ${season.start_month}-${season.end_month}`}
+                            </p>
+                            <select
+                              name={`seasonal_watering_${season.id}`}
+                              value={formData[`seasonal_watering_${season.id}`] || ''}
+                              onChange={handleChange}
+                              className="w-full mt-2 px-2 py-1 text-xs border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="">Choisir...</option>
+                              {lookups.wateringFrequencies.map(freq => (
+                                <option key={freq.id} value={freq.id}>
+                                  {freq.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Bloc Fertilisation (jaune) */}
+                    <div>
+                      <h3 className="text-center font-semibold text-yellow-900 mb-3">Fertilisation</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {lookups.seasons.map(season => (
+                          <div key={season.id} className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                            <p className="font-semibold text-yellow-900 text-sm">{season.name}</p>
+                            <p className="text-xs text-yellow-700">
+                              {`Mois ${season.start_month}-${season.end_month}`}
+                            </p>
+                            <select
+                              name={`seasonal_fertilizing_${season.id}`}
+                              value={formData[`seasonal_fertilizing_${season.id}`] || ''}
+                              onChange={handleChange}
+                              className="w-full mt-2 px-2 py-1 text-xs border border-yellow-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            >
+                              <option value="">Choisir...</option>
+                              {lookups.fertilizerFrequencies?.map(freq => (
+                                <option key={freq.id} value={freq.id}>
+                                  {freq.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+
             {/* Photos */}
             {id && (
               <fieldset>
