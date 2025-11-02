@@ -1,41 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import useTags from '../hooks/useTags';
 
 /**
- * Composant pour sélectionner les tags manuels d'une plante en édition
- * Affiche les tags auto en read-only et les tags manuels sélectionnés
+ * Composant pour sélectionner les tags d'une plante en édition
+ * Affiche tous les tags (auto + manuels) en chips cliquables sur 2 colonnes
+ * Tags auto = couleur bleue, Tags manuels = couleur indigo
+ * Confirmation nécessaire pour désélectionner les tags auto
  */
 export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
   const { categories, getAutoTagCategories, getManualTagCategories } = useTags();
-  const [expanded, setExpanded] = useState({});
+  const [showConfirm, setShowConfirm] = useState(null); // null ou tagId à désélectionner
 
-  // Tags auto générés basés sur les données de la plante
-  const autoTags = getAutoTagsForPlant(plant);
-  const autoTagIds = autoTags.map(tag => tag.id);
-
-  // Tags manuels disponibles
+  const autoCategories = getAutoTagCategories();
   const manualCategories = getManualTagCategories();
-  const manualTags = categories
-    .filter(cat => manualCategories.includes(cat.name))
-    .flatMap(cat => cat.tags || []);
 
-  // Tags manuels sélectionnés
-  const selectedManualTags = manualTags.filter(tag => selectedTagIds.includes(tag.id));
-
-  // Basculer la sélection d'un tag manuel
-  const toggleTag = (tagId) => {
-    const newIds = selectedTagIds.includes(tagId)
-      ? selectedTagIds.filter(id => id !== tagId)
-      : [...selectedTagIds, tagId];
-    onChange(newIds);
+  // Tous les tags disponibles
+  const allTags = categories.flatMap(cat => cat.tags || []);
+  
+  // Déterminer si un tag est auto
+  const isAutoTag = (tagId) => {
+    const tag = allTags.find(t => t.id === tagId);
+    if (!tag) return false;
+    const catName = tag.tag_category?.name || tag.category?.name;
+    return autoCategories.includes(catName);
   };
 
-  // Basculer l'expansion d'une catégorie
-  const toggleCategory = (categoryName) => {
-    setExpanded(prev => ({
-      ...prev,
-      [categoryName]: !prev[categoryName]
-    }));
+  // Toggle la sélection d'un tag
+  const toggleTag = (tagId) => {
+    if (selectedTagIds.includes(tagId)) {
+      // Demande confirmation si c'est un tag auto
+      if (isAutoTag(tagId)) {
+        setShowConfirm(tagId);
+      } else {
+        deselectTag(tagId);
+      }
+    } else {
+      selectTag(tagId);
+    }
+  };
+
+  const selectTag = (tagId) => {
+    onChange([...selectedTagIds, tagId]);
+  };
+
+  const deselectTag = (tagId) => {
+    onChange(selectedTagIds.filter(id => id !== tagId));
+    setShowConfirm(null);
   };
 
   if (categories.length === 0) {
@@ -44,100 +54,77 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
 
   return (
     <div className="space-y-4">
-      {/* Tags Auto - Read-only */}
-      {autoTags.length > 0 && (
-        <div className="p-3 bg-indigo-50 rounded border border-indigo-200">
-          <h4 className="text-sm font-semibold text-indigo-700 mb-2">Tags Automatiques</h4>
-          <div className="flex flex-wrap gap-2">
-            {autoTags.map(tag => (
-              <span
-                key={tag.id}
-                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-200 text-indigo-800"
-              >
-                {tag.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Grille 2 colonnes de catégories */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {categories.map(category => {
+          const isAutoCategory = autoCategories.includes(category.name);
+          
+          return (
+            <div key={category.id} className="space-y-2">
+              <h4 className="text-sm font-semibold text-gray-700">
+                {category.name}
+                {isAutoCategory && <span className="text-blue-600 ml-1">(Auto)</span>}
+              </h4>
+              
+              <div className="flex flex-wrap gap-2">
+                {category.tags?.length > 0 ? (
+                  category.tags.map(tag => {
+                    const isSelected = selectedTagIds.includes(tag.id);
+                    const isAuto = autoCategories.includes(category.name);
+                    
+                    return (
+                      <div key={tag.id} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => toggleTag(tag.id)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                            isSelected
+                              ? isAuto
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-indigo-500 text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {tag.name}
+                        </button>
 
-      {/* Sélection des Tags Manuels */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-semibold text-gray-700">Tags Personnalisés</h4>
-        
-        {/* Affichage des tags manuels sélectionnés */}
-        {selectedManualTags.length > 0 && (
-          <div className="p-3 bg-indigo-50 rounded border border-indigo-200">
-            <h5 className="text-xs font-semibold text-indigo-700 mb-2">Sélection actuelle</h5>
-            <div className="flex flex-wrap gap-2">
-              {selectedManualTags.map(tag => (
-                <span
-                  key={tag.id}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 border border-indigo-300"
-                >
-                  {tag.name}
-                </span>
-              ))}
+                        {/* Modal de confirmation pour tags auto */}
+                        {showConfirm === tag.id && (
+                          <div className="absolute inset-0 z-50 flex items-center justify-center">
+                            <div className="bg-white border border-gray-300 rounded shadow-lg p-3 text-center">
+                              <p className="text-xs font-semibold mb-2">
+                                Désélectionner ce tag ?
+                              </p>
+                              <div className="flex gap-2 justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => deselectTag(tag.id)}
+                                  className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                >
+                                  Oui
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowConfirm(null)}
+                                  className="px-2 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500"
+                                >
+                                  Non
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-xs text-gray-500">Aucun tag</p>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-        
-        {categories
-          .filter(cat => manualCategories.includes(cat.name))
-          .map(category => (
-            <div key={category.id} className="border rounded-lg overflow-hidden">
-              <button
-                type="button"
-                onClick={() => toggleCategory(category.name)}
-                className="w-full px-3 py-2 bg-gray-50 hover:bg-gray-100 font-medium text-sm text-left flex items-center justify-between"
-              >
-                <span>{category.name}</span>
-                <span className="text-xs text-gray-500">
-                  {expanded[category.name] ? '▼' : '▶'}
-                </span>
-              </button>
-
-              {expanded[category.name] && (
-                <div className="p-3 space-y-2 bg-white">
-                  {category.tags?.length > 0 ? (
-                    category.tags.map(tag => (
-                      <label key={tag.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                        <input
-                          type="checkbox"
-                          checked={selectedTagIds.includes(tag.id)}
-                          onChange={() => toggleTag(tag.id)}
-                          className="rounded"
-                        />
-                        <span className="text-sm">{tag.name}</span>
-                      </label>
-                    ))
-                  ) : (
-                    <p className="text-xs text-gray-500">Aucun tag</p>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+          );
+        })}
       </div>
     </div>
   );
-}
-
-/**
- * Génère les tags auto basés sur les données de la plante
- * Les auto-tags sont ceux des 3 catégories: Emplacement, État de la plante, Luminosité
- */
-function getAutoTagsForPlant(plant) {
-  if (!plant || !plant.tags) return [];
-
-  const autoCategories = ['Emplacement', 'État de la plante', 'Luminosité'];
-  
-  // Récupérer les tags existants de la plante qui appartiennent aux catégories auto
-  const existingAutoTags = plant.tags.filter(tag => {
-    // Vérifier si le tag appartient à une catégorie auto
-    const catName = tag.tag_category?.name || tag.category?.name;
-    return autoCategories.includes(catName);
-  }) || [];
-
-  return existingAutoTags;
 }
