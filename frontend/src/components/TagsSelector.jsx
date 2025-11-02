@@ -9,7 +9,6 @@ import useTags from '../hooks/useTags';
  */
 export default function TagsSelector({ formData, selectedTagIds = [], onChange }) {
   const { categories, getAutoTagCategories, getManualTagCategories } = useTags();
-  const [showConfirm, setShowConfirm] = useState(null); // null ou tagId à désélectionner
 
   const autoCategories = getAutoTagCategories();
   const manualCategories = getManualTagCategories();
@@ -117,13 +116,20 @@ export default function TagsSelector({ formData, selectedTagIds = [], onChange }
   }, [autoTagIds, previousAutoTagIds, selectedTagIds, onChange]);
 
   const toggleTag = (tagId) => {
-    if (selectedTagIds.includes(tagId)) {
-      // Demande confirmation si c'est un tag auto
-      if (isAutoTag(tagId)) {
-        setShowConfirm(tagId);
-      } else {
-        deselectTag(tagId);
+    // Les tags auto ne peuvent pas être désélectionnés
+    if (autoTagIds.includes(tagId)) {
+      // Si c'est un tag auto et il est déjà sélectionné, l'empêcher de se désélectionner
+      if (selectedTagIds.includes(tagId)) {
+        return; // Bloquer la désélection
       }
+      // Si c'est un tag auto mais pas encore sélectionné, l'ajouter
+      selectTag(tagId);
+      return;
+    }
+
+    // Pour les tags manuels, toggle normal
+    if (selectedTagIds.includes(tagId)) {
+      deselectTag(tagId);
     } else {
       selectTag(tagId);
     }
@@ -161,50 +167,29 @@ export default function TagsSelector({ formData, selectedTagIds = [], onChange }
                   category.tags.map(tag => {
                     const isSelected = selectedTagIds.includes(tag.id);
                     const isAuto = autoCategories.includes(category.name);
+                    const isAutoTag = autoTagIds.includes(tag.id);
                     
                     return (
-                      <div key={tag.id} className="relative">
-                        <button
-                          type="button"
-                          onClick={() => toggleTag(tag.id)}
-                          className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                            isSelected
-                              ? isAuto
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-indigo-500 text-white'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          }`}
-                        >
-                          {tag.name}
-                        </button>
-
-                        {/* Modal de confirmation pour tags auto */}
-                        {showConfirm === tag.id && (
-                          <div className="absolute inset-0 z-50 flex items-center justify-center">
-                            <div className="bg-white border border-gray-300 rounded shadow-lg p-3 text-center">
-                              <p className="text-xs font-semibold mb-2">
-                                Désélectionner ce tag ?
-                              </p>
-                              <div className="flex gap-2 justify-center">
-                                <button
-                                  type="button"
-                                  onClick={() => deselectTag(tag.id)}
-                                  className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                                >
-                                  Oui
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowConfirm(null)}
-                                  className="px-2 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500"
-                                >
-                                  Non
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleTag(tag.id)}
+                        disabled={isAutoTag && isSelected}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                          isAutoTag && isSelected
+                            ? 'cursor-not-allowed opacity-100'
+                            : 'cursor-pointer'
+                        } ${
+                          isSelected
+                            ? isAuto
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-indigo-500 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                        title={isAutoTag && isSelected ? 'Ce tag auto ne peut pas être désélectionné' : ''}
+                      >
+                        {tag.name}
+                      </button>
                     );
                   })
                 ) : (
