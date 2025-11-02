@@ -699,8 +699,8 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
                   {/* Tags */}
                   <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-200">
-                    <h3 className="text-xs font-semibold text-indigo-700 mb-2 uppercase tracking-wide">🏷️ Tags</h3>
-                    <div className="flex flex-wrap gap-2">
+                    <h3 className="text-xs font-semibold text-indigo-700 mb-2 uppercase tracking-wide text-center">🏷️ Tags</h3>
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {plant.tags?.length > 0 ? (
                         plant.tags.map(tag => (
                           <span
