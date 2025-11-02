@@ -282,12 +282,13 @@ async def get_seasonal_watering(
         PlantSeasonalWatering.season_id == season_id
     ).first()
     
+    # Retourner vide si pas de données ou pas de fréquence définie
     if not seasonal or not seasonal.watering_frequency_id:
-        raise HTTPException(status_code=404, detail="Fréquence saisonnière non trouvée")
+        return None
     
     freq = db.query(WateringFrequency).filter_by(id=seasonal.watering_frequency_id).first()
     if not freq:
-        raise HTTPException(status_code=404, detail="Fréquence non trouvée")
+        return None
     
     return {"id": freq.id, "name": freq.name, "days_interval": freq.days_interval}
 
@@ -343,12 +344,13 @@ async def get_seasonal_fertilizing(
         PlantSeasonalFertilizing.season_id == season_id
     ).first()
     
+    # Retourner vide si pas de données ou pas de fréquence définie
     if not seasonal or not seasonal.fertilizer_frequency_id:
-        raise HTTPException(status_code=404, detail="Fréquence saisonnière non trouvée")
+        return None
     
     freq = db.query(FertilizerFrequency).filter_by(id=seasonal.fertilizer_frequency_id).first()
     if not freq:
-        raise HTTPException(status_code=404, detail="Fréquence non trouvée")
+        return None
     
     return {"id": freq.id, "name": freq.name, "weeks_interval": freq.weeks_interval}
 
