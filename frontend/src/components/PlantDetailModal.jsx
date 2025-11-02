@@ -184,14 +184,25 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     const autoCategories = getAutoTagCategories();
     const autoCategoryNames = new Set(autoCategories.map(c => c.name));
     
+    console.log('🏷️ Auto categories:', autoCategories.map(c => c.name));
+    console.log('🏷️ Plant tags before filtering:', plant.tags?.map(t => ({ name: t.name, cat: t.tag_category?.name || t.category?.name })));
+    
     const manualTags = (plant.tags || []).filter(t => {
       // Exclure si déjà dans les autoTags
-      if (tagIds.has(t.id)) return false;
+      if (tagIds.has(t.id)) {
+        console.log(`❌ Excluding ${t.name} - already in autoTags`);
+        return false;
+      }
       // Exclure si c'est un tag de catégorie auto
       const catName = t.tag_category?.name || t.category?.name;
-      if (autoCategoryNames.has(catName)) return false;
+      if (autoCategoryNames.has(catName)) {
+        console.log(`❌ Excluding ${t.name} (${catName}) - auto category`);
+        return false;
+      }
+      console.log(`✅ Keeping ${t.name} (${catName})`);
       return true;
     });
+    console.log('🏷️ Final manual tags:', manualTags.map(t => t.name));
     return [...autoTagIds, ...manualTags];
   }, [autoTagIds, plant?.tags, getAutoTagCategories])
 
