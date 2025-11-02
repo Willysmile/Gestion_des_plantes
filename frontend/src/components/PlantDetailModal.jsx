@@ -604,23 +604,6 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
 
 
-              {/* Tags */}
-              {plant.tags && plant.tags.length > 0 && (
-                <div className="p-3 bg-indigo-50 rounded border border-indigo-200">
-                  <h3 className="text-xs font-semibold text-indigo-700 mb-2 uppercase tracking-wide">🏷️ Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {plant.tags.map(tag => (
-                      <span
-                        key={tag.id}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-200 text-indigo-800"
-                      >
-                        {tag.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Notes Générales */}
               <div className="p-2 bg-indigo-50 rounded border border-indigo-200">
                 <NotesHistory plantId={plant.id} hideHeader={true} onClose={onClose} />
