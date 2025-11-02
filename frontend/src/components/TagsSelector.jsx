@@ -78,11 +78,25 @@ export default function TagsSelector({ formData, selectedTagIds = [], onChange }
 
   // Quand les auto tags changent, enlever les anciens et ajouter les nouveaux
   useEffect(() => {
+    // Vérifier si autoTagIds a vraiment changé (pas juste une référence différente)
+    const hasAutoTagsChanged = 
+      autoTagIds.length !== previousAutoTagIds.length ||
+      autoTagIds.some(id => !previousAutoTagIds.includes(id)) ||
+      previousAutoTagIds.some(id => !autoTagIds.includes(id));
+
+    if (!hasAutoTagsChanged) return; // Pas de changement, ne rien faire
+
     // Enlever les anciens auto tags qui ne sont plus dans la nouvelle liste
     const tagsToRemove = previousAutoTagIds.filter(id => !autoTagIds.includes(id));
     
     // Ajouter les nouveaux auto tags
     const tagsToAdd = autoTagIds.filter(id => !previousAutoTagIds.includes(id));
+
+    if (tagsToRemove.length === 0 && tagsToAdd.length === 0) {
+      // Aucun changement à faire
+      setPreviousAutoTagIds(autoTagIds);
+      return;
+    }
 
     let updatedTags = selectedTagIds;
 
@@ -98,14 +112,9 @@ export default function TagsSelector({ formData, selectedTagIds = [], onChange }
       }
     });
 
-    // Mettre à jour si changement
-    if (tagsToRemove.length > 0 || tagsToAdd.length > 0) {
-      onChange(updatedTags);
-    }
-
-    // Mettre à jour le suivi des auto tags précédents
+    onChange(updatedTags);
     setPreviousAutoTagIds(autoTagIds);
-  }, [autoTagIds]);
+  }, [autoTagIds, previousAutoTagIds, selectedTagIds, onChange]);
 
   const toggleTag = (tagId) => {
     if (selectedTagIds.includes(tagId)) {
