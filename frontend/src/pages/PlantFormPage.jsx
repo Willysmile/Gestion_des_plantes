@@ -647,6 +647,25 @@ export default function PlantFormPage() {
             </div>
           </fieldset>
 
+          {/* Santé */}
+          <fieldset>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Santé</legend>
+            <div>
+              <label className="block font-semibold mb-2">
+                État de santé
+              </label>
+              <div className="bg-gray-100 p-3 rounded border border-gray-300 text-gray-700">
+                {formData.health_status === 'healthy' && '✅ En bonne santé'}
+                {formData.health_status === 'sick' && '⚠️ Malade'}
+                {formData.health_status === 'recovering' && '🔄 En rétablissement'}
+                {formData.health_status === 'dead' && '❌ Morte'}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                L'état de santé est automatiquement mis à jour en fonction des historiques de maladies enregistrées. Utilisez la section "Maladies" pour signaler une nouvelle maladie.
+              </p>
+            </div>
+          </fieldset>
+
           {/* Environnement */}
           <fieldset>
             <legend className="text-xl font-bold mb-4 pb-2 border-b">Environnement</legend>
@@ -936,62 +955,6 @@ export default function PlantFormPage() {
               selectedTagIds={formData.tags}
               onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
             />
-          </fieldset>
-
-          {/* Propriétés */}
-          <fieldset>
-            <legend className="text-xl font-bold mb-4 pb-2 border-b">Propriétés</legend>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="is_favorite"
-                  checked={formData.is_favorite}
-                  onChange={handleChange}
-                  className="w-4 h-4"
-                />
-                <span>Favorite ❤️</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="is_indoor"
-                  checked={formData.is_indoor}
-                  onChange={handleChange}
-                  className="w-4 h-4"
-                />
-                <span>Intérieur 🏠</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="is_outdoor"
-                  checked={formData.is_outdoor}
-                  onChange={handleChange}
-                  className="w-4 h-4"
-                />
-                <span>Extérieur 🌱</span>
-              </label>
-            </div>
-          </fieldset>
-
-          {/* Santé */}
-          <fieldset>
-            <legend className="text-xl font-bold mb-4 pb-2 border-b">Santé</legend>
-            <div>
-              <label className="block font-semibold mb-2">
-                État de santé <span className="text-gray-500 text-sm">(Lecture seule - basé sur les maladies)</span>
-              </label>
-              <div className="bg-gray-100 p-3 rounded border border-gray-300 text-gray-700">
-                {formData.health_status === 'healthy' && '✅ En bonne santé'}
-                {formData.health_status === 'sick' && '⚠️ Malade'}
-                {formData.health_status === 'recovering' && '🔄 En rétablissement'}
-                {formData.health_status === 'dead' && '❌ Morte'}
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                L'état de santé est automatiquement mis à jour en fonction des historiques de maladies enregistrées. Utilisez la section "Maladies" pour signaler une nouvelle maladie.
-              </p>
-            </div>
           </fieldset>
           </div>
 
