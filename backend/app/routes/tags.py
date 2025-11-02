@@ -4,7 +4,7 @@ Routes pour CRUD des Tags et TagCategories
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.config import get_db
+from app.utils.db import get_db
 from app.models.tags import Tag, TagCategory
 from app.schemas.tag_schema import (
     TagResponse, TagCreate, TagUpdate, 

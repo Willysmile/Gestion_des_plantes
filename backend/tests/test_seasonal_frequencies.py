@@ -7,8 +7,8 @@ import pytest
 from fastapi.testclient import TestClient
 from datetime import datetime, date
 from app.main import app
-from app.models.lookup import Season, WateringFrequency, FertilizerFrequency
-from app.models.plant import Plant, PlantSeasonalWatering, PlantSeasonalFertilizing
+from app.models.lookup import Season, WateringFrequency, FertilizerFrequency, PlantSeasonalWatering, PlantSeasonalFertilizing
+from app.models.plant import Plant
 from sqlalchemy.orm import Session
 
 client = TestClient(app)

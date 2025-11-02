@@ -10,7 +10,7 @@ from datetime import datetime
 import re
 
 from app.models.plant import Plant
-from app.models.tags import Tag
+from app.models.tags import Tag, TagCategory
 from app.schemas.plant_schema import PlantCreate, PlantUpdate
 from app.services.tag_service import get_auto_tags_for_plant
 
@@ -251,7 +251,7 @@ class PlantService:
             # Recalculer et synchroniser les tags auto
             auto_categories = ["Emplacement", "État de la plante", "Luminosité"]
             auto_tags_ids = db.query(Tag.id).filter(
-                Tag.category.has(name__in=auto_categories)
+                Tag.category.has(TagCategory.name.in_(auto_categories))
             ).all()
             auto_tags_ids = [t[0] for t in auto_tags_ids]
             
