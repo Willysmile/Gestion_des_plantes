@@ -1,0 +1,88 @@
+"""
+Script pour peupler les catégories et tags dans la base de données
+"""
+
+from sqlalchemy.orm import Session
+from app.models.tags import TagCategory, Tag
+
+def seed_tag_categories_and_tags(db: Session):
+    """
+    Peuuple les catégories et tags pré-remplis
+    """
+    
+    # Vérifier si les catégories existent déjà
+    categories_count = db.query(TagCategory).count()
+    if categories_count > 0:
+        print(f"✅ Catégories de tags déjà présentes ({categories_count})")
+        return
+    
+    print("🌱 Création des catégories et tags...")
+    
+    # Données des catégories et tags
+    tags_data = {
+        # AUTO-GÉNÉRÉS (3 catégories)
+        "Emplacement": [
+            "Intérieur", "Extérieur", "Balcon", "Terrasse"
+        ],
+        
+        "État de la plante": [
+            "Sain", "Malade", "Rétablie", "Critique", "En traitement", "En convalescence"
+        ],
+        
+        "Luminosité": [
+            "Plein soleil", "Soleil indirect", "Mi-ombre", "Ombre", "Faible luminosité"
+        ],
+        
+        # MANUELS (6 catégories)
+        "Type de plante": [
+            "Succulente", "Cactus", "Plante verte", "Plante à fleurs",
+            "Plante retombante", "Orchidée", "Fougère", "Herbe aromatique"
+        ],
+        
+        "Besoins en eau": [
+            "Très peu d'eau", "Peu d'eau", "Arrosage modéré",
+            "Arrosage régulier", "Très humide"
+        ],
+        
+        "Difficulté": [
+            "Débutant", "Facile", "Intermédiaire", "Avancé", "Expert"
+        ],
+        
+        "Taille": [
+            "Mini (<15cm)", "Petit (15-30cm)", "Moyen (30-60cm)",
+            "Grand (60-120cm)", "Très grand (>120cm)"
+        ],
+        
+        "Toxicité": [
+            "Sans danger", "Toxique", "Très toxique"
+        ],
+        
+        "Particularités": [
+            "Purifiante", "Parfumée", "Croissance rapide",
+            "Plante rare", "Fragile"
+        ]
+    }
+    
+    # Créer les catégories et tags
+    for category_name, tag_names in tags_data.items():
+        # Créer la catégorie
+        category = TagCategory(name=category_name)
+        db.add(category)
+        db.flush()  # Flush pour obtenir l'ID
+        
+        # Créer les tags
+        for tag_name in tag_names:
+            tag = Tag(name=tag_name, tag_category_id=category.id)
+            db.add(tag)
+        
+        print(f"✅ {category_name}: {len(tag_names)} tags créés")
+    
+    db.commit()
+    
+    # Vérification
+    total_categories = db.query(TagCategory).count()
+    total_tags = db.query(Tag).count()
+    
+    print(f"\n✨ Seed terminé!")
+    print(f"   • {total_categories} catégories créées (3 auto + 6 manuelles)")
+    print(f"   • {total_tags} tags créés")

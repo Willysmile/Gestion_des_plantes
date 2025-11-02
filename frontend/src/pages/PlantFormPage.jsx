@@ -3,15 +3,18 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { plantsAPI, lookupsAPI, photosAPI } from '../lib/api'
 import api from '../lib/api'
 import { usePlant } from '../hooks/usePlants'
+import useTags from '../hooks/useTags'
 import { validatePlant } from '../lib/schemas'
 import { ArrowLeft } from 'lucide-react'
 import PlantPhotoUpload from '../components/PlantPhotoUpload'
 import PlantPhotoGallery from '../components/PlantPhotoGallery'
+import TagsSelector from '../components/TagsSelector'
 
 export default function PlantFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { plant: existingPlant } = usePlant(id)
+  const { categories, getManualTagCategories, getAutoTagCategories } = useTags()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -263,15 +266,6 @@ export default function PlantFormPage() {
     }
   }
 
-  const handleTagChange = (tagId) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.includes(tagId)
-        ? prev.tags.filter(id => id !== tagId)
-        : [...prev.tags, tagId]
-    }))
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setGlobalError(null)
@@ -313,6 +307,12 @@ export default function PlantFormPage() {
 
       // Préparer les données en excluant les champs auto-générés en création
       let dataToSend = { ...correctedData }
+      
+      // Convertir tags en tag_ids pour le backend
+      if (dataToSend.tags) {
+        dataToSend.tag_ids = dataToSend.tags
+        delete dataToSend.tags
+      }
       
       // Exclure les champs non supportés par le backend
       delete dataToSend.care_instructions  // Not in backend schema
@@ -932,24 +932,12 @@ export default function PlantFormPage() {
 
           {/* Tags */}
           <fieldset>
-            <legend className="text-xl font-bold mb-4 pb-2 border-b">Tags</legend>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {lookups.tags && lookups.tags.length > 0 ? (
-                lookups.tags.map(tag => (
-                  <label key={tag.id} className="flex items-center gap-2 cursor-pointer p-2 border rounded hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      checked={formData.tags.includes(tag.id)}
-                      onChange={() => handleTagChange(tag.id)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">{tag.name}</span>
-                  </label>
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm col-span-full">Aucun tag disponible</p>
-              )}
-            </div>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Tags 🏷️</legend>
+            <TagsSelector 
+              plant={existingPlant}
+              selectedTagIds={formData.tags}
+              onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
+            />
           </fieldset>
 
           {/* Propriétés */}

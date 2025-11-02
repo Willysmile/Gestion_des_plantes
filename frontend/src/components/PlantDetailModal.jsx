@@ -6,6 +6,7 @@ import api from '../lib/api'
 import PhotoCarousel from './PhotoCarousel'
 import WateringHistory from './WateringHistory'
 import NotesHistory from './NotesHistory'
+import TagsDisplay from './TagsDisplay'
 import { WateringFormModal } from './WateringFormModal'
 import { FertilizingFormModal } from './FertilizingFormModal'
 import { RepottingFormModal } from './RepottingFormModal'
@@ -600,9 +601,16 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                     Créer
                   </button>
                 </div>
-              </div>
+                </div>
 
 
+
+              {/* Tags */}
+              {plant.tags && plant.tags.length > 0 && (
+                <div className="p-3 bg-indigo-50 rounded border border-indigo-200">
+                  <TagsDisplay plant={plant} tags={plant.tags} />
+                </div>
+              )}
 
               {/* Notes Générales */}
               <div className="p-2 bg-indigo-50 rounded border border-indigo-200">

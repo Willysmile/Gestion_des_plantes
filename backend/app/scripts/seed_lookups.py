@@ -19,6 +19,7 @@ from app.models.lookup import (
     WaterType,
     Season,
 )
+from app.scripts.seed_tags import seed_tag_categories_and_tags
 
 
 def seed_locations(db: Session) -> None:
@@ -292,6 +293,9 @@ def seed_all(db: Session) -> None:
 
     seed_seasons(db)
     print("✅ Seasons seeded")
+    
+    seed_tag_categories_and_tags(db)
+    print("✅ Tag categories and tags seeded")
     
     print("✅ All lookups seeded successfully!")
 

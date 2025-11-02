@@ -11,6 +11,7 @@ from app.routes.histories import watering_router, fertilizing_router, repotting_
 from app.routes.settings import router as settings_router
 from app.routes.statistics import router as statistics_router
 from app.routes.lookups import router as lookups_router
+from app.routes.tags import router as tags_router
 from app.scripts.seed_lookups import seed_all
 from app.scripts.seed_plants import seed_plants
 import os
@@ -75,6 +76,7 @@ app.include_router(notes_router)
 app.include_router(settings_router)
 app.include_router(statistics_router)
 app.include_router(lookups_router)
+app.include_router(tags_router)
 
 # Health check endpoint
 @app.get("/health")

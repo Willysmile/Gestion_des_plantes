@@ -3,7 +3,7 @@ Pydantic schemas pour Plant CRUD (Pydantic v2 with model_validator)
 """
 
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -55,6 +55,9 @@ class PlantCreate(BaseModel):
     is_favorite: bool = False
     is_toxic: bool = False
     
+    # Tags (IDs des tags manuels, les tags auto sont générés)
+    tag_ids: Optional[List[int]] = Field(None, description="IDs des tags à associer (tags manuels)")
+    
     @field_validator("name")
     @classmethod
     def validate_name(cls, v):
@@ -94,6 +97,16 @@ class PlantCreate(BaseModel):
             if self.temperature_min >= self.temperature_max:
                 raise ValueError("temperature_min doit être < temperature_max")
         return self
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SimpleTagResponse(BaseModel):
+    """Réponse simple pour un tag (pour éviter les imports circulaires)"""
+    
+    id: int
+    name: str
+    tag_category_id: Optional[int] = None
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -145,6 +158,7 @@ class PlantResponse(BaseModel):
     archived_date: Optional[datetime] = None
     archived_reason: Optional[str] = None
     deleted_at: Optional[datetime] = None
+    tags: List[SimpleTagResponse] = []
     created_at: datetime
     updated_at: datetime
     

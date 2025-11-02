@@ -10,7 +10,9 @@ from datetime import datetime
 import re
 
 from app.models.plant import Plant
+from app.models.tags import Tag
 from app.schemas.plant_schema import PlantCreate, PlantUpdate
+from app.services.tag_service import get_auto_tags_for_plant
 
 
 class PlantService:
@@ -81,6 +83,8 @@ class PlantService:
         Logique:
         - Auto-génère scientific_name si genus + species fournis
         - Auto-génère reference si famille fournie
+        - Auto-génère et ajoute les tags pré-remplis (location, health_status, light)
+        - Ajoute les tags manuels fournis
         
         Args:
             db: Session SQLAlchemy
@@ -92,6 +96,9 @@ class PlantService:
         try:
             # Convertir Pydantic v2 model en dict
             plant_dict = plant_data.model_dump(exclude_unset=True)
+            
+            # Extraire tag_ids avant de passer au Plant
+            tag_ids = plant_dict.pop('tag_ids', None)
             
             # 1. Générer scientific_name si absent mais genus + species présents
             if (not plant_dict.get('scientific_name') and 
@@ -114,6 +121,21 @@ class PlantService:
             # 3. Créer la plante
             plant = Plant(**plant_dict)
             db.add(plant)
+            db.flush()  # Flush pour obtenir l'ID
+            
+            # 4. Ajouter tags auto-générés
+            auto_tags = get_auto_tags_for_plant(plant, db)
+            for tag in auto_tags:
+                if tag not in plant.tags:
+                    plant.tags.append(tag)
+            
+            # 5. Ajouter tags manuels fournis
+            if tag_ids:
+                for tag_id in tag_ids:
+                    tag = db.query(Tag).filter(Tag.id == tag_id).first()
+                    if tag and tag not in plant.tags:
+                        plant.tags.append(tag)
+            
             db.commit()
             db.refresh(plant)
             return plant
@@ -184,6 +206,7 @@ class PlantService:
         - reference: ne peut pas être changée après création
         - created_at: ne peut pas être changée
         - archived_date: ne peut pas être changée manuellement
+        - Tags auto: sont recalculés automatiquement basés sur location/health_status/light
         
         Args:
             db: Session SQLAlchemy
@@ -200,6 +223,9 @@ class PlantService:
         try:
             # Préparer les données (Pydantic v2)
             update_data = plant_data.model_dump(exclude_unset=True)
+            
+            # Extraire tag_ids avant de passer au Plant
+            tag_ids = update_data.pop('tag_ids', None)
             
             # Empêcher modification de reference (immutable)
             if 'reference' in update_data:
@@ -221,6 +247,37 @@ class PlantService:
             
             # Mettre à jour updated_at
             plant.updated_at = datetime.utcnow()
+            
+            # Recalculer et synchroniser les tags auto
+            auto_categories = ["Emplacement", "État de la plante", "Luminosité"]
+            auto_tags_ids = db.query(Tag.id).filter(
+                Tag.category.has(name__in=auto_categories)
+            ).all()
+            auto_tags_ids = [t[0] for t in auto_tags_ids]
+            
+            # Supprimer les anciens tags auto
+            current_auto_tags = [t for t in plant.tags if t.id in auto_tags_ids]
+            for tag in current_auto_tags:
+                plant.tags.remove(tag)
+            
+            # Ajouter les nouveaux tags auto
+            new_auto_tags = get_auto_tags_for_plant(plant, db)
+            for tag in new_auto_tags:
+                if tag not in plant.tags:
+                    plant.tags.append(tag)
+            
+            # Gérer les tags manuels fournis (remplacer les non-auto)
+            if tag_ids is not None:
+                # Supprimer tous les tags non-auto actuels
+                non_auto_tags = [t for t in plant.tags if t.id not in auto_tags_ids]
+                for tag in non_auto_tags:
+                    plant.tags.remove(tag)
+                
+                # Ajouter les nouveaux tags manuels
+                for tag_id in tag_ids:
+                    tag = db.query(Tag).filter(Tag.id == tag_id).first()
+                    if tag and tag not in plant.tags:
+                        plant.tags.append(tag)
             
             db.commit()
             db.refresh(plant)
