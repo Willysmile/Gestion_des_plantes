@@ -5,6 +5,7 @@ import { photosAPI, lookupsAPI, plantsAPI } from '../lib/api'
 import api from '../lib/api'
 import PhotoCarousel from './PhotoCarousel'
 import WateringHistory from './WateringHistory'
+import NotesHistory from './NotesHistory'
 import { WateringFormModal } from './WateringFormModal'
 import { FertilizingFormModal } from './FertilizingFormModal'
 import { RepottingFormModal } from './RepottingFormModal'
@@ -603,20 +604,9 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
 
 
-              {/* Infos Diverses */}
-              <div className="p-2 bg-gray-50 rounded border border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Infos Diverses</h4>
-                    <span className="inline-block bg-gray-200 text-gray-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                      0
-                    </span>
-                  </div>
-                  <button className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs transition flex items-center gap-1">
-                    <Eye className="w-3 h-3" />
-                    Voir
-                  </button>
-                </div>
+              {/* Notes Générales */}
+              <div className="p-2 bg-indigo-50 rounded border border-indigo-200">
+                <NotesHistory plantId={plant.id} hideHeader={true} onClose={onClose} />
               </div>
             </div>
 

@@ -7,6 +7,7 @@ import WateringHistoryPage from './pages/WateringHistoryPage'
 import FertilizingHistoryPage from './pages/FertilizingHistoryPage'
 import RepottingHistoryPage from './pages/RepottingHistoryPage'
 import DiseaseHistoryPage from './pages/DiseaseHistoryPage'
+import PlantNotesPage from './pages/PlantNotesPage'
 import SettingsPage from './pages/SettingsPage'
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/plants/:id/fertilizing-history" element={<FertilizingHistoryPage />} />
           <Route path="/plants/:id/repotting-history" element={<RepottingHistoryPage />} />
           <Route path="/plants/:id/disease-history" element={<DiseaseHistoryPage />} />
+          <Route path="/plants/:id/notes" element={<PlantNotesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

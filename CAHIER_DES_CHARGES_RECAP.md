@@ -170,9 +170,12 @@ DiseaseHistory:
 PlantHistory:
   ├─ id: int (PK)
   ├─ plant_id: int FK → Plant
-  ├─ body: str - Note libre (ex: "A bien grandi ce mois-ci")
+  ├─ date: date - Date de la note
+  ├─ title: str (optionnel) - Titre (ex: "Croissance remarquée")
+  ├─ note: str - Note libre (ex: "A bien grandi ce mois-ci")
+  ├─ category: str (optionnel) - Catégorie (ex: "Observation", "Problème", "Succès")
   ├─ created_at: datetime
-  └─ deleted_at: datetime
+  └─ deleted_at: datetime (soft delete)
 ```
 
 #### **Lookup Tables** (Références)
