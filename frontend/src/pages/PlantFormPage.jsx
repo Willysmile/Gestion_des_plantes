@@ -788,8 +788,38 @@ export default function PlantFormPage() {
           </fieldset>
           </div>
 
-          {/* Colonne droite - Préférences & Photos */}
+          {/* Colonne droite - Photos */}
           <div className="space-y-8">
+            {/* Photos */}
+            {id && (
+              <fieldset>
+                <legend className="text-xl font-bold mb-4 pb-2 border-b">Photos 📷</legend>
+                
+                {/* Upload section */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">Ajouter une photo</h3>
+                  <PlantPhotoUpload plantId={id} onPhotoAdded={handlePhotoAdded} />
+                </div>
+
+              {/* Gallery section */}
+              {photosLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Chargement des photos...</p>
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-lg font-semibold mb-3">Galerie</h3>
+                  <PlantPhotoGallery
+                    photos={photos}
+                    plantId={id}
+                    onPhotoDeleted={handlePhotoDeleted}
+                    onPhotoPrimaryChanged={handlePhotoPrimaryChanged}
+                  />
+                </>
+              )}
+            </fieldset>
+          )}
+
             {/* Préférences d'Arrosage */}
             <fieldset>
               <legend className="text-xl font-bold mb-4 pb-2 border-b">💧 Préférences d'Arrosage</legend>
@@ -896,36 +926,6 @@ export default function PlantFormPage() {
                 </div>
               </div>
             </fieldset>
-
-            {/* Photos */}
-            {id && (
-              <fieldset>
-                <legend className="text-xl font-bold mb-4 pb-2 border-b">Photos 📷</legend>
-                
-                {/* Upload section */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3">Ajouter une photo</h3>
-                  <PlantPhotoUpload plantId={id} onPhotoAdded={handlePhotoAdded} />
-                </div>
-
-              {/* Gallery section */}
-              {photosLoading ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Chargement des photos...</p>
-                </div>
-              ) : (
-                <>
-                  <h3 className="text-lg font-semibold mb-3">Galerie</h3>
-                  <PlantPhotoGallery
-                    photos={photos}
-                    plantId={id}
-                    onPhotoDeleted={handlePhotoDeleted}
-                    onPhotoPrimaryChanged={handlePhotoPrimaryChanged}
-                  />
-                </>
-              )}
-            </fieldset>
-          )}
           </div>
         </form>
       </div>
