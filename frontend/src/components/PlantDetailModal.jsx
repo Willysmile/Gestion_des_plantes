@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { X, Edit, Droplet, Sun, Eye, Leaf, Flower2, AlertCircle, Thermometer, Droplets } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { photosAPI, lookupsAPI, plantsAPI } from '../lib/api'
@@ -11,6 +11,7 @@ import { FertilizingFormModal } from './FertilizingFormModal'
 import { RepottingFormModal } from './RepottingFormModal'
 import { DiseaseFormModal } from './DiseaseFormModal'
 import { useModal } from '../contexts/ModalContext'
+import useTags from '../hooks/useTags'
 
 export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   const [plant, setPlant] = useState(initialPlant)
@@ -76,6 +77,65 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   useEffect(() => {
     loadLookups()
   }, [])
+
+  // Hook pour accéder aux tags
+  const { categories, getAutoTagCategories } = useTags()
+
+  // Calculer les auto tags basés sur les données actuelles de la plante
+  const autoTagIds = useMemo(() => {
+    if (!plant || categories.length === 0) return [];
+
+    const locationId = plant.location_id;
+    const healthStatus = plant.health_status;
+    const lightRequirementId = plant.light_requirement_id;
+    const allTags = categories.flatMap(cat => cat.tags || []);
+    const autoCategories = getAutoTagCategories();
+
+    const autoTags = [];
+
+    // Tag Emplacement
+    if (locationId) {
+      const locationTag = allTags.find(t => {
+        const catName = t.tag_category?.name || t.category?.name;
+        return catName === 'Emplacement';
+      });
+      if (locationTag) autoTags.push(locationTag);
+    }
+
+    // Tag État de la plante
+    if (healthStatus) {
+      const healthMap = {
+        healthy: 'En bonne santé',
+        sick: 'Malade',
+        recovering: 'En rétablissement',
+        dead: 'Morte'
+      };
+      const healthTagName = healthMap[healthStatus];
+      const healthTag = allTags.find(t => {
+        const catName = t.tag_category?.name || t.category?.name;
+        return catName === 'État de la plante' && t.name === healthTagName;
+      });
+      if (healthTag) autoTags.push(healthTag);
+    }
+
+    // Tag Luminosité
+    if (lightRequirementId) {
+      const lightTag = allTags.find(t => {
+        const catName = t.tag_category?.name || t.category?.name;
+        return catName === 'Luminosité';
+      });
+      if (lightTag) autoTags.push(lightTag);
+    }
+
+    return autoTags;
+  }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, getAutoTagCategories])
+
+  // Combine auto tags + manual tags
+  const allDisplayTags = useMemo(() => {
+    const tagIds = new Set(autoTagIds.map(t => t.id));
+    const manualTags = (plant.tags || []).filter(t => !tagIds.has(t.id));
+    return [...autoTagIds, ...manualTags];
+  }, [autoTagIds, plant.tags])
 
   // Charger la fréquence saisonnière une seule fois quand les lookups sont chargés
   useEffect(() => {
@@ -714,8 +774,8 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                   <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-200">
                     <h3 className="text-xs font-semibold text-indigo-700 mb-2 uppercase tracking-wide text-center">🏷️ Tags</h3>
                     <div className="flex flex-wrap gap-2 justify-center">
-                      {plant.tags?.length > 0 ? (
-                        plant.tags.map(tag => (
+                      {allDisplayTags?.length > 0 ? (
+                        allDisplayTags.map(tag => (
                           <span
                             key={tag.id}
                             className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-200 text-indigo-800"
