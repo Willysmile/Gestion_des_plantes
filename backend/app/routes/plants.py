@@ -10,6 +10,7 @@ from app.utils.db import get_db
 from app.schemas.plant_schema import PlantCreate, PlantUpdate, PlantResponse, PlantListResponse
 from app.services import PlantService
 from app.models.lookup import Location
+from app.utils.sync_health import sync_plant_health_status, sync_all_plants_health
 
 
 router = APIRouter(
@@ -390,4 +391,36 @@ async def update_seasonal_fertilizing(
         return {"id": freq.id, "name": freq.name, "weeks_interval": freq.weeks_interval}
     
     return {"id": seasonal.id, "message": "Fréquence mise à jour"}
+
+
+# ===== SYNCHRONISATION DE LA SANTÉ =====
+
+@router.post("/admin/sync-health/{plant_id}")
+async def sync_single_plant_health(plant_id: int, db: Session = Depends(get_db)):
+    """
+    Synchronise l'état de santé d'une plante unique avec son dernier historique de maladie
+    """
+    plant = sync_plant_health_status(db, plant_id)
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plante non trouvée")
+    
+    return {
+        "id": plant.id,
+        "name": plant.name,
+        "health_status": plant.health_status,
+        "message": "État de santé synchronisé"
+    }
+
+
+@router.post("/admin/sync-health-all")
+async def sync_all_plants_health_endpoint(db: Session = Depends(get_db)):
+    """
+    Synchronise l'état de santé de TOUTES les plantes avec leurs historiques
+    """
+    count = sync_all_plants_health(db)
+    
+    return {
+        "count": count,
+        "message": f"État de santé de {count} plantes synchronisés"
+    }
 

@@ -16,6 +16,7 @@ from app.schemas.history_schema import (
 )
 from app.services.history_service import HistoryService
 from app.models.plant import Plant
+from app.utils.sync_health import sync_plant_health_status
 
 # Créer 5 routers pour chaque type d'historique
 watering_router = APIRouter(prefix="/api/plants", tags=["watering-history"])
@@ -185,6 +186,10 @@ async def create_disease(plant_id: int, data: DiseaseHistoryCreate, db: Session 
         raise HTTPException(status_code=404, detail="Plante non trouvée")
     
     history = HistoryService.create_disease(db, plant_id, data)
+    
+    # Synchroniser l'état de santé de la plante
+    sync_plant_health_status(db, plant_id)
+    
     return history
 
 
@@ -213,6 +218,10 @@ async def update_disease(plant_id: int, history_id: int, data: DiseaseHistoryUpd
     history = HistoryService.update_disease(db, plant_id, history_id, data)
     if not history:
         raise HTTPException(status_code=404, detail="Entrée non trouvée")
+    
+    # Synchroniser l'état de santé de la plante
+    sync_plant_health_status(db, plant_id)
+    
     return history
 
 
@@ -222,6 +231,10 @@ async def delete_disease(plant_id: int, history_id: int, db: Session = Depends(g
     success = HistoryService.delete_disease(db, plant_id, history_id)
     if not success:
         raise HTTPException(status_code=404, detail="Entrée non trouvée")
+    
+    # Synchroniser l'état de santé de la plante après suppression
+    sync_plant_health_status(db, plant_id)
+    
     return None
 
 
