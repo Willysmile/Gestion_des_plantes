@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import useTags from '../hooks/useTags';
-import { X } from 'lucide-react';
 
 /**
  * Composant pour sélectionner les tags manuels d'une plante en édition
- * Affiche les tags pré-remplis (auto) en read-only et laisse l'user choisir les manuels
+ * Affiche les tags auto en read-only et les tags manuels sélectionnés
  */
 export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
   const { categories, getAutoTagCategories, getManualTagCategories } = useTags();
@@ -14,38 +13,21 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
   const autoTags = getAutoTagsForPlant(plant);
   const autoTagIds = autoTags.map(tag => tag.id);
 
-  console.log('🏷️ TagsSelector DEBUG:', {
-    plant_id: plant?.id,
-    plant_tags_count: plant?.tags?.length || 0,
-    autoTags_count: autoTags.length,
-    autoTags: autoTags.map(t => ({ id: t.id, name: t.name, cat: t.tag_category?.name || t.category?.name })),
-    autoTagIds,
-    selectedTagIds,
-  });
-
   // Tags manuels disponibles
   const manualCategories = getManualTagCategories();
   const manualTags = categories
     .filter(cat => manualCategories.includes(cat.name))
     .flatMap(cat => cat.tags || []);
 
-  // Tags sélectionnés (combiner auto + manuel)
-  const allSelectedTagIds = [...new Set([...autoTagIds, ...(selectedTagIds || [])])];
+  // Tags manuels sélectionnés
+  const selectedManualTags = manualTags.filter(tag => selectedTagIds.includes(tag.id));
 
   // Basculer la sélection d'un tag manuel
   const toggleTag = (tagId) => {
-    if (autoTagIds.includes(tagId)) {
-      // Ne pas permettre de désélectionner les tags auto
-      return;
-    }
-
-    const newIds = allSelectedTagIds.includes(tagId)
-      ? allSelectedTagIds.filter(id => id !== tagId)
-      : [...allSelectedTagIds, tagId];
-
-    // Retourner seulement les tags manuels (exclure les auto)
-    const manualOnly = newIds.filter(id => !autoTagIds.includes(id));
-    onChange(manualOnly);
+    const newIds = selectedTagIds.includes(tagId)
+      ? selectedTagIds.filter(id => id !== tagId)
+      : [...selectedTagIds, tagId];
+    onChange(newIds);
   };
 
   // Basculer l'expansion d'une catégorie
@@ -65,7 +47,7 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
       {/* Tags Auto - Read-only */}
       {autoTags.length > 0 && (
         <div className="p-3 bg-indigo-50 rounded border border-indigo-200">
-          <h4 className="text-sm font-semibold text-indigo-700 mb-2">Tags Automatiques (en lecture seule)</h4>
+          <h4 className="text-sm font-semibold text-indigo-700 mb-2">Tags Automatiques</h4>
           <div className="flex flex-wrap gap-2">
             {autoTags.map(tag => (
               <span
@@ -79,7 +61,7 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
         </div>
       )}
 
-      {/* Tags Manuels - Sélectionnables */}
+      {/* Sélection des Tags Manuels */}
       <div className="space-y-3">
         <h4 className="text-sm font-semibold text-gray-700">Tags Personnalisés</h4>
         
@@ -105,9 +87,8 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
                       <label key={tag.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
                         <input
                           type="checkbox"
-                          checked={allSelectedTagIds.includes(tag.id)}
+                          checked={selectedTagIds.includes(tag.id)}
                           onChange={() => toggleTag(tag.id)}
-                          disabled={autoTagIds.includes(tag.id)}
                           className="rounded"
                         />
                         <span className="text-sm">{tag.name}</span>
@@ -122,13 +103,20 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
           ))}
       </div>
 
-      {/* Résumé des tags sélectionnés */}
-      {allSelectedTagIds.length > 0 && (
-        <div className="p-2 bg-blue-50 rounded border border-blue-200 text-xs">
-          <p className="text-blue-700">
-            <strong>{allSelectedTagIds.length}</strong> tag(s) sélectionné(s)
-            {autoTagIds.length > 0 && ` (${autoTagIds.length} auto + ${allSelectedTagIds.length - autoTagIds.length} manuel)`}
-          </p>
+      {/* Affichage des tags manuels sélectionnés */}
+      {selectedManualTags.length > 0 && (
+        <div className="p-3 bg-indigo-50 rounded border border-indigo-200">
+          <h4 className="text-sm font-semibold text-indigo-700 mb-2">Sélection actuelle</h4>
+          <div className="flex flex-wrap gap-2">
+            {selectedManualTags.map(tag => (
+              <span
+                key={tag.id}
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 border border-indigo-300"
+              >
+                {tag.name}
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </div>
