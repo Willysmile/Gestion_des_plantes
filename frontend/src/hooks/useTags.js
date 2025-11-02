@@ -49,12 +49,14 @@ export default function useTags() {
 
   // Get auto tags (location, health_status, light)
   const getAutoTagCategories = () => {
-    return ['Emplacement', 'État de la plante', 'Luminosité'];
+    const autoNames = ['Emplacement', 'État de la plante', 'Luminosité'];
+    return categories.filter(cat => autoNames.includes(cat.name));
   };
 
   // Get manual tag categories
   const getManualTagCategories = () => {
-    return ['Type de plante', 'Besoins en eau', 'Difficulté', 'Taille', 'Toxicité', 'Particularités'];
+    const manualNames = ['Type de plante', 'Besoins en eau', 'Difficulté', 'Taille', 'Toxicité', 'Particularités'];
+    return categories.filter(cat => manualNames.includes(cat.name));
   };
 
   useEffect(() => {
