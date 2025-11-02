@@ -226,7 +226,7 @@ class HistoryService:
         return db.query(DiseaseHistory).filter(
             DiseaseHistory.plant_id == plant_id,
             DiseaseHistory.deleted_at == None
-        ).order_by(DiseaseHistory.date.desc()).all()
+        ).order_by(DiseaseHistory.date.desc(), DiseaseHistory.id.desc()).all()
     
     @staticmethod
     def update_disease(db: Session, plant_id: int, history_id: int, data: DiseaseHistoryUpdate) -> Optional[DiseaseHistory]:

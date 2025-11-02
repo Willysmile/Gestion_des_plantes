@@ -338,7 +338,12 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     try {
       const response = await api.get(`/plants/${plant.id}/disease-history`)
       if (response.data && response.data.length > 0) {
-        const sorted = response.data.sort((a, b) => new Date(b.date) - new Date(a.date))
+        const sorted = response.data.sort((a, b) => {
+          const dateCompare = new Date(b.date) - new Date(a.date)
+          if (dateCompare !== 0) return dateCompare
+          // Si dates égales, trier par ID décroissant
+          return b.id - a.id
+        })
         setLastDisease(sorted[0])
       } else {
         setLastDisease(null)
