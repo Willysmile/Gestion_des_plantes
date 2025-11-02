@@ -418,6 +418,14 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
               </div>
             )}
 
+            {/* Emplacement badge */}
+            {plant.location && (
+              <div className="bg-green-50 px-2 py-1 rounded border border-green-200 text-xs">
+                <p className="text-gray-600 font-medium">📍 Emplacement</p>
+                <p className="text-green-700 font-semibold">{plant.location}</p>
+              </div>
+            )}
+
             {/* Boutons */}
             <div className="flex items-center gap-2 ml-4">
               <Link
@@ -732,12 +740,6 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
               {/* Localisation */}
               <div className="grid gap-2 text-xs mt-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(0, 1fr))' }}>
-                {plant.location && (
-                  <div className="bg-green-50 p-2 rounded border border-green-200">
-                    <p className="text-gray-600 font-medium text-xs">📍 Emplacement</p>
-                    <p className="text-green-700 font-semibold">{plant.location}</p>
-                  </div>
-                )}
                 {plant.purchase_date && (
                   <div className="bg-blue-50 p-2 rounded border border-blue-200">
                     <p className="text-gray-600 font-medium text-xs">📅 Date d'achat</p>
