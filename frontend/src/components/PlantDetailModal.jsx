@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Edit, Droplet, Sun, Eye, Leaf, Flower2, AlertCircle } from 'lucide-react'
+import { X, Edit, Droplet, Sun, Eye, Leaf, Flower2, AlertCircle, Thermometer, Droplets } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { photosAPI, lookupsAPI, plantsAPI } from '../lib/api'
 import api from '../lib/api'
@@ -681,6 +681,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                       
                       {/* Colonne 2: Température */}
                       <div className="flex flex-col items-center gap-1 pb-3 border-r border-gray-200">
+                        <Thermometer className="w-5 h-5 text-red-500" />
                         <span className="text-xs text-gray-600 font-semibold">Température</span>
                         <div className="text-gray-800 text-xs font-medium">
                           {(plant.temperature_min || plant.temperature_max) 
@@ -691,6 +692,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                       
                       {/* Colonne 3: Humidité */}
                       <div className="flex flex-col items-center gap-1">
+                        <Droplets className="w-5 h-5 text-cyan-500" />
                         <span className="text-xs text-gray-600 font-semibold">Humidité</span>
                         <div className="text-gray-800 text-xs font-medium">{plant.humidity_level || '—'}%</div>
                       </div>
