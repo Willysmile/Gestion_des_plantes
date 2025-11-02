@@ -95,11 +95,15 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
     // Tag Emplacement
     if (locationId) {
-      const locationTag = allTags.find(t => {
-        const catName = t.tag_category?.name || t.category?.name;
-        return catName === 'Emplacement';
-      });
-      if (locationTag) autoTags.push(locationTag);
+      // Trouver le nom de la location correspondante
+      const location = lookups.locations?.find(loc => loc.id === locationId);
+      if (location) {
+        const locationTag = allTags.find(t => {
+          const catName = t.tag_category?.name || t.category?.name;
+          return catName === 'Emplacement' && t.name === location.name;
+        });
+        if (locationTag) autoTags.push(locationTag);
+      }
     }
 
     // Tag État de la plante
@@ -132,7 +136,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     }
 
     return autoTags;
-  }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, getAutoTagCategories, lookups.lightRequirements])
+  }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, getAutoTagCategories, lookups.locations, lookups.lightRequirements])
 
   // Combine auto tags + manual tags
   const allDisplayTags = useMemo(() => {

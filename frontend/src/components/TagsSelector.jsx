@@ -37,11 +37,15 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
 
     // Tag Emplacement
     if (locationId) {
-      const locationTag = allTags.find(t => {
-        const catName = t.tag_category?.name || t.category?.name;
-        return catName === 'Emplacement';
-      });
-      if (locationTag) autoTags.push(locationTag.id);
+      // Trouver le nom de la location correspondante
+      const location = lookups.locations?.find(loc => loc.id === locationId);
+      if (location) {
+        const locationTag = allTags.find(t => {
+          const catName = t.tag_category?.name || t.category?.name;
+          return catName === 'Emplacement' && t.name === location.name;
+        });
+        if (locationTag) autoTags.push(locationTag.id);
+      }
     }
 
     // Tag État de la plante
@@ -74,7 +78,7 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
     }
 
     return autoTags;
-  }, [formData?.location_id, formData?.health_status, formData?.light_requirement_id, allTags, autoCategories, lookups.lightRequirements]);
+  }, [formData?.location_id, formData?.health_status, formData?.light_requirement_id, allTags, autoCategories, lookups.locations, lookups.lightRequirements]);
 
   // Toggle la sélection d'un tag
   const [previousAutoTagIds, setPreviousAutoTagIds] = useState([]);
