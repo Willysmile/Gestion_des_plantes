@@ -471,11 +471,11 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
               {/* Historiques (4 cartes) */}
               <div className="grid grid-cols-4 gap-2">
-                <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 relative min-h-32">
+                <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 relative min-h-32 flex flex-col items-center justify-center">
                   <Link
                     to={`/plants/${plant.id}/watering-history`}
                     onClick={onClose}
-                    className="text-xs font-semibold text-gray-700 hover:text-blue-600 transition block text-center"
+                    className="text-xs font-semibold text-gray-700 hover:text-blue-600 transition text-center"
                   >
                     Dernier arrosage
                   </Link>
@@ -617,7 +617,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                 <div className="grid grid-cols-2 gap-3">
                   {/* Carte Arrosage - Grande carte contenant 4 petites cartes */}
                   <div className="col-span-2 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                    <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-1">
+                    <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3 text-center">
                       💧 Arrosage
                     </h3>
                     <div className="grid grid-cols-4 gap-2">
