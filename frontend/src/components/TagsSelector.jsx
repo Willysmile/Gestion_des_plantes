@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import useTags from '../hooks/useTags';
 
 /**
@@ -7,7 +7,7 @@ import useTags from '../hooks/useTags';
  * Tags auto = couleur bleue, Tags manuels = couleur indigo
  * Confirmation nécessaire pour désélectionner les tags auto
  */
-export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
+export default function TagsSelector({ formData, selectedTagIds = [], onChange }) {
   const { categories, getAutoTagCategories, getManualTagCategories } = useTags();
   const [showConfirm, setShowConfirm] = useState(null); // null ou tagId à désélectionner
 
@@ -24,6 +24,54 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
     const catName = tag.tag_category?.name || tag.category?.name;
     return autoCategories.includes(catName);
   };
+
+  // Tags auto calculés dynamiquement basés sur formData
+  const autoTagIds = useMemo(() => {
+    if (!formData) return [];
+
+    const locationId = formData.location_id;
+    const healthStatus = formData.health_status;
+    const lightRequirementId = formData.light_requirement_id;
+
+    // Trouver les tags auto correspondants
+    const autoTags = [];
+
+    // Tag Emplacement
+    if (locationId) {
+      const locationTag = allTags.find(t => {
+        const catName = t.tag_category?.name || t.category?.name;
+        return catName === 'Emplacement';
+      });
+      if (locationTag) autoTags.push(locationTag.id);
+    }
+
+    // Tag État de la plante
+    if (healthStatus) {
+      const healthMap = {
+        healthy: 'En bonne santé',
+        sick: 'Malade',
+        recovering: 'En rétablissement',
+        dead: 'Morte'
+      };
+      const healthTagName = healthMap[healthStatus];
+      const healthTag = allTags.find(t => {
+        const catName = t.tag_category?.name || t.category?.name;
+        return catName === 'État de la plante' && t.name === healthTagName;
+      });
+      if (healthTag) autoTags.push(healthTag.id);
+    }
+
+    // Tag Luminosité
+    if (lightRequirementId) {
+      const lightTag = allTags.find(t => {
+        const catName = t.tag_category?.name || t.category?.name;
+        return catName === 'Luminosité';
+      });
+      if (lightTag) autoTags.push(lightTag.id);
+    }
+
+    return autoTags;
+  }, [formData, allTags, autoCategories]);
 
   // Toggle la sélection d'un tag
   const toggleTag = (tagId) => {
