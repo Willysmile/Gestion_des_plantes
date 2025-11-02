@@ -65,6 +65,23 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
       <div className="space-y-3">
         <h4 className="text-sm font-semibold text-gray-700">Tags Personnalisés</h4>
         
+        {/* Affichage des tags manuels sélectionnés */}
+        {selectedManualTags.length > 0 && (
+          <div className="p-3 bg-indigo-50 rounded border border-indigo-200">
+            <h5 className="text-xs font-semibold text-indigo-700 mb-2">Sélection actuelle</h5>
+            <div className="flex flex-wrap gap-2">
+              {selectedManualTags.map(tag => (
+                <span
+                  key={tag.id}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 border border-indigo-300"
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        
         {categories
           .filter(cat => manualCategories.includes(cat.name))
           .map(category => (
@@ -102,23 +119,6 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
             </div>
           ))}
       </div>
-
-      {/* Affichage des tags manuels sélectionnés */}
-      {selectedManualTags.length > 0 && (
-        <div className="p-3 bg-indigo-50 rounded border border-indigo-200">
-          <h4 className="text-sm font-semibold text-indigo-700 mb-2">Sélection actuelle</h4>
-          <div className="flex flex-wrap gap-2">
-            {selectedManualTags.map(tag => (
-              <span
-                key={tag.id}
-                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 border border-indigo-300"
-              >
-                {tag.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
