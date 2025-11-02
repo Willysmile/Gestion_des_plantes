@@ -4,6 +4,7 @@ Script pour peupler les catégories et tags dans la base de données
 
 from sqlalchemy.orm import Session
 from app.models.tags import TagCategory, Tag
+from app.models.lookup import Location
 
 def seed_tag_categories_and_tags(db: Session):
     """
@@ -14,19 +15,23 @@ def seed_tag_categories_and_tags(db: Session):
     categories_count = db.query(TagCategory).count()
     if categories_count > 0:
         print(f"✅ Catégories de tags déjà présentes ({categories_count})")
+        # Mais on doit quand même vérifier les tags Emplacement manquants
+        sync_location_tags(db)
         return
     
     print("🌱 Création des catégories et tags...")
     
+    # Récupérer toutes les locations pour créer les tags correspondants
+    locations = db.query(Location).all()
+    location_names = [loc.name for loc in locations]
+    
     # Données des catégories et tags
     tags_data = {
         # AUTO-GÉNÉRÉS (3 catégories)
-        "Emplacement": [
-            "Intérieur", "Extérieur", "Balcon", "Terrasse"
-        ],
+        "Emplacement": location_names,  # Dynamique basé sur les locations
         
         "État de la plante": [
-            "Sain", "Malade", "Rétablie", "Critique", "En traitement", "En convalescence"
+            "En bonne santé", "Malade", "En rétablissement", "Morte", "En traitement", "En convalescence"
         ],
         
         "Luminosité": [
@@ -78,6 +83,35 @@ def seed_tag_categories_and_tags(db: Session):
         print(f"✅ {category_name}: {len(tag_names)} tags créés")
     
     db.commit()
+
+
+def sync_location_tags(db: Session):
+    """
+    Synchronise les tags Emplacement avec les locations existantes
+    Crée les tags manquants
+    """
+    # Récupérer la catégorie Emplacement
+    location_category = db.query(TagCategory).filter(TagCategory.name == "Emplacement").first()
+    if not location_category:
+        return  # Catégorie n'existe pas encore
+    
+    # Récupérer les locations et les tags Emplacement existants
+    locations = db.query(Location).all()
+    existing_tags = db.query(Tag).filter(Tag.tag_category_id == location_category.id).all()
+    existing_tag_names = {tag.name for tag in existing_tags}
+    
+    # Créer les tags manquants
+    new_tags_count = 0
+    for location in locations:
+        if location.name not in existing_tag_names:
+            tag = Tag(name=location.name, tag_category_id=location_category.id)
+            db.add(tag)
+            new_tags_count += 1
+            print(f"  ➕ Tag Emplacement créé: {location.name}")
+    
+    if new_tags_count > 0:
+        db.commit()
+        print(f"✅ {new_tags_count} tags Emplacement synchronisés")
     
     # Vérification
     total_categories = db.query(TagCategory).count()
