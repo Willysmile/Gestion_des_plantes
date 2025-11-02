@@ -205,7 +205,7 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
                           isAutoManaged
                             ? 'bg-emerald-500 text-white font-bold shadow-md'
                             : isAutoCategory && !isAutoTag
-                            ? 'bg-red-200 text-red-900 line-through opacity-60'
+                            ? 'bg-red-200 text-red-900 opacity-60'
                             : isSelected
                             ? 'bg-indigo-500 text-white hover:bg-indigo-600'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
