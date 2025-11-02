@@ -676,10 +676,13 @@ export default function PlantFormPage() {
                 État de santé
               </label>
               <div className="bg-gray-100 p-3 rounded border border-gray-300 text-gray-700">
-                {formData.health_status === 'healthy' && '✅ En bonne santé'}
+                {formData.health_status === 'healthy' && '✅ Sain'}
                 {formData.health_status === 'sick' && '⚠️ Malade'}
-                {formData.health_status === 'recovering' && '🔄 En rétablissement'}
+                {formData.health_status === 'recovering' && '🔄 Rétablie'}
                 {formData.health_status === 'dead' && '❌ Morte'}
+                {formData.health_status === 'critical' && '🚨 Critique'}
+                {formData.health_status === 'treating' && '💊 En traitement'}
+                {formData.health_status === 'convalescent' && '🏥 En convalescence'}
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 L'état de santé est automatiquement mis à jour en fonction des historiques de maladies enregistrées. Utilisez la section "Maladies" pour signaler une nouvelle maladie.
