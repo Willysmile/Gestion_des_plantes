@@ -138,10 +138,12 @@ export default function PlantFormPage() {
       for (const season of lookups.seasons) {
         try {
           const response = await api.get(`/plants/${id}/seasonal-watering/${season.id}`)
-          setFormData(prev => ({
-            ...prev,
-            [`seasonal_watering_${season.id}`]: response.data.id
-          }))
+          if (response.data) {
+            setFormData(prev => ({
+              ...prev,
+              [`seasonal_watering_${season.id}`]: response.data.id
+            }))
+          }
         } catch (err) {
           // Pas de fréquence définie pour cette saison, c'est OK
         }
@@ -156,10 +158,12 @@ export default function PlantFormPage() {
       for (const season of lookups.seasons) {
         try {
           const response = await api.get(`/plants/${id}/seasonal-fertilizing/${season.id}`)
-          setFormData(prev => ({
-            ...prev,
-            [`seasonal_fertilizing_${season.id}`]: response.data.id
-          }))
+          if (response.data) {
+            setFormData(prev => ({
+              ...prev,
+              [`seasonal_fertilizing_${season.id}`]: response.data.id
+            }))
+          }
         } catch (err) {
           // Pas de fréquence définie pour cette saison, c'est OK
         }
