@@ -59,7 +59,12 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
-      await loadFullPlant()
+      const response = await plantsAPI.getById(initialPlant.id)
+      setPlant(response.data)
+      console.log('✅ Plant refreshed:', {
+        id: response.data.id,
+        health_status: response.data.health_status
+      })
       await loadLastWatering()
       await loadLastFertilizing()
       await loadLastRepotting()
@@ -158,14 +163,14 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     }
 
     return autoTags;
-  }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, getAutoTagCategories, lookups.locations, lookups.lightRequirements])
+  }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, lookups?.locations, lookups?.lightRequirements])
 
   // Combine auto tags + manual tags
   const allDisplayTags = useMemo(() => {
     const tagIds = new Set(autoTagIds.map(t => t.id));
     const manualTags = (plant.tags || []).filter(t => !tagIds.has(t.id));
     return [...autoTagIds, ...manualTags];
-  }, [autoTagIds, plant.tags])
+  }, [autoTagIds, plant?.tags])
 
   // Charger la fréquence saisonnière une seule fois quand les lookups sont chargés
   useEffect(() => {
