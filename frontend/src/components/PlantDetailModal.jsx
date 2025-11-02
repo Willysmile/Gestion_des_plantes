@@ -470,6 +470,11 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                 </div>
               )}
 
+              {/* Tags */}
+              {plant.tags && plant.tags.length > 0 && (
+                <TagsDisplay plant={plant} tags={plant.tags} />
+              )}
+
               {/* Historiques (4 cartes) */}
               <div className="grid grid-cols-4 gap-2">
                 <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 relative min-h-32">

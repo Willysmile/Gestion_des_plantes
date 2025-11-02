@@ -13,8 +13,14 @@ export default function TagsDisplay({ plant, tags = [] }) {
   const autoCategories = ['Emplacement', 'État de la plante', 'Luminosité'];
   
   // Séparer les tags auto et manuels
-  const autoTags = tags.filter(tag => autoCategories.includes(tag.category?.name));
-  const manualTags = tags.filter(tag => !autoCategories.includes(tag.category?.name));
+  const autoTags = tags.filter(tag => {
+    const catName = tag.category?.name || tag.tag_category?.name;
+    return autoCategories.includes(catName);
+  });
+  const manualTags = tags.filter(tag => {
+    const catName = tag.category?.name || tag.tag_category?.name;
+    return !autoCategories.includes(catName);
+  });
 
   return (
     <div className="space-y-4">

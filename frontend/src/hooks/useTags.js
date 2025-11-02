@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import API from '../config';
+import { tagsAPI } from '../lib/api';
 
 export default function useTags() {
   const [categories, setCategories] = useState([]);
@@ -11,7 +11,7 @@ export default function useTags() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await API.get('/api/tags/categories');
+      const response = await tagsAPI.getCategories();
       setCategories(response.data);
       
       // Flatten all tags
@@ -30,7 +30,7 @@ export default function useTags() {
   const fetchTags = async () => {
     try {
       setLoading(true);
-      const response = await API.get('/api/tags');
+      const response = await tagsAPI.getTags();
       setTags(response.data);
       setError(null);
     } catch (err) {

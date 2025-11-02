@@ -245,6 +245,74 @@ export const lookupsAPI = {
   },
 }
 
+// Tags endpoints
+export const tagsAPI = {
+  getCategories: async () => {
+    try {
+      return await api.get('/tags/categories')
+    } catch (error) {
+      console.error('Error fetching tag categories:', error)
+      throw error
+    }
+  },
+  getTags: async () => {
+    try {
+      return await api.get('/tags')
+    } catch (error) {
+      console.error('Error fetching tags:', error)
+      throw error
+    }
+  },
+  createTag: async (data) => {
+    try {
+      return await api.post('/tags', data)
+    } catch (error) {
+      console.error('Error creating tag:', error)
+      throw error
+    }
+  },
+  updateTag: async (id, data) => {
+    try {
+      return await api.put(`/tags/${id}`, data)
+    } catch (error) {
+      console.error('Error updating tag:', error)
+      throw error
+    }
+  },
+  deleteTag: async (id) => {
+    try {
+      return await api.delete(`/tags/${id}`)
+    } catch (error) {
+      console.error('Error deleting tag:', error)
+      throw error
+    }
+  },
+  createCategory: async (data) => {
+    try {
+      return await api.post('/tags/categories', data)
+    } catch (error) {
+      console.error('Error creating tag category:', error)
+      throw error
+    }
+  },
+  updateCategory: async (id, data) => {
+    try {
+      return await api.put(`/tags/categories/${id}`, data)
+    } catch (error) {
+      console.error('Error updating tag category:', error)
+      throw error
+    }
+  },
+  deleteCategory: async (id) => {
+    try {
+      return await api.delete(`/tags/categories/${id}`)
+    } catch (error) {
+      console.error('Error deleting tag category:', error)
+      throw error
+    }
+  },
+}
+
 // Import photo API
 import photosAPI from './api/photosAPI'
 

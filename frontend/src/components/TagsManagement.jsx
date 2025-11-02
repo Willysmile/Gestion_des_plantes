@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import useTags from '../hooks/useTags';
-import API from '../config';
+import { tagsAPI } from '../lib/api';
 
 export default function TagsManagement() {
   const { categories, fetchCategories } = useTags();
@@ -37,7 +37,7 @@ export default function TagsManagement() {
 
     try {
       setLoading(true);
-      await API.post('/api/tags', {
+      await tagsAPI.createTag({
         name: formData.name,
         tag_category_id: selectedCategory.id
       });
@@ -63,7 +63,7 @@ export default function TagsManagement() {
 
     try {
       setLoading(true);
-      await API.put(`/api/tags/${editingId}`, {
+      await tagsAPI.updateTag(editingId, {
         name: formData.name
       });
       await fetchCategories();
@@ -80,7 +80,7 @@ export default function TagsManagement() {
 
     try {
       setLoading(true);
-      await API.delete(`/api/tags/${tagId}`);
+      await tagsAPI.deleteTag(tagId);
       await fetchCategories();
     } catch (err) {
       setError(err.response?.data?.detail || 'Erreur lors de la suppression');

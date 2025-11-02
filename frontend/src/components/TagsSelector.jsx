@@ -14,6 +14,15 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
   const autoTags = getAutoTagsForPlant(plant);
   const autoTagIds = autoTags.map(tag => tag.id);
 
+  console.log('🏷️ TagsSelector DEBUG:', {
+    plant_id: plant?.id,
+    plant_tags_count: plant?.tags?.length || 0,
+    autoTags_count: autoTags.length,
+    autoTags: autoTags.map(t => ({ id: t.id, name: t.name, cat: t.tag_category?.name || t.category?.name })),
+    autoTagIds,
+    selectedTagIds,
+  });
+
   // Tags manuels disponibles
   const manualCategories = getManualTagCategories();
   const manualTags = categories
@@ -128,14 +137,18 @@ export default function TagsSelector({ plant, selectedTagIds = [], onChange }) {
 
 /**
  * Génère les tags auto basés sur les données de la plante
+ * Les auto-tags sont ceux des 3 catégories: Emplacement, État de la plante, Luminosité
  */
 function getAutoTagsForPlant(plant) {
-  if (!plant) return [];
+  if (!plant || !plant.tags) return [];
 
-  // Récupérer les tags existants de la plante si elle a déjà des données
-  const existingAutoTags = plant.tags?.filter(tag => {
-    const catName = tag.category?.name;
-    return catName === 'Emplacement' || catName === 'État de la plante' || catName === 'Luminosité';
+  const autoCategories = ['Emplacement', 'État de la plante', 'Luminosité'];
+  
+  // Récupérer les tags existants de la plante qui appartiennent aux catégories auto
+  const existingAutoTags = plant.tags.filter(tag => {
+    // Vérifier si le tag appartient à une catégorie auto
+    const catName = tag.tag_category?.name || tag.category?.name;
+    return autoCategories.includes(catName);
   }) || [];
 
   return existingAutoTags;

@@ -40,7 +40,6 @@ export default function PlantFormPage() {
     is_favorite: false,
     is_indoor: false,
     is_outdoor: false,
-    is_toxic: false,
     watering_frequency_id: null,
     light_requirement_id: null,
     preferred_watering_method_id: null,
@@ -91,7 +90,6 @@ export default function PlantFormPage() {
         is_favorite: existingPlant.is_favorite || false,
         is_indoor: existingPlant.is_indoor || false,
         is_outdoor: existingPlant.is_outdoor || false,
-        is_toxic: existingPlant.is_toxic || false,
         watering_frequency_id: existingPlant.watering_frequency_id || null,
         light_requirement_id: existingPlant.light_requirement_id || null,
         preferred_watering_method_id: existingPlant.preferred_watering_method_id || null,
@@ -943,7 +941,7 @@ export default function PlantFormPage() {
           {/* Propriétés */}
           <fieldset>
             <legend className="text-xl font-bold mb-4 pb-2 border-b">Propriétés</legend>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -974,16 +972,6 @@ export default function PlantFormPage() {
                 />
                 <span>Extérieur 🌱</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="is_toxic"
-                  checked={formData.is_toxic}
-                  onChange={handleChange}
-                  className="w-4 h-4"
-                />
-                <span>Toxique ⚠️</span>
-              </label>
             </div>
           </fieldset>
 
@@ -992,22 +980,17 @@ export default function PlantFormPage() {
             <legend className="text-xl font-bold mb-4 pb-2 border-b">Santé</legend>
             <div>
               <label className="block font-semibold mb-2">
-                État de santé <span className="text-red-500">*</span>
+                État de santé <span className="text-gray-500 text-sm">(Lecture seule - basé sur les maladies)</span>
               </label>
-              <select
-                name="health_status"
-                value={formData.health_status}
-                onChange={handleChange}
-                className={getFieldClass('health_status')}
-              >
-                <option value="healthy">En bonne santé</option>
-                <option value="sick">Malade</option>
-                <option value="recovering">En rétablissement</option>
-                <option value="dead">Morte</option>
-              </select>
-              {fieldErrors.health_status && (
-                <p className="text-red-600 text-sm mt-1">{fieldErrors.health_status}</p>
-              )}
+              <div className="bg-gray-100 p-3 rounded border border-gray-300 text-gray-700">
+                {formData.health_status === 'healthy' && '✅ En bonne santé'}
+                {formData.health_status === 'sick' && '⚠️ Malade'}
+                {formData.health_status === 'recovering' && '🔄 En rétablissement'}
+                {formData.health_status === 'dead' && '❌ Morte'}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                L'état de santé est automatiquement mis à jour en fonction des historiques de maladies enregistrées. Utilisez la section "Maladies" pour signaler une nouvelle maladie.
+              </p>
             </div>
           </fieldset>
           </div>

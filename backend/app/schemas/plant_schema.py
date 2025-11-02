@@ -101,12 +101,23 @@ class PlantCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class SimpleTagCategoryResponse(BaseModel):
+    """Réponse simple pour une catégorie (pour éviter les imports circulaires)"""
+    
+    id: int
+    name: str
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SimpleTagResponse(BaseModel):
     """Réponse simple pour un tag (pour éviter les imports circulaires)"""
     
     id: int
     name: str
     tag_category_id: Optional[int] = None
+    category: Optional[SimpleTagCategoryResponse] = None
+    tag_category: Optional[SimpleTagCategoryResponse] = None  # Alias pour la compatibilité
     
     model_config = ConfigDict(from_attributes=True)
 
