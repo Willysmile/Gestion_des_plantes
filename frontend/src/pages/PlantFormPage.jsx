@@ -89,7 +89,12 @@ export default function PlantFormPage() {
         preferred_watering_method_id: existingPlant.preferred_watering_method_id || null,
         preferred_water_type_id: existingPlant.preferred_water_type_id || null,
         location_id: existingPlant.location_id || null,
-        tags: existingPlant.tags?.map(tag => tag.id) || [],
+        // Garder seulement les tags manuels (pas les auto tags qui sont recalculés)
+        tags: existingPlant.tags?.filter(tag => {
+          const catName = tag.tag_category?.name || tag.category?.name;
+          // Exclure les catégories auto (Emplacement, État de la plante, Luminosité)
+          return !['Emplacement', 'État de la plante', 'Luminosité'].includes(catName);
+        }).map(tag => tag.id) || [],
       })
     }
   }, [id, existingPlant])
