@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import useTags from '../hooks/useTags';
 
 /**
@@ -74,6 +74,39 @@ export default function TagsSelector({ formData, selectedTagIds = [], onChange }
   }, [formData?.location_id, formData?.health_status, formData?.light_requirement_id, allTags, autoCategories]);
 
   // Toggle la sélection d'un tag
+  const [previousAutoTagIds, setPreviousAutoTagIds] = useState([]);
+
+  // Quand les auto tags changent, enlever les anciens et ajouter les nouveaux
+  useEffect(() => {
+    // Enlever les anciens auto tags qui ne sont plus dans la nouvelle liste
+    const tagsToRemove = previousAutoTagIds.filter(id => !autoTagIds.includes(id));
+    
+    // Ajouter les nouveaux auto tags
+    const tagsToAdd = autoTagIds.filter(id => !previousAutoTagIds.includes(id));
+
+    let updatedTags = selectedTagIds;
+
+    // Retirer les anciens auto tags
+    tagsToRemove.forEach(tagId => {
+      updatedTags = updatedTags.filter(id => id !== tagId);
+    });
+
+    // Ajouter les nouveaux auto tags
+    tagsToAdd.forEach(tagId => {
+      if (!updatedTags.includes(tagId)) {
+        updatedTags = [...updatedTags, tagId];
+      }
+    });
+
+    // Mettre à jour si changement
+    if (tagsToRemove.length > 0 || tagsToAdd.length > 0) {
+      onChange(updatedTags);
+    }
+
+    // Mettre à jour le suivi des auto tags précédents
+    setPreviousAutoTagIds(autoTagIds);
+  }, [autoTagIds]);
+
   const toggleTag = (tagId) => {
     if (selectedTagIds.includes(tagId)) {
       // Demande confirmation si c'est un tag auto
