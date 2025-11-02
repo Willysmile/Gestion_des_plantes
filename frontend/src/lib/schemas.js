@@ -31,7 +31,7 @@ import { z } from 'zod'
  */
 
 // Énumérations valides
-const HEALTH_STATUSES = ['healthy', 'sick', 'recovering', 'dead']
+const HEALTH_STATUSES = ['healthy', 'sick', 'recovering', 'dead', 'critical', 'treating', 'convalescent']
 const SOIL_TYPES = ['terreau', 'terre', 'sable', 'tourbe', 'perlite']
 
 /**
@@ -264,13 +264,13 @@ export const plantSchema = z.object({
 
   // ===== SANTÉ =====
   health_status: z
-    .string()
-    .min(1, 'L\'état de santé est obligatoire')
-    .refine(val => HEALTH_STATUSES.includes(val), {
-      message: 'L\'état de santé est obligatoire'
-    })
-    .nullable()
-    .optional()
+    .union([
+      z.string().refine(val => HEALTH_STATUSES.includes(val), {
+        message: 'L\'état de santé doit être parmi: healthy, sick, recovering, dead, critical, treating, convalescent'
+      }),
+      z.null(),
+      z.undefined()
+    ])
     .default('healthy'),
 
   // ===== TAGS =====
