@@ -10,8 +10,8 @@ import useTags from '../hooks/useTags';
 export default function TagsSelector({ formData, lookups = {}, selectedTagIds = [], onChange }) {
   const { categories, getAutoTagCategories, getManualTagCategories } = useTags();
 
-  const autoCategories = getAutoTagCategories();
-  const manualCategories = getManualTagCategories();
+  const autoCategories = getAutoTagCategories().map(c => c.name);
+  const manualCategories = getManualTagCategories().map(c => c.name);
 
   // Tous les tags disponibles
   const allTags = categories.flatMap(cat => cat.tags || []);
