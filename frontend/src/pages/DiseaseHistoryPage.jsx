@@ -1,9 +1,16 @@
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import { useState, useCallback } from 'react'
 import DiseaseHistory from '../components/DiseaseHistory'
 
 export default function DiseaseHistoryPage() {
   const { id: plantId } = useParams()
+  
+  // Callback pour rafraîchir la plante (peut être utilisé par le parent)
+  const handlePlantUpdate = useCallback(() => {
+    // Cette fonction est appelée après modification d'une maladie
+    // Le modal/détail de la plante se mettra à jour via PlantDetailModal
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -25,7 +32,7 @@ export default function DiseaseHistoryPage() {
 
         {/* Historique des maladies */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <DiseaseHistory plantId={parseInt(plantId)} />
+          <DiseaseHistory plantId={parseInt(plantId)} onPlantUpdate={handlePlantUpdate} />
         </div>
       </div>
     </div>

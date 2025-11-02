@@ -10,8 +10,8 @@ const api = axios.create({
   timeout: API_CONFIG.TIMEOUT,
 })
 
-export default function DiseaseHistory({ plantId }) {
-  const { diseaseHistory, loading, error, addDisease, updateDisease, deleteDisease, getAllDiseases } = useDiseaseHistory(plantId)
+export default function DiseaseHistory({ plantId, onPlantUpdate = null }) {
+  const { diseaseHistory, loading, error, addDisease, updateDisease, deleteDisease, getAllDiseases } = useDiseaseHistory(plantId, onPlantUpdate)
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [formData, setFormData] = useState({

@@ -5,7 +5,7 @@ import { API_CONFIG, API_ENDPOINTS } from '../config'
 
 const api = axios.create({ baseURL: API_CONFIG.BASE_URL })
 
-export const useDiseaseHistory = (plantId) => {
+export const useDiseaseHistory = (plantId, onPlantUpdate = null) => {
   const [diseaseHistory, setDiseaseHistory] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -42,6 +42,12 @@ export const useDiseaseHistory = (plantId) => {
       }
       const response = await api.post(API_ENDPOINTS.diseaseHistory(plantId), cleanData)
       setDiseaseHistory(prev => [response.data, ...prev])
+      
+      // Appeler le callback pour rafraîchir la plante parent
+      if (onPlantUpdate) {
+        onPlantUpdate()
+      }
+      
       return response.data
     } catch (err) {
       setError(err.message)
@@ -70,6 +76,12 @@ export const useDiseaseHistory = (plantId) => {
       setDiseaseHistory(prev =>
         prev.map(item => item.id === historyId ? response.data : item)
       )
+      
+      // Appeler le callback pour rafraîchir la plante parent
+      if (onPlantUpdate) {
+        onPlantUpdate()
+      }
+      
       return response.data
     } catch (err) {
       setError(err.message)
@@ -86,6 +98,12 @@ export const useDiseaseHistory = (plantId) => {
     try {
       await api.delete(`${API_ENDPOINTS.diseaseHistory(plantId)}/${historyId}`)
       setDiseaseHistory(prev => prev.filter(item => item.id !== historyId))
+      
+      // Appeler le callback pour rafraîchir la plante parent
+      if (onPlantUpdate) {
+        onPlantUpdate()
+      }
+      
       return true
     } catch (err) {
       setError(err.message)

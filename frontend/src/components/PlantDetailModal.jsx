@@ -913,9 +913,11 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
       {showDiseaseForm && (
         <DiseaseFormModal
           plantId={plant.id}
-          onClose={() => setShowDiseaseForm(false)}
+          onClose={() => setShowDiseaseForm(false)
+          }
           onSuccess={() => {
             loadLastDisease()
+            loadFullPlant()
             setShowDiseaseForm(false)
           }}
         />
