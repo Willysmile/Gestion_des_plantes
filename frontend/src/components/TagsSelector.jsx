@@ -51,10 +51,13 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
     // Tag État de la plante
     if (healthStatus) {
       const healthMap = {
-        healthy: 'En bonne santé',
+        healthy: 'Sain',
         sick: 'Malade',
-        recovering: 'En rétablissement',
-        dead: 'Morte'
+        recovering: 'Rétablie',
+        dead: 'Morte',  // Note: pas de "Morte" en base, mais on le garde au cas où
+        critical: 'Critique',
+        treating: 'En traitement',
+        convalescent: 'En convalescence'
       };
       const healthTagName = healthMap[healthStatus];
       const healthTag = allTags.find(t => {
