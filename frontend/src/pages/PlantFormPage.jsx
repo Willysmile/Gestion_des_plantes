@@ -776,16 +776,6 @@ export default function PlantFormPage() {
               </div>
             </div>
           </fieldset>
-
-          {/* Tags */}
-          <fieldset>
-            <legend className="text-xl font-bold mb-4 pb-2 border-b">Tags 🏷️</legend>
-            <TagsSelector 
-              plant={existingPlant}
-              selectedTagIds={formData.tags}
-              onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
-            />
-          </fieldset>
           </div>
 
           {/* Colonne droite - Photos */}
@@ -927,6 +917,16 @@ export default function PlantFormPage() {
               </div>
             </fieldset>
           </div>
+
+          {/* Tags - Pleine largeur */}
+          <fieldset>
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Tags 🏷️</legend>
+            <TagsSelector 
+              plant={existingPlant}
+              selectedTagIds={formData.tags}
+              onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
+            />
+          </fieldset>
         </form>
       </div>
     </div>
