@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Settings as SettingsIcon } from 'lucide-react'
 import { lookupsAPI } from '../lib/api'
+import TagsManagement from '../components/TagsManagement'
 
 // Helper function to pluralize "unité"
 const pluralizeUnit = (count) => count > 1 ? 'unités' : 'unité'
@@ -192,6 +193,19 @@ export default function SettingsPage() {
           }`}
         >
           Types d'engrais
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('tags')
+            resetForm()
+          }}
+          className={`px-4 py-2 font-medium transition ${
+            activeTab === 'tags'
+              ? 'border-b-2 border-indigo-500 text-indigo-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Tags 🏷️
         </button>
       </div>
 
@@ -497,6 +511,13 @@ export default function SettingsPage() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Tags Tab */}
+      {activeTab === 'tags' && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <TagsManagement />
         </div>
       )}
     </div>
