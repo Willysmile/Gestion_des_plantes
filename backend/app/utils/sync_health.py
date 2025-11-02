@@ -22,7 +22,7 @@ def sync_plant_health_status(db: Session, plant_id: int):
     # Chercher le dernier historique de maladie
     latest_disease = db.query(DiseaseHistory).filter(
         DiseaseHistory.plant_id == plant_id
-    ).order_by(desc(DiseaseHistory.date)).first()
+    ).order_by(desc(DiseaseHistory.date), desc(DiseaseHistory.id)).first()
     
     if not latest_disease or not latest_disease.health_status_id:
         # Pas d'historique, la plante est saine
