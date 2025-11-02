@@ -71,7 +71,7 @@ export default function TagsSelector({ formData, selectedTagIds = [], onChange }
     }
 
     return autoTags;
-  }, [formData, allTags, autoCategories]);
+  }, [formData?.location_id, formData?.health_status, formData?.light_requirement_id, allTags, autoCategories]);
 
   // Toggle la sélection d'un tag
   const toggleTag = (tagId) => {
