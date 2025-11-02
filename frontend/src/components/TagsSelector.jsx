@@ -203,20 +203,13 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
                             : 'cursor-pointer'
                         } ${
                           isAutoManaged
-                            ? 'bg-green-500 text-white'
-                            : isAutoCategory
-                            ? 'bg-gray-300 text-gray-600'
+                            ? 'bg-emerald-500 text-white font-bold shadow-md'
+                            : isAutoCategory && !isAutoTag
+                            ? 'bg-red-200 text-red-900 line-through opacity-60'
                             : isSelected
                             ? 'bg-indigo-500 text-white hover:bg-indigo-600'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
-                        title={
-                          isAutoManaged
-                            ? 'Ce tag est défini automatiquement'
-                            : isAutoCategory && !isAutoTag
-                            ? 'Les tags de cette catégorie auto ne peuvent pas être sélectionnés manuellement'
-                            : ''
-                        }
                       >
                         {tag.name}
                       </button>
