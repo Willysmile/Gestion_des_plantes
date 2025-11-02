@@ -919,7 +919,7 @@ export default function PlantFormPage() {
           </div>
 
           {/* Tags - Pleine largeur */}
-          <fieldset>
+          <fieldset className="lg:col-span-2">
             <legend className="text-xl font-bold mb-4 pb-2 border-b">Tags 🏷️</legend>
             <TagsSelector 
               plant={existingPlant}
