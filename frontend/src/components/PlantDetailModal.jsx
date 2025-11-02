@@ -115,6 +115,15 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     const allTags = categories.flatMap(cat => cat.tags || []);
     const autoCategories = getAutoTagCategories();
 
+    console.log('🏷️ Recalculating autoTagIds for plant:', {
+      plantId: plant.id,
+      healthStatus: healthStatus,
+      locationId: locationId,
+      lightRequirementId: lightRequirementId,
+      categoriesCount: categories.length,
+      tagsCount: allTags.length
+    });
+
     const autoTags = [];
 
     // Tag Emplacement
@@ -142,10 +151,12 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
         convalescent: 'En convalescence'
       };
       const healthTagName = healthMap[healthStatus];
+      console.log('🏥 Looking for health tag:', { healthStatus, healthTagName });
       const healthTag = allTags.find(t => {
         const catName = t.tag_category?.name || t.category?.name;
         return catName === 'État de la plante' && t.name === healthTagName;
       });
+      console.log('🏥 Health tag found:', healthTag?.name);
       if (healthTag) autoTags.push(healthTag);
     }
 
@@ -162,6 +173,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
       }
     }
 
+    console.log('🏷️ Final autoTags:', autoTags.map(t => t.name));
     return autoTags;
   }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, lookups?.locations, lookups?.lightRequirements])
 
