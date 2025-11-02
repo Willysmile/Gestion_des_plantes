@@ -4,7 +4,7 @@ Script pour peupler les catégories et tags dans la base de données
 
 from sqlalchemy.orm import Session
 from app.models.tags import TagCategory, Tag
-from app.models.lookup import Location
+from app.models.lookup import Location, LightRequirement
 
 def seed_tag_categories_and_tags(db: Session):
     """
@@ -15,15 +15,19 @@ def seed_tag_categories_and_tags(db: Session):
     categories_count = db.query(TagCategory).count()
     if categories_count > 0:
         print(f"✅ Catégories de tags déjà présentes ({categories_count})")
-        # Mais on doit quand même vérifier les tags Emplacement manquants
+        # Mais on doit quand même vérifier les tags manquants
         sync_location_tags(db)
+        sync_light_requirement_tags(db)
         return
     
     print("🌱 Création des catégories et tags...")
     
-    # Récupérer toutes les locations pour créer les tags correspondants
+    # Récupérer toutes les locations et light requirements pour créer les tags correspondants
     locations = db.query(Location).all()
     location_names = [loc.name for loc in locations]
+    
+    light_reqs = db.query(LightRequirement).all()
+    light_req_names = [lr.name for lr in light_reqs]
     
     # Données des catégories et tags
     tags_data = {
@@ -34,9 +38,7 @@ def seed_tag_categories_and_tags(db: Session):
             "En bonne santé", "Malade", "En rétablissement", "Morte", "En traitement", "En convalescence"
         ],
         
-        "Luminosité": [
-            "Plein soleil", "Soleil indirect", "Mi-ombre", "Ombre", "Faible luminosité"
-        ],
+        "Luminosité": light_req_names,  # Dynamique basé sur les light requirements
         
         # MANUELS (6 catégories)
         "Type de plante": [
@@ -112,6 +114,35 @@ def sync_location_tags(db: Session):
     if new_tags_count > 0:
         db.commit()
         print(f"✅ {new_tags_count} tags Emplacement synchronisés")
+
+
+def sync_light_requirement_tags(db: Session):
+    """
+    Synchronise les tags Luminosité avec les light requirements existantes
+    Crée les tags manquants
+    """
+    # Récupérer la catégorie Luminosité
+    light_category = db.query(TagCategory).filter(TagCategory.name == "Luminosité").first()
+    if not light_category:
+        return  # Catégorie n'existe pas encore
+    
+    # Récupérer les light requirements et les tags Luminosité existants
+    light_reqs = db.query(LightRequirement).all()
+    existing_tags = db.query(Tag).filter(Tag.tag_category_id == light_category.id).all()
+    existing_tag_names = {tag.name for tag in existing_tags}
+    
+    # Créer les tags manquants
+    new_tags_count = 0
+    for light_req in light_reqs:
+        if light_req.name not in existing_tag_names:
+            tag = Tag(name=light_req.name, tag_category_id=light_category.id)
+            db.add(tag)
+            new_tags_count += 1
+            print(f"  ➕ Tag Luminosité créé: {light_req.name}")
+    
+    if new_tags_count > 0:
+        db.commit()
+        print(f"✅ {new_tags_count} tags Luminosité synchronisés")
     
     # Vérification
     total_categories = db.query(TagCategory).count()
