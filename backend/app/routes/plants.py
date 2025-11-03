@@ -128,7 +128,7 @@ async def filter_plants_endpoint(
     return plants
 
 
-@router.get("/to-water", response_model=List[dict])
+@router.get("/to-water")
 async def plants_to_water_endpoint(
     days_ago: int = Query(0, ge=0, description="Jours depuis dernier arrosage"),
     db: Session = Depends(get_db),
@@ -138,7 +138,7 @@ async def plants_to_water_endpoint(
     return plants
 
 
-@router.get("/to-fertilize", response_model=List[dict])
+@router.get("/to-fertilize")
 async def plants_to_fertilize_endpoint(
     days_ago: int = Query(0, ge=0, description="Jours depuis dernière fertilisation"),
     db: Session = Depends(get_db),

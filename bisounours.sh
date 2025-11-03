@@ -10,8 +10,8 @@ echo -e "${YELLOW}🧸 Bisounours - Redémarrage des serveurs${NC}"
 
 # Arrêter les serveurs existants
 echo -e "${YELLOW}🛑 Arrêt des serveurs...${NC}"
-pkill -f "uvicorn app.main" 2>/dev/null
-pkill -f "npm run dev" 2>/dev/null
+pkill -9 -f "uvicorn" 2>/dev/null
+pkill -9 -f "npm run dev" 2>/dev/null
 sleep 2
 
 # Démarrer le backend
