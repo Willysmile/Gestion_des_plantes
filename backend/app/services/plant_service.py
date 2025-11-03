@@ -394,141 +394,81 @@ class PlantService:
             raise Exception(f"Erreur restauration plante: {str(e)}")
     
     @staticmethod
+    @staticmethod
     def get_plants_to_water(db: Session, days_ago: int = 0) -> list:
-        """
-        Retourne les plantes à arroser en fonction de leur fréquence d'arrosage saisonnière
-        
-        Logique:
-        1. Récupérer la saison actuelle
-        2. Pour chaque plante: chercher seasonal_watering pour cette saison
-        3. Récupérer le dernier arrosage
-        4. Comparer: last_watering + interval >= today?
-        
-        Args:
-            db: Session SQLAlchemy
-            days_ago: Jours de tolérance supplémentaire (0 = strict)
-        
-        Returns:
-            list: Plantes à arroser triées par urgence
-        """
+        """Retourne les plantes à arroser basé sur fréquence saisonnière"""
+        from app.models.lookup import Season, PlantSeasonalWatering, WateringFrequency
         from app.models.histories import WateringHistory
-        from app.models.lookup import WateringFrequency
         from app.utils.season_helper import get_current_season_id
         from datetime import datetime, timedelta
         
         try:
-            # 1. Récupérer la saison actuelle
-            from app.models.lookup import Season
             today = datetime.utcnow().date()
-            current_month = today.month
-            
             seasons = db.query(Season).all()
-            current_season_id = get_current_season_id(current_month, seasons)
+            current_season_id = get_current_season_id(today.month, seasons)
             
-            print(f"[DEBUG] Current season ID: {current_season_id}, Month: {current_month}")
-            
-            # 2. Récupérer toutes les plantes non supprimées
             plants = db.query(Plant).filter(Plant.deleted_at == None).all()
             plants_to_water = []
             
-            print(f"[DEBUG] Total plants: {len(plants)}")
-            
             for plant in plants:
-                # Récupérer la fréquence d'arrosage pour la saison actuelle
-                from app.models.plant import PlantSeasonalWatering
                 seasonal = db.query(PlantSeasonalWatering).filter(
                     PlantSeasonalWatering.plant_id == plant.id,
                     PlantSeasonalWatering.season_id == current_season_id
                 ).first()
                 
                 if not seasonal or not seasonal.watering_frequency_id:
-                    print(f"[DEBUG] Plant {plant.id}: No seasonal watering defined, SKIP")
                     continue
                 
-                # Récupérer la fréquence
                 frequency = db.query(WateringFrequency).filter(
                     WateringFrequency.id == seasonal.watering_frequency_id
                 ).first()
                 
                 if not frequency or not frequency.days_interval:
-                    print(f"[DEBUG] Plant {plant.id}: No frequency interval, SKIP")
                     continue
                 
-                # Récupérer dernier arrosage
                 last_watering = db.query(WateringHistory).filter(
                     WateringHistory.plant_id == plant.id
                 ).order_by(WateringHistory.date.desc()).first()
                 
-                # Calculer si à arroser
-                next_watering_date = None
                 if last_watering:
                     next_watering_date = last_watering.date + timedelta(days=frequency.days_interval)
                     days_since = (today - last_watering.date).days
                 else:
-                    # Jamais arrosé = à arroser immédiatement
                     days_since = 999999
                     next_watering_date = today
                 
-                print(f"[DEBUG] Plant {plant.id}: last={last_watering.date if last_watering else 'Never'}, next={next_watering_date}, interval={frequency.days_interval}d, days_since={days_since}")
-                
-                # À arroser si next_watering_date <= today
                 if next_watering_date <= today + timedelta(days=days_ago):
-                    print(f"[DEBUG] Plant {plant.id} NEEDS WATERING")
                     plants_to_water.append({
                         'id': plant.id,
                         'name': plant.name,
                         'scientific_name': plant.scientific_name,
                         'days_since_watering': days_since,
                         'last_watering': last_watering.date.isoformat() if last_watering else None,
-                        'next_watering': next_watering_date.isoformat() if next_watering_date else None,
-                        'frequency_days': frequency.days_interval,
                     })
             
-            # Trier par urgence (plus en retard = plus urgent)
-            plants_to_water.sort(key=lambda p: p['next_watering'], reverse=False)
-            print(f"[DEBUG] Found {len(plants_to_water)} plants to water")
+            plants_to_water.sort(key=lambda p: -p['days_since_watering'])
             return plants_to_water
         except Exception as e:
             print(f"Error in get_plants_to_water: {e}")
-            import traceback
-            traceback.print_exc()
             return []
     
     @staticmethod
     def get_plants_to_fertilize(db: Session, days_ago: int = 0) -> list:
-        """
-        Retourne les plantes à fertiliser en fonction de leur fréquence saisonnière
-        
-        Logique similaire à get_plants_to_water mais avec FertilizingHistory
-        
-        Args:
-            db: Session SQLAlchemy
-            days_ago: Jours de tolérance supplémentaire
-        
-        Returns:
-            list: Plantes à fertiliser triées par urgence
-        """
+        """Retourne les plantes à fertiliser basé sur fréquence saisonnière"""
+        from app.models.lookup import Season, PlantSeasonalFertilizing, FertilizerFrequency
         from app.models.histories import FertilizingHistory
-        from app.models.lookup import FertilizerFrequency
         from app.utils.season_helper import get_current_season_id
         from datetime import datetime, timedelta
         
         try:
-            # 1. Récupérer la saison actuelle
-            from app.models.lookup import Season
             today = datetime.utcnow().date()
-            current_month = today.month
-            
             seasons = db.query(Season).all()
-            current_season_id = get_current_season_id(current_month, seasons)
+            current_season_id = get_current_season_id(today.month, seasons)
             
-            # 2. Récupérer toutes les plantes
             plants = db.query(Plant).filter(Plant.deleted_at == None).all()
             plants_to_fertilize = []
             
             for plant in plants:
-                # Récupérer la fréquence de fertilisation pour la saison
-                from app.models.plant import PlantSeasonalFertilizing
                 seasonal = db.query(PlantSeasonalFertilizing).filter(
                     PlantSeasonalFertilizing.plant_id == plant.id,
                     PlantSeasonalFertilizing.season_id == current_season_id
@@ -537,7 +477,6 @@ class PlantService:
                 if not seasonal or not seasonal.fertilizer_frequency_id:
                     continue
                 
-                # Récupérer la fréquence
                 frequency = db.query(FertilizerFrequency).filter(
                     FertilizerFrequency.id == seasonal.fertilizer_frequency_id
                 ).first()
@@ -545,25 +484,19 @@ class PlantService:
                 if not frequency or not frequency.weeks_interval:
                     continue
                 
-                # Convertir semaines en jours
                 frequency_days = frequency.weeks_interval * 7
                 
-                # Récupérer dernière fertilisation
                 last_fertilizing = db.query(FertilizingHistory).filter(
                     FertilizingHistory.plant_id == plant.id
                 ).order_by(FertilizingHistory.date.desc()).first()
                 
-                # Calculer si à fertiliser
-                next_fertilizing_date = None
                 if last_fertilizing:
                     next_fertilizing_date = last_fertilizing.date + timedelta(days=frequency_days)
                     days_since = (today - last_fertilizing.date).days
                 else:
-                    # Jamais fertilisé = à fertiliser immédiatement
                     days_since = 999999
                     next_fertilizing_date = today
                 
-                # À fertiliser si next_fertilizing_date <= today
                 if next_fertilizing_date <= today + timedelta(days=days_ago):
                     plants_to_fertilize.append({
                         'id': plant.id,
@@ -571,15 +504,11 @@ class PlantService:
                         'scientific_name': plant.scientific_name,
                         'days_since_fertilizing': days_since,
                         'last_fertilizing': last_fertilizing.date.isoformat() if last_fertilizing else None,
-                        'next_fertilizing': next_fertilizing_date.isoformat() if next_fertilizing_date else None,
-                        'frequency_weeks': frequency.weeks_interval,
                     })
             
-            # Trier par urgence
-            plants_to_fertilize.sort(key=lambda p: p['next_fertilizing'], reverse=False)
+            plants_to_fertilize.sort(key=lambda p: -p['days_since_fertilizing'])
             return plants_to_fertilize
         except Exception as e:
             print(f"Error in get_plants_to_fertilize: {e}")
-            import traceback
-            traceback.print_exc()
+            return []
             return []
