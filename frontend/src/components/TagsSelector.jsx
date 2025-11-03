@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import useTags from '../hooks/useTags';
 
 /**
@@ -9,6 +9,7 @@ import useTags from '../hooks/useTags';
 export default function TagsSelector({ formData, lookups = {}, selectedTagIds = [], plantId = null, onChange }) {
   const { categories, getAutoTagCategories, getManualTagCategories, getCurrentSeasonWateringTag } = useTags();
   const [currentSeasonWateringTag, setCurrentSeasonWateringTag] = useState(null);
+  const [previousAutoTagIds, setPreviousAutoTagIds] = useState([]);
 
   // Charger le tag "Besoins en eau" actuel
   useEffect(() => {
@@ -17,7 +18,7 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
         setCurrentSeasonWateringTag(tag);
       });
     }
-  }, [plantId, getCurrentSeasonWateringTag]);
+  }, [plantId]);
 
   const autoCategories = getAutoTagCategories().map(c => c.name);
   const manualCategories = getManualTagCategories().map(c => c.name);
@@ -91,9 +92,6 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
 
     return autoTags;
   }, [formData?.location_id, formData?.health_status, formData?.light_requirement_id, allTags, autoCategories, lookups.locations, lookups.lightRequirements]);
-
-  // Toggle la sélection d'un tag
-  const [previousAutoTagIds, setPreviousAutoTagIds] = useState([]);
 
   // Quand les auto tags changent, enlever les anciens et ajouter les nouveaux
   useEffect(() => {
