@@ -457,8 +457,9 @@ class PlantService:
                     'warning': warning,
                 })
             
-            # Trier: besoin d'eau d'abord, puis par urgence
-            plants_to_water.sort(key=lambda p: (-p['needs_watering'], -p['days_since_watering']))
+            # Trier: warnings EN PREMIER (pour forcer à remplir données manquantes)
+            # Puis par urgence d'arrosage (jours depuis)
+            plants_to_water.sort(key=lambda p: (p['warning'] is None, -p['days_since_watering']))
             return plants_to_water
         except Exception as e:
             print(f"Error in get_plants_to_water: {e}")
@@ -530,8 +531,9 @@ class PlantService:
                     'warning': warning,
                 })
             
-            # Trier: besoin d'engrais d'abord, puis par urgence
-            plants_to_fertilize.sort(key=lambda p: (-p['needs_fertilizing'], -p['days_since_fertilizing']))
+            # Trier: warnings EN PREMIER (pour forcer à remplir données manquantes)
+            # Puis par urgence de fertilisation (jours depuis)
+            plants_to_fertilize.sort(key=lambda p: (p['warning'] is None, -p['days_since_fertilizing']))
             return plants_to_fertilize
         except Exception as e:
             print(f"Error in get_plants_to_fertilize: {e}")
