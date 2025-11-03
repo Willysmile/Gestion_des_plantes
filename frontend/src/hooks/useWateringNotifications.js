@@ -36,7 +36,7 @@ export function usePlantsToWater() {
     loading,
     error,
     refresh: loadPlantsToWater,
-    count: plantsToWater.length,
+    count: plantsToWater.filter(p => p.needs_watering === true).length,
   }
 }
 
@@ -74,7 +74,7 @@ export function usePlantsToFertilize() {
     loading,
     error,
     refresh: loadPlantsToFertilize,
-    count: plantsToFertilize.length,
+    count: plantsToFertilize.filter(p => p.needs_fertilizing === true).length,
   }
 }
 
