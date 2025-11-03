@@ -557,13 +557,15 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
     const emojiMap = {
       'Difficulté': {
-        '1': '☘️',
-        '2': '☘️☘️',
-        '3': '☘️☘️☘️',
+        'Débutant': '☘️',
+        'Facile': '☘️',
+        'Intermédiaire': '☘️☘️',
+        'Avancé': '☘️☘️☘️',
+        'Expert': '☘️☘️☘️',
       },
       'État de la plante': {
         'Sain': '🌱',
-        'Convalescence': '🌱',
+        'En convalescence': '🌱',
         'Malade': '😢',
         'Rétablie': '💚',
         'Critique': '❌',
@@ -571,14 +573,14 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
       },
       'Luminosité': {
         'Plein soleil': '☀️',
-        'Directe': '☀️',
-        'Indirecte variable': '🌤️',
-        'Indirecte': '🌤️',
-        'Variable': '🌤️',
+        'Soleil indirect': '🌤️',
         'Mi-ombre': '🌥️',
-        'Indirecte (mi-ombre)': '🌥️',
         'Ombre': '🌑',
-        'Faible': '🌑',
+        'Faible luminosité': '🌑',
+        'Lumière directe': '☀️',
+        'Ombre profonde': '🌑',
+        'Lumière indirecte': '🌥️',
+        'Variable': '🌤️',
       },
       'Besoins en eau': {
         'Fréquent': '💧💧💧💧',
@@ -588,6 +590,25 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
         'Très rare': '🫧',
         'Garder humide': '💦',
         'Laisser sécher': '🏜️',
+      },
+      'Emplacement': {
+        'Intérieur': '🏠',
+        'Extérieur': '🌳',
+        'Balcon': '🏘️',
+        'Terrasse': '🏘️',
+        'Salon': '🛋️',
+        'Chambre': '🛏️',
+        'Cuisine': '🍳',
+        'Bureau': '🖥️',
+        'Serre': '🌱',
+        'Véranda': '🪟',
+      },
+      'Particularités': {
+        'Purifiante': '🌬️',
+        'Parfumée': '🌸',
+        'Croissance rapide': '🚀',
+        'Plante rare': '⭐',
+        'Fragile': '💔',
       },
     }
 

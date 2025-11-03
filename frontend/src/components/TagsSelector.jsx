@@ -227,6 +227,35 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
       const icon = waterMap[tagName] || '';
       return icon ? `${icon} ${tagName}` : tagName;
     }
+
+    if (categoryName === 'Emplacement') {
+      const locationMap = {
+        'Intérieur': '🏠',
+        'Extérieur': '🌳',
+        'Balcon': '🏘️',
+        'Terrasse': '🏘️',
+        'Salon': '🛋️',
+        'Chambre': '🛏️',
+        'Cuisine': '🍳',
+        'Bureau': '🖥️',
+        'Serre': '🌱',
+        'Véranda': '🪟',
+      };
+      const icon = locationMap[tagName] || '';
+      return icon ? `${icon} ${tagName}` : tagName;
+    }
+
+    if (categoryName === 'Particularités') {
+      const featureMap = {
+        'Purifiante': '��️',
+        'Parfumée': '🌸',
+        'Croissance rapide': '🚀',
+        'Plante rare': '⭐',
+        'Fragile': '💔',
+      };
+      const icon = featureMap[tagName] || '';
+      return icon ? `${icon} ${tagName}` : tagName;
+    }
     
     return tagName;
   };
