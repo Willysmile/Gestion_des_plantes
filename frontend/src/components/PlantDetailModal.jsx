@@ -835,12 +835,12 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                     </div>
                   </div>
 
-                  {/* Besoins - 4 colonnes: Lumière, Température, Humidité, Arrosage */}
+                  {/* Besoins - 3 colonnes: Lumière, Température, Humidité */}
                   <div className="bg-gradient-to-r from-yellow-50 via-red-50 to-cyan-50 p-3 rounded-lg border-l-4 border-yellow-500 col-span-2">
                     <div className="text-center mb-3">
                       <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Besoins</h3>
                     </div>
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                       {/* Colonne 1: Lumière */}
                       <div className="flex flex-col items-center gap-1 pb-3 border-r border-gray-200">
                         <Sun className="w-5 h-5 text-yellow-500" />
