@@ -242,20 +242,20 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
           
           // Cas spécial pour "Besoins en eau" : afficher le tag saisonnier
           if (category.name === 'Besoins en eau' && currentSeasonWateringTag) {
-            // Filtrer les doublons par nom
+            // Filtrer les doublons par ID et nom
             const uniqueTags = [];
-            const seenNames = new Set();
+            const seenIds = new Set();
             category.tags?.forEach(t => {
-              if (!seenNames.has(t.name)) {
+              if (!seenIds.has(t.id)) {
                 uniqueTags.push(t);
-                seenNames.add(t.name);
+                seenIds.add(t.id);
               }
             });
             
             return (
               <div key={category.id} className="space-y-2">
                 <h4 className="text-sm font-semibold text-gray-700">
-                  Besoin en eau: <span className="font-bold text-indigo-700">{currentSeasonWateringTag.season}</span>
+                  Besoin en eau: <span className="ml-2 font-bold text-emerald-600 text-sm">{currentSeasonWateringTag.season}</span>
                 </h4>
                 
                 <div className="flex flex-wrap gap-2">
