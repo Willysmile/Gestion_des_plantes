@@ -223,11 +223,23 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
     return <div className="text-gray-500 text-sm">Chargement des tags...</div>;
   }
 
+  // Trier les catégories : auto en premier, puis "Besoins en eau", puis autres manuelles
+  const sortedCategories = useMemo(() => {
+    const sorted = [...categories];
+    const order = ['Emplacement', 'État de la plante', 'Luminosité', 'Besoins en eau', 'Difficulté', 'Type de plante', 'Taille', 'Toxicité', 'Particularités'];
+    sorted.sort((a, b) => {
+      const indexA = order.indexOf(a.name);
+      const indexB = order.indexOf(b.name);
+      return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+    });
+    return sorted;
+  }, [categories]);
+
   return (
     <div className="space-y-4">
       {/* Grille 2 colonnes de catégories */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {categories.map(category => {
+        {sortedCategories.map(category => {
           const isAutoCategory = autoCategories.includes(category.name);
           
           // Cas spécial pour "Besoins en eau" : afficher le tag saisonnier

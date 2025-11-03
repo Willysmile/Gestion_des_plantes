@@ -178,7 +178,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     return autoTags;
   }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, lookups?.locations, lookups?.lightRequirements])
 
-  // Combine auto tags + manual tags + watering tag
+  // Combine auto tags + manual tags (excludes seasonal watering tag which is now in Besoins section)
   const allDisplayTags = useMemo(() => {
     const tagIds = new Set(autoTagIds.map(t => t.id));
     // Noms des catégories auto
@@ -193,21 +193,10 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
       return true;
     });
     
-    // Ajouter le tag "Besoins en eau" saisonnier si disponible
-    const displayTags = [...autoTagIds, ...manualTags];
-    if (currentSeasonWateringTag) {
-      // Créer un objet tag fictif avec l'icône goutte d'eau
-      const wateringTag = {
-        id: 'seasonal-watering',
-        name: `💧 ${currentSeasonWateringTag.name}`,
-        category: { name: 'Besoins en eau' },
-        isSeasonalWatering: true
-      };
-      displayTags.push(wateringTag);
-    }
-    
-    return displayTags;
-  }, [autoTagIds, plant?.tags, currentSeasonWateringTag])
+    // Ne pas ajouter le tag "Besoins en eau" saisonnier ici - il est maintenant dans la section Besoins
+    return [...autoTagIds, ...manualTags];
+  }, [autoTagIds, plant?.tags])
+
 
   // Charger la fréquence saisonnière une seule fois quand les lookups sont chargés
   useEffect(() => {
@@ -846,12 +835,12 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                     </div>
                   </div>
 
-                  {/* Besoins - 3 colonnes: Lumière, Température, Humidité */}
+                  {/* Besoins - 4 colonnes: Lumière, Température, Humidité, Arrosage */}
                   <div className="bg-gradient-to-r from-yellow-50 via-red-50 to-cyan-50 p-3 rounded-lg border-l-4 border-yellow-500 col-span-2">
                     <div className="text-center mb-3">
                       <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Besoins</h3>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-4 gap-3">
                       {/* Colonne 1: Lumière */}
                       <div className="flex flex-col items-center gap-1 pb-3 border-r border-gray-200">
                         <Sun className="w-5 h-5 text-yellow-500" />
@@ -871,10 +860,23 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                       </div>
                       
                       {/* Colonne 3: Humidité */}
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex flex-col items-center gap-1 pb-3 border-r border-gray-200">
                         <Droplets className="w-5 h-5 text-cyan-500" />
                         <span className="text-xs text-gray-600 font-semibold">Humidité</span>
                         <div className="text-gray-800 text-xs font-medium">{plant.humidity_level || '—'}%</div>
+                      </div>
+
+                      {/* Colonne 4: Besoin en eau */}
+                      <div className="flex flex-col items-center gap-1">
+                        <Droplet className="w-5 h-5 text-blue-500" />
+                        <span className="text-xs text-gray-600 font-semibold">Arrosage</span>
+                        {currentSeasonWateringTag ? (
+                          <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                            {currentSeasonWateringTag.name}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-500">—</span>
+                        )}
                       </div>
                     </div>
                   </div>
