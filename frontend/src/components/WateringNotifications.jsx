@@ -77,29 +77,40 @@ export function PlantsToWaterList() {
           <div
             key={plant.id}
             onClick={() => openModal(plant)}
-            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
+            className={`relative p-3 pt-6 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
               plant.warning
                 ? 'bg-yellow-50 border-yellow-300'
                 : 'bg-blue-50 border-blue-200'
             }`}
           >
-            <div>
-              <p className="font-medium text-blue-900">{plant.name}</p>
-              <p className="text-sm text-blue-700">
-                {plant.scientific_name}
-              </p>
-              {plant.warning && (
-                <p className="text-xs text-yellow-700 font-semibold mt-1">
-                  ⚠️ {plant.warning}
+            {plant.days_overdue > 0 && (
+              <div className="absolute top-1 right-2 bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">
+                +{plant.days_overdue}j
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="font-medium text-blue-900">
+                  {plant.scientific_name}
                 </p>
-              )}
-              {plant.days_since_watering && (
-                <p className="text-xs text-blue-600">
-                  Dernier arrosage: {plant.days_since_watering} jours
-                </p>
-              )}
+                {plant.watering_frequency_days && (
+                  <p className="text-xs text-blue-600 mt-1">
+                    Fréquence actuelle: {plant.watering_frequency_days}j
+                  </p>
+                )}
+                {plant.last_watering && (
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Dernier arrosage: {new Date(plant.last_watering).toLocaleDateString('fr-FR')}
+                  </p>
+                )}
+                {plant.warning && (
+                  <p className="text-xs text-yellow-700 font-semibold mt-1">
+                    ⚠️ {plant.warning}
+                  </p>
+                )}
+              </div>
+              <Droplet className="w-6 h-6 text-blue-500 flex-shrink-0" />
             </div>
-            <Droplet className="w-6 h-6 text-blue-500" />
           </div>
         ))}
       </div>
@@ -153,29 +164,40 @@ export function PlantsToFertilizeList() {
           <div
             key={plant.id}
             onClick={() => openModal(plant)}
-            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
+            className={`relative p-3 pt-6 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
               plant.warning
                 ? 'bg-yellow-50 border-yellow-300'
                 : 'bg-green-50 border-green-200'
             }`}
           >
-            <div>
-              <p className="font-medium text-green-900">{plant.name}</p>
-              <p className="text-sm text-green-700">
-                {plant.scientific_name}
-              </p>
-              {plant.warning && (
-                <p className="text-xs text-yellow-700 font-semibold mt-1">
-                  ⚠️ {plant.warning}
+            {plant.days_overdue > 0 && (
+              <div className="absolute top-1 right-2 bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">
+                +{plant.days_overdue}j
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="font-medium text-green-900">
+                  {plant.scientific_name}
                 </p>
-              )}
-              {plant.days_since_fertilizing && (
-                <p className="text-xs text-green-600">
-                  Dernière fertilisation: {plant.days_since_fertilizing} jours
-                </p>
-              )}
+                {plant.fertilizing_frequency_days && (
+                  <p className="text-xs text-green-600 mt-1">
+                    Fréquence actuelle: {plant.fertilizing_frequency_days}j
+                  </p>
+                )}
+                {plant.last_fertilizing && (
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Dernière fertilisation: {new Date(plant.last_fertilizing).toLocaleDateString('fr-FR')}
+                  </p>
+                )}
+                {plant.warning && (
+                  <p className="text-xs text-yellow-700 font-semibold mt-1">
+                    ⚠️ {plant.warning}
+                  </p>
+                )}
+              </div>
+              <AlertCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
             </div>
-            <AlertCircle className="w-6 h-6 text-green-500" />
           </div>
         ))}
       </div>
@@ -242,18 +264,32 @@ export function PlantsInCareList() {
             <div
               key={plant.id}
               onClick={() => openModal(plant)}
-              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${colors.bg} ${colors.border}`}
+              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${colors.bg} ${colors.border}`}
             >
-              <div>
-                <p className={`font-medium ${colors.text}`}>{plant.name}</p>
-                <p className={`text-sm ${colors.text}`}>
+              <div className="flex-1">
+                <p className={`font-medium ${colors.text}`}>
                   {plant.scientific_name}
                 </p>
-                <p className={`text-xs font-semibold ${colors.text} mt-1`}>
+                {plant.disease_name && (
+                  <p className={`text-xs ${colors.text} mt-1`}>
+                    {plant.disease_name}
+                  </p>
+                )}
+                <p className={`text-xs font-semibold ${colors.text} mt-1 flex items-center gap-1`}>
                   {statusLabels[plant.health_status]}
                 </p>
+                {plant.disease_date && (
+                  <p className={`text-xs text-gray-600 mt-0.5`}>
+                    {new Date(plant.disease_date).toLocaleDateString('fr-FR')}
+                  </p>
+                )}
+                {plant.treatment_name && (
+                  <p className={`text-xs ${colors.text} mt-0.5`}>
+                    Traitement: {plant.treatment_name}
+                  </p>
+                )}
               </div>
-              <Heart className="w-6 h-6 text-red-500 fill-red-500" />
+              <Heart className="w-6 h-6 text-red-500 fill-red-500 flex-shrink-0" />
             </div>
           )
         })}

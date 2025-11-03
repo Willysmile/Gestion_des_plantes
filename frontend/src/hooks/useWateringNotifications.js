@@ -119,12 +119,17 @@ export function usePlantsInCare() {
 export function useWateringStats() {
   const water = usePlantsToWater()
   const fertilize = usePlantsToFertilize()
+  const inCare = usePlantsInCare()
 
   return {
     toWater: water.count,
     toFertilize: fertilize.count,
+    inCareCount: inCare.count,
     total: water.count + fertilize.count,
     loading: water.loading || fertilize.loading,
     error: water.error || fertilize.error,
+    refresh: async () => {
+      await Promise.all([water.refresh(), fertilize.refresh(), inCare.refresh()])
+    }
   }
 }

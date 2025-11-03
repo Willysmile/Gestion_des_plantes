@@ -1,11 +1,12 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ConfigDict, Field
 from typing import Optional
-from datetime import datetime, date
+from datetime import datetime
+from datetime import date as DateType
 from app.utils.validators import validate_not_future_date
 
 
 class WateringHistoryCreate(BaseModel):
-    date: date
+    date: DateType
     amount_ml: Optional[int] = None
     notes: Optional[str] = None
 
@@ -16,14 +17,17 @@ class WateringHistoryCreate(BaseModel):
 
 
 class WateringHistoryUpdate(BaseModel):
-    date: Optional[date] = None
-    amount_ml: Optional[int] = None
-    notes: Optional[str] = None
+    date: Optional[DateType] = Field(default=None)
+    amount_ml: Optional[int] = Field(default=None)
+    notes: Optional[str] = Field(default=None)
 
-    @field_validator('date')
+    @field_validator('date', mode='before')
     @classmethod
     def validate_date(cls, v):
         if v is not None:
+            if isinstance(v, str):
+                from datetime import datetime as dt
+                v = dt.strptime(v, '%Y-%m-%d').date()
             return validate_not_future_date(v)
         return v
 
@@ -31,7 +35,7 @@ class WateringHistoryUpdate(BaseModel):
 class WateringHistoryResponse(BaseModel):
     id: int
     plant_id: int
-    date: date
+    date: DateType
     amount_ml: Optional[int]
     notes: Optional[str]
     created_at: datetime
@@ -39,7 +43,7 @@ class WateringHistoryResponse(BaseModel):
 
 
 class FertilizingHistoryCreate(BaseModel):
-    date: date
+    date: DateType
     fertilizer_type_id: Optional[int] = None
     amount: Optional[str] = None
     notes: Optional[str] = None
@@ -51,7 +55,7 @@ class FertilizingHistoryCreate(BaseModel):
 
 
 class FertilizingHistoryUpdate(BaseModel):
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     fertilizer_type_id: Optional[int] = None
     amount: Optional[str] = None
     notes: Optional[str] = None
@@ -67,7 +71,7 @@ class FertilizingHistoryUpdate(BaseModel):
 class FertilizingHistoryResponse(BaseModel):
     id: int
     plant_id: int
-    date: date
+    date: DateType
     fertilizer_type_id: Optional[int]
     amount: Optional[str]
     notes: Optional[str]
@@ -76,7 +80,7 @@ class FertilizingHistoryResponse(BaseModel):
 
 
 class RepottingHistoryCreate(BaseModel):
-    date: date
+    date: DateType
     soil_type: Optional[str] = None
     pot_size_before: Optional[int] = None
     pot_size_after: Optional[int] = None
@@ -89,7 +93,7 @@ class RepottingHistoryCreate(BaseModel):
 
 
 class RepottingHistoryUpdate(BaseModel):
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     soil_type: Optional[str] = None
     pot_size_before: Optional[int] = None
     pot_size_after: Optional[int] = None
@@ -106,7 +110,7 @@ class RepottingHistoryUpdate(BaseModel):
 class RepottingHistoryResponse(BaseModel):
     id: int
     plant_id: int
-    date: date
+    date: DateType
     soil_type: Optional[str]
     pot_size_before: Optional[int]
     pot_size_after: Optional[int]
@@ -116,11 +120,11 @@ class RepottingHistoryResponse(BaseModel):
 
 
 class DiseaseHistoryCreate(BaseModel):
-    date: date
+    date: DateType
     disease_type_id: Optional[int] = None
     treatment_type_id: Optional[int] = None
     health_status_id: Optional[int] = None
-    treated_date: Optional[date] = None
+    treated_date: Optional[DateType] = None
     recovered: bool = False
     notes: Optional[str] = None
 
@@ -136,7 +140,7 @@ class DiseaseHistoryUpdate(BaseModel):
     disease_type_id: Optional[int] = None
     treatment_type_id: Optional[int] = None
     health_status_id: Optional[int] = None
-    treated_date: Optional[date] = None
+    treated_date: Optional[DateType] = None
     recovered: Optional[bool] = None
     notes: Optional[str] = None
 
@@ -151,11 +155,11 @@ class DiseaseHistoryUpdate(BaseModel):
 class DiseaseHistoryResponse(BaseModel):
     id: int
     plant_id: int
-    date: date
+    date: DateType
     disease_type_id: Optional[int]
     treatment_type_id: Optional[int]
     health_status_id: Optional[int]
-    treated_date: Optional[date]
+    treated_date: Optional[DateType]
     recovered: bool
     notes: Optional[str]
     created_at: datetime
@@ -163,7 +167,7 @@ class DiseaseHistoryResponse(BaseModel):
 
 
 class PlantHistoryCreate(BaseModel):
-    date: date
+    date: DateType
     title: Optional[str] = None
     note: str
     category: Optional[str] = None
@@ -175,7 +179,7 @@ class PlantHistoryCreate(BaseModel):
 
 
 class PlantHistoryUpdate(BaseModel):
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     title: Optional[str] = None
     note: Optional[str] = None
     category: Optional[str] = None
@@ -191,7 +195,7 @@ class PlantHistoryUpdate(BaseModel):
 class PlantHistoryResponse(BaseModel):
     id: int
     plant_id: int
-    date: date
+    date: DateType
     title: Optional[str]
     note: str
     category: Optional[str]

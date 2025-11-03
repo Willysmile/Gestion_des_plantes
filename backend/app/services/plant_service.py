@@ -410,9 +410,10 @@ class PlantService:
             plants_to_water = []
             
             for plant in plants:
-                # Historique d'arrosage
+                # Historique d'arrosage (exclure les entrées supprimées)
                 last_watering = db.query(WateringHistory).filter(
-                    WateringHistory.plant_id == plant.id
+                    WateringHistory.plant_id == plant.id,
+                    WateringHistory.deleted_at == None
                 ).order_by(WateringHistory.date.desc()).first()
                 
                 days_since = (today - last_watering.date).days if last_watering else 999999
@@ -455,7 +456,12 @@ class PlantService:
                     'last_watering': last_watering.date.isoformat() if last_watering else None,
                     'needs_watering': needs_watering,
                     'warning': warning,
+                    'watering_frequency_days': frequency.days_interval if frequency else None,
+                    'days_overdue': max(0, days_since - (frequency.days_interval if frequency else 0)) if frequency else 0,
                 })
+            
+            # Filtrer uniquement les plantes qui ont besoin d'eau
+            plants_to_water = [p for p in plants_to_water if p['needs_watering']]
             
             # Trier: warnings EN PREMIER (pour forcer à remplir données manquantes)
             # Puis par urgence d'arrosage (jours depuis)
@@ -482,9 +488,10 @@ class PlantService:
             plants_to_fertilize = []
             
             for plant in plants:
-                # Historique de fertilisation
+                # Historique de fertilisation (exclure les entrées supprimées)
                 last_fertilizing = db.query(FertilizingHistory).filter(
-                    FertilizingHistory.plant_id == plant.id
+                    FertilizingHistory.plant_id == plant.id,
+                    FertilizingHistory.deleted_at == None
                 ).order_by(FertilizingHistory.date.desc()).first()
                 
                 days_since = (today - last_fertilizing.date).days if last_fertilizing else 999999
@@ -542,6 +549,9 @@ class PlantService:
     @staticmethod
     def get_plants_in_care(db: Session) -> list:
         """Retourne les plantes en cours de soin (sick, treating, recovering, critical)"""
+        from app.models.histories import DiseaseHistory
+        from app.models.lookup import DiseaseType, TreatmentType
+        
         try:
             plants = db.query(Plant).filter(
                 Plant.deleted_at == None,
@@ -550,11 +560,36 @@ class PlantService:
             
             plants_in_care = []
             for plant in plants:
+                # Récupérer le dernier historique de maladie non traité
+                last_disease = db.query(DiseaseHistory).filter(
+                    DiseaseHistory.plant_id == plant.id,
+                    DiseaseHistory.deleted_at == None,
+                    DiseaseHistory.treated_date == None
+                ).order_by(DiseaseHistory.date.desc()).first()
+                
+                disease_name = None
+                disease_date = None
+                treatment_name = None
+                
+                if last_disease:
+                    disease_date = last_disease.date.isoformat()
+                    if last_disease.disease_type_id:
+                        disease_type = db.query(DiseaseType).filter_by(id=last_disease.disease_type_id).first()
+                        if disease_type:
+                            disease_name = disease_type.name
+                    if last_disease.treatment_type_id:
+                        treatment_type = db.query(TreatmentType).filter_by(id=last_disease.treatment_type_id).first()
+                        if treatment_type:
+                            treatment_name = treatment_type.name
+                
                 plants_in_care.append({
                     'id': plant.id,
                     'name': plant.name,
                     'scientific_name': plant.scientific_name,
                     'health_status': plant.health_status,
+                    'disease_name': disease_name,
+                    'disease_date': disease_date,
+                    'treatment_name': treatment_name,
                 })
             
             # Trier par urgence: critical > sick > treating > recovering

@@ -1,19 +1,38 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { Leaf, Plus, Save, X, Settings } from 'lucide-react'
 import { ModalProvider, useModal } from '../contexts/ModalContext'
+import { RefreshProvider, useRefresh } from '../contexts/RefreshContext'
 import PlantDetailModal from './PlantDetailModal'
-import { WateringNotificationBadge } from './WateringNotifications'
+import { useWateringStats } from '../hooks/useWateringNotifications'
+import { useEffect } from 'react'
 
 function LayoutContent() {
   const location = useLocation()
   const isEditPage = location.pathname.includes('/edit')
   const { modalState, closeModal } = useModal()
+  const { toWater, toFertilize, inCareCount, refresh } = useWateringStats()
+  const { refreshTrigger } = useRefresh()
+
+  // Auto-refresh toutes les 30 secondes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refresh()
+    }, 30 * 1000)
+    return () => clearInterval(interval)
+  }, [refresh])
+
+  // Refresh quand le trigger change
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      refresh()
+    }
+  }, [refreshTrigger, refresh])
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-8 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
             <Leaf className="w-8 h-8 text-green-600" />
             <span className="text-2xl font-bold">Gestion des Plantes</span>
@@ -41,11 +60,15 @@ function LayoutContent() {
             <div className="flex gap-2 items-center">
               <Link 
                 to="/dashboard"
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="relative flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all"
               >
                 Tableau de Bord
+                <div className="absolute -top-2.5 -right-2.5 flex gap-1">
+                  <div className="w-5 h-5 bg-blue-400 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{toWater}</div>
+                  <div className="w-5 h-5 bg-amber-400 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{toFertilize}</div>
+                  <div className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{inCareCount}</div>
+                </div>
               </Link>
-              <WateringNotificationBadge />
               <Link 
                 to="/plants/new"
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
@@ -90,8 +113,10 @@ function LayoutContent() {
 
 export default function Layout() {
   return (
-    <ModalProvider>
-      <LayoutContent />
-    </ModalProvider>
+    <RefreshProvider>
+      <ModalProvider>
+        <LayoutContent />
+      </ModalProvider>
+    </RefreshProvider>
   )
 }
