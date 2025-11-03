@@ -49,7 +49,12 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     try {
       const response = await plantsAPI.getById(initialPlant.id)
       setPlant(response.data)
-      console.log('✅ Full plant loaded from API:', response.data)
+      console.log('✅ Full plant loaded from API:', {
+        id: response.data.id,
+        name: response.data.name,
+        tagsCount: response.data.tags?.length || 0,
+        tags: response.data.tags?.map(t => ({id: t.id, name: t.name, category: t.tag_category?.name || t.category?.name})) || []
+      })
     } catch (err) {
       console.error('Error loading full plant:', err)
       setPlant(initialPlant)
@@ -190,12 +195,33 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
       // Exclure si c'est un tag de catégorie auto
       const catName = t.tag_category?.name || t.category?.name;
       if (autoCategoryNames.has(catName)) return false;
+      // Exclure les tags "Besoins en eau" manuels - on affiche le saisonnier à la place
+      if (catName === 'Besoins en eau') return false;
       return true;
     });
     
+    // Ajouter le tag saisonnier "Besoins en eau" s'il existe
+    let result = [...autoTagIds, ...manualTags];
+    if (currentSeasonWateringTag) {
+      // Créer un pseudo-tag pour le tag saisonnier
+      result = [...result, {
+        id: 'seasonal-watering',
+        name: currentSeasonWateringTag.name,
+        tag_category: { name: 'Besoins en eau' }
+      }];
+    }
+    
+    console.log('📍 allDisplayTags calculated:', {
+      plantTags: (plant.tags || []).map(t => ({id: t.id, name: t.name, category: t.tag_category?.name || t.category?.name})),
+      autoTagIds: autoTagIds.map(t => ({id: t.id, name: t.name})),
+      manualTags: manualTags.map(t => ({id: t.id, name: t.name, category: t.tag_category?.name || t.category?.name})),
+      seasonalWatering: currentSeasonWateringTag ? currentSeasonWateringTag.name : 'none',
+      finalCount: result.length
+    });
+    
     // Ne pas ajouter le tag "Besoins en eau" saisonnier ici - il est maintenant dans la section Besoins
-    return [...autoTagIds, ...manualTags];
-  }, [autoTagIds, plant?.tags])
+    return result;
+  }, [autoTagIds, plant?.tags, currentSeasonWateringTag])
 
 
   // Charger la fréquence saisonnière une seule fois quand les lookups sont chargés
