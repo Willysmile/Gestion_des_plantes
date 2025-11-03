@@ -394,7 +394,6 @@ class PlantService:
             raise Exception(f"Erreur restauration plante: {str(e)}")
     
     @staticmethod
-    @staticmethod
     def get_plants_to_water(db: Session, days_ago: int = 0) -> list:
         """Retourne les plantes à arroser basé sur fréquence saisonnière"""
         from app.models.lookup import Season, PlantSeasonalWatering, WateringFrequency
@@ -510,5 +509,4 @@ class PlantService:
             return plants_to_fertilize
         except Exception as e:
             print(f"Error in get_plants_to_fertilize: {e}")
-            return []
             return []
