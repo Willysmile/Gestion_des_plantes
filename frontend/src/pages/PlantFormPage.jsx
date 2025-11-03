@@ -4,7 +4,7 @@ import { plantsAPI, lookupsAPI, photosAPI } from '../lib/api'
 import api from '../lib/api'
 import { usePlant } from '../hooks/usePlants'
 import useTags from '../hooks/useTags'
-import { plantSchema } from '../lib/schemas'
+import { plantSchema, validatePlant } from '../lib/schemas'
 import { useFormValidation } from '../hooks/useFormValidation'
 import { FieldError } from '../components/FormError'
 import { ArrowLeft } from 'lucide-react'
@@ -943,6 +943,78 @@ export default function PlantFormPage() {
               onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
             />
           </fieldset>
+
+          {/* Photos - Pleine largeur */}
+          <fieldset className="lg:col-span-2">
+            <legend className="text-xl font-bold mb-4 pb-2 border-b">Photos 📸</legend>
+            
+            {id ? (
+              <>
+                {/* Photo Upload pour plante existante */}
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-700 mb-3">Ajouter des photos</h3>
+                  {photosLoading ? (
+                    <div className="text-center py-4 text-gray-600">
+                      <p>⏳ Chargement des photos...</p>
+                    </div>
+                  ) : (
+                    <PlantPhotoUpload 
+                      plantId={id}
+                      onPhotoAdded={(newPhoto) => {
+                        setPhotos([...photos, newPhoto])
+                      }}
+                    />
+                  )}
+                </div>
+
+                {/* Photo Gallery */}
+                {photos.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-700 mb-3">Photos existantes ({photos.length})</h3>
+                    <PlantPhotoGallery 
+                      photos={photos}
+                      plantId={id}
+                      onPhotoDeleted={(photoId) => {
+                        setPhotos(photos.filter(p => p.id !== photoId))
+                      }}
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                <p className="text-blue-700 text-sm">
+                  💡 Les photos pourront être ajoutées après la création de la plante
+                </p>
+              </div>
+            )}
+          </fieldset>
+
+          {/* Submit Button - Pleine largeur */}
+          <div className="lg:col-span-2 flex gap-3 justify-end pt-6 border-t">
+            <Link
+              to="/"
+              className="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 font-semibold transition"
+            >
+              Annuler
+            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Enregistrement...
+                </>
+              ) : id ? (
+                '✅ Mettre à jour la plante'
+              ) : (
+                '➕ Créer la plante'
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
