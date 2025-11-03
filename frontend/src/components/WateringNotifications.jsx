@@ -54,7 +54,10 @@ export function PlantsToWaterList() {
     )
   }
 
-  if (plantsToWater.length === 0) {
+  // Filtrer seulement les plantes qui ont besoin d'eau
+  const plantsNeedingWater = plantsToWater.filter(p => p.needs_watering === true)
+
+  if (plantsNeedingWater.length === 0) {
     return (
       <div className="text-center text-gray-500 py-4">
         ✅ Toutes vos plantes sont bien hydratées !
@@ -65,10 +68,10 @@ export function PlantsToWaterList() {
   return (
     <div className="space-y-2">
       <h3 className="font-semibold text-lg text-blue-700 mb-4">
-        🌊 {plantsToWater.length} plante(s) à arroser
+        🌊 {plantsNeedingWater.length} plante(s) à arroser
       </h3>
       <div className="space-y-2">
-        {plantsToWater.map(plant => (
+        {plantsNeedingWater.map(plant => (
           <div
             key={plant.id}
             className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200"
@@ -116,7 +119,10 @@ export function PlantsToFertilizeList() {
     )
   }
 
-  if (plantsToFertilize.length === 0) {
+  // Filtrer seulement les plantes qui ont besoin d'engrais
+  const plantsNeedingFertilizer = plantsToFertilize.filter(p => p.needs_fertilizing === true)
+
+  if (plantsNeedingFertilizer.length === 0) {
     return (
       <div className="text-center text-gray-500 py-4">
         ✅ Toutes vos plantes ont été fertilisées récemment !
@@ -127,10 +133,10 @@ export function PlantsToFertilizeList() {
   return (
     <div className="space-y-2">
       <h3 className="font-semibold text-lg text-green-700 mb-4">
-        🌿 {plantsToFertilize.length} plante(s) à fertiliser
+        🌿 {plantsNeedingFertilizer.length} plante(s) à fertiliser
       </h3>
       <div className="space-y-2">
-        {plantsToFertilize.map(plant => (
+        {plantsNeedingFertilizer.map(plant => (
           <div
             key={plant.id}
             className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
