@@ -217,10 +217,6 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
     return tagName;
   };
 
-  if (categories.length === 0) {
-    return <div className="text-gray-500 text-sm">Chargement des tags...</div>;
-  }
-
   // Trier les catégories : auto en premier, puis "Besoins en eau", puis autres manuelles
   const sortedCategories = useMemo(() => {
     const sorted = [...categories];
@@ -232,6 +228,10 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
     });
     return sorted;
   }, [categories]);
+
+  if (categories.length === 0) {
+    return <div className="text-gray-500 text-sm">Chargement des tags...</div>;
+  }
 
   return (
     <div className="space-y-4">
