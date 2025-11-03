@@ -178,6 +178,7 @@ class PlantService:
         return query.offset(skip).limit(limit).all()
     
     @staticmethod
+    @staticmethod
     def get_by_id(db: Session, plant_id: int, include_deleted: bool = False) -> Optional[Plant]:
         """
         Récupère une plante par ID
@@ -190,7 +191,9 @@ class PlantService:
         Returns:
             Optional[Plant]: Plante ou None
         """
-        query = db.query(Plant).filter(Plant.id == plant_id)
+        from sqlalchemy.orm import joinedload
+        
+        query = db.query(Plant).options(joinedload(Plant.tags)).filter(Plant.id == plant_id)
         
         if not include_deleted:
             query = query.filter(Plant.deleted_at.is_(None))
