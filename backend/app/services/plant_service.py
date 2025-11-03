@@ -392,3 +392,93 @@ class PlantService:
         except Exception as e:
             db.rollback()
             raise Exception(f"Erreur restauration plante: {str(e)}")
+    
+    @staticmethod
+    def get_plants_to_water(db: Session, days_ago: int = 0) -> list:
+        """
+        Retourne les plantes à arroser
+        
+        Args:
+            db: Session SQLAlchemy
+            days_ago: Jours d'inactivité min pour considérer comme à arroser (0 = jamais)
+        
+        Returns:
+            list: Plantes à arroser avec urgence
+        """
+        from app.models.histories import WateringHistory
+        from datetime import datetime, timedelta
+        
+        try:
+            plants = db.query(Plant).filter(Plant.is_deleted == False).all()
+            plants_to_water = []
+            
+            threshold_date = datetime.utcnow() - timedelta(days=days_ago)
+            
+            for plant in plants:
+                # Récupérer dernier arrosage
+                last_watering = db.query(WateringHistory).filter(
+                    WateringHistory.plant_id == plant.id
+                ).order_by(WateringHistory.date.desc()).first()
+                
+                # Vérifier si à arroser
+                if not last_watering or last_watering.date <= threshold_date.date():
+                    days_since = (datetime.utcnow().date() - (last_watering.date if last_watering else datetime(1900, 1, 1).date())).days
+                    plants_to_water.append({
+                        'id': plant.id,
+                        'name': plant.name,
+                        'scientific_name': plant.scientific_name,
+                        'days_since_watering': days_since,
+                        'last_watering': last_watering.date.isoformat() if last_watering else None,
+                    })
+            
+            # Trier par urgence (plus longtemps sans eau = plus urgent)
+            plants_to_water.sort(key=lambda p: -p['days_since_watering'])
+            return plants_to_water
+        except Exception as e:
+            print(f"Error in get_plants_to_water: {e}")
+            return []
+    
+    @staticmethod
+    def get_plants_to_fertilize(db: Session, days_ago: int = 0) -> list:
+        """
+        Retourne les plantes à fertiliser
+        
+        Args:
+            db: Session SQLAlchemy
+            days_ago: Jours d'inactivité min pour considérer comme à fertiliser (0 = jamais)
+        
+        Returns:
+            list: Plantes à fertiliser
+        """
+        from app.models.histories import FertilizingHistory
+        from datetime import datetime, timedelta
+        
+        try:
+            plants = db.query(Plant).filter(Plant.is_deleted == False).all()
+            plants_to_fertilize = []
+            
+            threshold_date = datetime.utcnow() - timedelta(days=days_ago)
+            
+            for plant in plants:
+                # Récupérer dernière fertilisation
+                last_fertilizing = db.query(FertilizingHistory).filter(
+                    FertilizingHistory.plant_id == plant.id
+                ).order_by(FertilizingHistory.date.desc()).first()
+                
+                # Vérifier si à fertiliser
+                if not last_fertilizing or last_fertilizing.date <= threshold_date.date():
+                    days_since = (datetime.utcnow().date() - (last_fertilizing.date if last_fertilizing else datetime(1900, 1, 1).date())).days
+                    plants_to_fertilize.append({
+                        'id': plant.id,
+                        'name': plant.name,
+                        'scientific_name': plant.scientific_name,
+                        'days_since_fertilizing': days_since,
+                        'last_fertilizing': last_fertilizing.date.isoformat() if last_fertilizing else None,
+                    })
+            
+            # Trier par urgence
+            plants_to_fertilize.sort(key=lambda p: -p['days_since_fertilizing'])
+            return plants_to_fertilize
+        except Exception as e:
+            print(f"Error in get_plants_to_fertilize: {e}")
+            return []
