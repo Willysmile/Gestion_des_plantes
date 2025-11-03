@@ -551,6 +551,44 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   // Galerie: max 2 photos, excluant la photo principale
   const galleryPhotos = photos.filter(p => !p.is_primary).slice(0, 2)
+  // Formater les noms de tags avec emojis
+  const formatTagName = (tagName, categoryName) => {
+    if (!categoryName) return tagName
+
+    const emojiMap = {
+      'Difficulté': {
+        '1': '☘️',
+        '2': '☘️☘️',
+        '3': '☘️☘️☘️',
+      },
+      'État de la plante': {
+        'Sain': '🌱',
+        'Convalescence': '🌱',
+        'Malade': '😢',
+        'Rétablie': '💚',
+        'Critique': '❌',
+        'En traitement': '🩹',
+      },
+      'Luminosité': {
+        'Plein soleil': '☀️',
+        'Directe': '☀️',
+        'Indirecte variable': '🌤️',
+        'Indirecte': '🌤️',
+        'Variable': '🌤️',
+        'Mi-ombre': '🌥️',
+        'Indirecte (mi-ombre)': '🌥️',
+        'Ombre': '🌑',
+        'Faible': '🌑',
+      },
+    }
+
+    const emojis = emojiMap[categoryName]
+    if (emojis && emojis[tagName]) {
+      return `${emojis[tagName]} ${tagName}`
+    }
+    return tagName
+  }
+
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-1"
@@ -904,7 +942,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                             key={tag.id}
                             className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-200 text-indigo-800"
                           >
-                            {tag.name}
+                            {formatTagName(tag.name, tag.tag_category?.name || tag.category?.name)}
                           </span>
                         ))
                       ) : (
