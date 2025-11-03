@@ -1,92 +1,114 @@
-import { useState, useMemo, useCallback } from 'react'
-import { Link } from 'react-router-dom'
-import { usePlants } from '../hooks/usePlants'
-import { Trash2, Archive, Edit, Eye, Heart } from 'lucide-react'
-import { plantsAPI } from '../lib/api'
-import PlantCard from '../components/PlantCard'
+import { PlantsToWaterList, PlantsToFertilizeList } from '../components/WateringNotifications'
+import { useWateringStats } from '../hooks/useWateringNotifications'
+import { Droplet, AlertCircle, TrendingUp } from 'lucide-react'
 
 export default function DashboardPage() {
-  const { plants, loading, error, refetch } = usePlants()
-  const [filter, setFilter] = useState('')
-  const [deletingId, setDeletingId] = useState(null)
+  const { toWater, toFertilize, total, loading, error } = useWateringStats()
 
-  // Debug logs
-  console.log('DashboardPage render:', { loading, error, plantsCount: plants.length })
-
-  const handleDelete = useCallback(async (id) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette plante ?')) {
-      try {
-        await plantsAPI.delete(id)
-        await refetch()
-      } catch (err) {
-        alert('Erreur: ' + err.message)
-      }
-    }
-    setDeletingId(null)
-  }, [refetch])
-
-  const handleArchive = useCallback(async (id, reason = 'Archivée') => {
-    try {
-      await plantsAPI.archive(id, reason)
-      await refetch()
-    } catch (err) {
-      alert('Erreur: ' + err.message)
-    }
-  }, [refetch])
-
-  // Mémoriser le filtrage pour éviter les re-rendus inutiles
-  const filteredPlants = useMemo(() =>
-    plants.filter(plant =>
-      plant.name?.toLowerCase().includes(filter.toLowerCase()) ||
-      plant.family?.toLowerCase().includes(filter.toLowerCase())
-    ),
-    [plants, filter]
-  )
-
-  if (loading) return (
-    <div className="text-center py-12 space-y-4">
-      <p className="text-lg">⏳ Chargement...</p>
-      <p className="text-sm text-gray-500">Fetching plants from API...</p>
-    </div>
-  )
-  if (error) return (
-    <div className="text-center py-12 text-red-600 space-y-2">
-      <p className="text-lg">❌ Erreur</p>
-      <p>{error}</p>
-    </div>
-  )
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement du tableau de bord...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Mes Plantes ({plants.length})</h1>
-
-      {/* Search & Filter */}
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Rechercher par nom ou famille..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        />
+    <div className="space-y-8">
+      {/* Page Title */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+          <TrendingUp className="w-10 h-10 text-green-600" />
+          Tableau de Bord
+        </h1>
+        <p className="text-gray-600 mt-2">Résumé des soins à apporter à vos plantes</p>
       </div>
 
-      {/* Plants Grid: 5 cards par ligne, 3 lignes maxi */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-h-[calc(100vh-300px)] overflow-y-auto">
-        {filteredPlants.map(plant => (
-          <PlantCard
-            key={plant.id}
-            plant={plant}
-          />
-        ))}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Card: À Arroser */}
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border-l-4 border-blue-600">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-blue-700 font-semibold">À Arroser</p>
+              <p className="text-3xl font-bold text-blue-900 mt-2">{toWater}</p>
+              <p className="text-xs text-blue-600 mt-1">plantes en attente</p>
+            </div>
+            <Droplet className="w-12 h-12 text-blue-400 opacity-50" />
+          </div>
+        </div>
+
+        {/* Card: À Fertiliser */}
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-6 border-l-4 border-amber-600">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-amber-700 font-semibold">À Fertiliser</p>
+              <p className="text-3xl font-bold text-amber-900 mt-2">{toFertilize}</p>
+              <p className="text-xs text-amber-600 mt-1">plantes en attente</p>
+            </div>
+            <AlertCircle className="w-12 h-12 text-amber-400 opacity-50" />
+          </div>
+        </div>
+
+        {/* Card: Total */}
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border-l-4 border-green-600">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-green-700 font-semibold">Total Soins</p>
+              <p className="text-3xl font-bold text-green-900 mt-2">{total}</p>
+              <p className="text-xs text-green-600 mt-1">plantes à soigner</p>
+            </div>
+            <TrendingUp className="w-12 h-12 text-green-400 opacity-50" />
+          </div>
+        </div>
       </div>
 
-      {filteredPlants.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-600 mb-4">Aucune plante trouvée.</p>
-          <Link to="/plants/new" className="text-green-600 hover:underline">
-            Créer la première plante
-          </Link>
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600" />
+          <div>
+            <p className="font-semibold text-red-800">Erreur</p>
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Plants Lists */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Plants to Water */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center gap-2">
+            <Droplet className="w-5 h-5" />
+            <h2 className="text-xl font-semibold">Plantes à Arroser</h2>
+          </div>
+          <div className="p-6">
+            <PlantsToWaterList />
+          </div>
+        </div>
+
+        {/* Plants to Fertilize */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="bg-amber-600 text-white px-6 py-4 rounded-t-lg flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" />
+            <h2 className="text-xl font-semibold">Plantes à Fertiliser</h2>
+          </div>
+          <div className="p-6">
+            <PlantsToFertilizeList />
+          </div>
+        </div>
+      </div>
+
+      {/* Empty State */}
+      {total === 0 && !loading && (
+        <div className="bg-green-50 border-2 border-green-200 rounded-lg p-12 text-center">
+          <div className="text-5xl mb-4">🌿</div>
+          <h3 className="text-2xl font-bold text-green-800 mb-2">Parfait !</h3>
+          <p className="text-green-700">Toutes vos plantes sont bien entretenues.</p>
+          <p className="text-green-600 text-sm mt-2">Revenez bientôt pour de nouveaux soins à apporter.</p>
         </div>
       )}
     </div>

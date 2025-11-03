@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { Leaf, Plus, Save, X, Settings } from 'lucide-react'
 import { ModalProvider, useModal } from '../contexts/ModalContext'
 import PlantDetailModal from './PlantDetailModal'
+import { WateringNotificationBadge } from './WateringNotifications'
 
 function LayoutContent() {
   const location = useLocation()
@@ -37,7 +38,14 @@ function LayoutContent() {
               </Link>
             </div>
           ) : (
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <Link 
+                to="/dashboard"
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Tableau de Bord
+              </Link>
+              <WateringNotificationBadge />
               <Link 
                 to="/plants/new"
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
