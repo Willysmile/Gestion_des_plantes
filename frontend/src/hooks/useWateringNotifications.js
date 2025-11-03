@@ -81,6 +81,41 @@ export function usePlantsToFertilize() {
 /**
  * Hook pour charger les stats de notifications
  */
+export function usePlantsInCare() {
+  const [plantsInCare, setPlantsInCare] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const loadPlantsInCare = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await api.get('/plants/in-care')
+      setPlantsInCare(response.data || [])
+    } catch (err) {
+      setError(err.message)
+      setPlantsInCare([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadPlantsInCare()
+    // Recharger toutes les 5 minutes
+    const interval = setInterval(loadPlantsInCare, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return {
+    plantsInCare,
+    loading,
+    error,
+    refresh: loadPlantsInCare,
+    count: plantsInCare.length,
+  }
+}
+
 export function useWateringStats() {
   const water = usePlantsToWater()
   const fertilize = usePlantsToFertilize()

@@ -538,3 +538,29 @@ class PlantService:
         except Exception as e:
             print(f"Error in get_plants_to_fertilize: {e}")
             return []
+    
+    @staticmethod
+    def get_plants_in_care(db: Session) -> list:
+        """Retourne les plantes en cours de soin (sick, treating, recovering, critical)"""
+        try:
+            plants = db.query(Plant).filter(
+                Plant.deleted_at == None,
+                Plant.health_status.in_(['sick', 'treating', 'recovering', 'critical'])
+            ).all()
+            
+            plants_in_care = []
+            for plant in plants:
+                plants_in_care.append({
+                    'id': plant.id,
+                    'name': plant.name,
+                    'scientific_name': plant.scientific_name,
+                    'health_status': plant.health_status,
+                })
+            
+            # Trier par urgence: critical > sick > treating > recovering
+            priority = {'critical': 0, 'sick': 1, 'treating': 2, 'recovering': 3}
+            plants_in_care.sort(key=lambda p: priority.get(p['health_status'], 999))
+            return plants_in_care
+        except Exception as e:
+            print(f"Error in get_plants_in_care: {e}")
+            return []

@@ -1,6 +1,6 @@
-import { PlantsToWaterList, PlantsToFertilizeList } from '../components/WateringNotifications'
+import { PlantsToWaterList, PlantsToFertilizeList, PlantsInCareList } from '../components/WateringNotifications'
 import { useWateringStats } from '../hooks/useWateringNotifications'
-import { Droplet, AlertCircle, TrendingUp } from 'lucide-react'
+import { Droplet, AlertCircle, TrendingUp, Heart } from 'lucide-react'
 
 export default function DashboardPage() {
   const { toWater, toFertilize, total, loading, error } = useWateringStats()
@@ -78,7 +78,7 @@ export default function DashboardPage() {
       )}
 
       {/* Plants Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Plants to Water */}
         <div className="bg-white rounded-lg shadow">
           <div className="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center gap-2">
@@ -98,6 +98,17 @@ export default function DashboardPage() {
           </div>
           <div className="p-6">
             <PlantsToFertilizeList />
+          </div>
+        </div>
+
+        {/* Plants In Care */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg flex items-center gap-2">
+            <Heart className="w-5 h-5" />
+            <h2 className="text-xl font-semibold">Plantes en Soin</h2>
+          </div>
+          <div className="p-6">
+            <PlantsInCareList />
           </div>
         </div>
       </div>

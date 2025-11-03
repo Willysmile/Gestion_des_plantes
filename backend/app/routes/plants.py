@@ -148,6 +148,13 @@ async def plants_to_fertilize_endpoint(
     return plants
 
 
+@router.get("/in-care")
+async def plants_in_care_endpoint(db: Session = Depends(get_db)):
+    """Retourne les plantes en cours de soin (sick, treating, recovering, critical)"""
+    plants = PlantService.get_plants_in_care(db)
+    return plants
+
+
 @router.get("/favorites", response_model=List[PlantListResponse])
 async def get_favorite_plants(
     db: Session = Depends(get_db),

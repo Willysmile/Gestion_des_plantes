@@ -1,5 +1,6 @@
-import { Droplet, AlertCircle } from 'lucide-react'
-import { useWateringStats, usePlantsToWater, usePlantsToFertilize } from '../hooks/useWateringNotifications'
+import { Droplet, AlertCircle, Heart } from 'lucide-react'
+import { useWateringStats, usePlantsToWater, usePlantsToFertilize, usePlantsInCare } from '../hooks/useWateringNotifications'
+import { useModal } from '../contexts/ModalContext'
 
 /**
  * Badge affichant le nombre de plantes à arroser
@@ -35,6 +36,7 @@ export function WateringNotificationBadge({ className = '' }) {
  */
 export function PlantsToWaterList() {
   const { plantsToWater, loading, error, refresh } = usePlantsToWater()
+  const { openModal } = useModal()
 
   if (loading) {
     return <div className="text-center text-gray-500">Chargement...</div>
@@ -74,13 +76,23 @@ export function PlantsToWaterList() {
         {plantsNeedingWater.map(plant => (
           <div
             key={plant.id}
-            className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200"
+            onClick={() => openModal(plant)}
+            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
+              plant.warning
+                ? 'bg-yellow-50 border-yellow-300'
+                : 'bg-blue-50 border-blue-200'
+            }`}
           >
             <div>
               <p className="font-medium text-blue-900">{plant.name}</p>
               <p className="text-sm text-blue-700">
                 {plant.scientific_name}
               </p>
+              {plant.warning && (
+                <p className="text-xs text-yellow-700 font-semibold mt-1">
+                  ⚠️ {plant.warning}
+                </p>
+              )}
               {plant.days_since_watering && (
                 <p className="text-xs text-blue-600">
                   Dernier arrosage: {plant.days_since_watering} jours
@@ -100,6 +112,7 @@ export function PlantsToWaterList() {
  */
 export function PlantsToFertilizeList() {
   const { plantsToFertilize, loading, error, refresh } = usePlantsToFertilize()
+  const { openModal } = useModal()
 
   if (loading) {
     return <div className="text-center text-gray-500">Chargement...</div>
@@ -139,13 +152,23 @@ export function PlantsToFertilizeList() {
         {plantsNeedingFertilizer.map(plant => (
           <div
             key={plant.id}
-            className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+            onClick={() => openModal(plant)}
+            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
+              plant.warning
+                ? 'bg-yellow-50 border-yellow-300'
+                : 'bg-green-50 border-green-200'
+            }`}
           >
             <div>
               <p className="font-medium text-green-900">{plant.name}</p>
               <p className="text-sm text-green-700">
                 {plant.scientific_name}
               </p>
+              {plant.warning && (
+                <p className="text-xs text-yellow-700 font-semibold mt-1">
+                  ⚠️ {plant.warning}
+                </p>
+              )}
               {plant.days_since_fertilizing && (
                 <p className="text-xs text-green-600">
                   Dernière fertilisation: {plant.days_since_fertilizing} jours
@@ -155,6 +178,85 @@ export function PlantsToFertilizeList() {
             <AlertCircle className="w-6 h-6 text-green-500" />
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Composant affichant la liste des plantes en cours de soin
+ */
+export function PlantsInCareList() {
+  const { plantsInCare, loading, error, refresh } = usePlantsInCare()
+  const { openModal } = useModal()
+
+  if (loading) {
+    return <div className="text-center text-gray-500">Chargement...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-500">
+        <p>Erreur: {error}</p>
+        <button
+          onClick={refresh}
+          className="mt-2 text-blue-600 hover:underline text-sm"
+        >
+          Réessayer
+        </button>
+      </div>
+    )
+  }
+
+  if (plantsInCare.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-4">
+        ✅ Toutes vos plantes sont en bonne santé !
+      </div>
+    )
+  }
+
+  const statusColors = {
+    critical: { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-900' },
+    sick: { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-900' },
+    treating: { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-900' },
+    recovering: { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-900' },
+  }
+
+  const statusLabels = {
+    critical: '🚨 Critique',
+    sick: '🤒 Malade',
+    treating: '💊 En traitement',
+    recovering: '💪 En récupération',
+  }
+
+  return (
+    <div className="space-y-2">
+      <h3 className="font-semibold text-lg text-red-700 mb-4">
+        💔 {plantsInCare.length} plante(s) en cours de soin
+      </h3>
+      <div className="space-y-2">
+        {plantsInCare.map(plant => {
+          const colors = statusColors[plant.health_status] || statusColors.sick
+          return (
+            <div
+              key={plant.id}
+              onClick={() => openModal(plant)}
+              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${colors.bg} ${colors.border}`}
+            >
+              <div>
+                <p className={`font-medium ${colors.text}`}>{plant.name}</p>
+                <p className={`text-sm ${colors.text}`}>
+                  {plant.scientific_name}
+                </p>
+                <p className={`text-xs font-semibold ${colors.text} mt-1`}>
+                  {statusLabels[plant.health_status]}
+                </p>
+              </div>
+              <Heart className="w-6 h-6 text-red-500 fill-red-500" />
+            </div>
+          )
+        })}
       </div>
     </div>
   )
