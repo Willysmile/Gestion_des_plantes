@@ -507,3 +507,201 @@ export function formatValidationErrors(zodError) {
   }
   return errors
 }
+
+// ============================================================================
+// WATERING FORM SCHEMA
+// ============================================================================
+
+export const wateringFormSchema = z.object({
+  plant_id: z
+    .number()
+    .min(1, 'Plante requise'),
+
+  watering_date: z
+    .string()
+    .min(1, 'Date d\'arrosage requise'),
+
+  watering_method_id: z
+    .number()
+    .min(1, 'Méthode d\'arrosage requise'),
+
+  water_type_id: z
+    .number()
+    .min(1, 'Type d\'eau requis'),
+
+  quantity_ml: z
+    .number()
+    .min(10, 'Quantité minimale: 10ml')
+    .max(10000, 'Quantité maximale: 10000ml')
+    .optional()
+    .or(z.literal(null)),
+
+  notes: z
+    .string()
+    .max(500, 'Les notes ne peuvent pas dépasser 500 caractères')
+    .optional()
+    .or(z.literal('')),
+})
+
+// ============================================================================
+// FERTILIZING FORM SCHEMA
+// ============================================================================
+
+export const fertilizingFormSchema = z.object({
+  plant_id: z
+    .number()
+    .min(1, 'Plante requise'),
+
+  fertilizer_type_id: z
+    .number()
+    .min(1, 'Type d\'engrais requis'),
+
+  fertilizing_date: z
+    .string()
+    .min(1, 'Date de fertilisation requise'),
+
+  quantity_ml: z
+    .number()
+    .min(1, 'Quantité minimale: 1ml')
+    .max(5000, 'Quantité maximale: 5000ml')
+    .optional()
+    .or(z.literal(null)),
+
+  notes: z
+    .string()
+    .max(500, 'Les notes ne peuvent pas dépasser 500 caractères')
+    .optional()
+    .or(z.literal('')),
+})
+
+// ============================================================================
+// REPOTTING FORM SCHEMA
+// ============================================================================
+
+export const repottingFormSchema = z.object({
+  plant_id: z
+    .number()
+    .min(1, 'Plante requise'),
+
+  repotting_date: z
+    .string()
+    .min(1, 'Date de rempotage requise'),
+
+  old_pot_size_cm: z
+    .number()
+    .min(1, 'Taille pot ancien requise (min 1cm)')
+    .max(200, 'Taille pot ancien invalide (max 200cm)')
+    .optional()
+    .or(z.literal(null)),
+
+  new_pot_size_cm: z
+    .number()
+    .min(1, 'Taille pot nouveau requise (min 1cm)')
+    .max(200, 'Taille pot nouveau invalide (max 200cm)')
+    .optional()
+    .or(z.literal(null)),
+
+  soil_type: z
+    .string()
+    .max(100, 'Type de terreau max 100 caractères')
+    .optional()
+    .or(z.literal('')),
+
+  notes: z
+    .string()
+    .max(500, 'Les notes ne peuvent pas dépasser 500 caractères')
+    .optional()
+    .or(z.literal('')),
+})
+
+// ============================================================================
+// DISEASE FORM SCHEMA
+// ============================================================================
+
+export const diseaseFormSchema = z.object({
+  plant_id: z
+    .number()
+    .min(1, 'Plante requise'),
+
+  disease_type_id: z
+    .number()
+    .min(1, 'Type de maladie requis'),
+
+  detection_date: z
+    .string()
+    .min(1, 'Date de détection requise'),
+
+  severity: z
+    .enum(['mild', 'moderate', 'severe'])
+    .optional(),
+
+  treatment: z
+    .string()
+    .max(500, 'Traitement max 500 caractères')
+    .optional()
+    .or(z.literal('')),
+
+  treated_date: z
+    .string()
+    .optional()
+    .or(z.literal('')),
+
+  notes: z
+    .string()
+    .max(500, 'Les notes ne peuvent pas dépasser 500 caractères')
+    .optional()
+    .or(z.literal('')),
+})
+
+// ============================================================================
+// SEARCH & FILTER SCHEMA
+// ============================================================================
+
+export const plantSearchSchema = z.object({
+  search: z
+    .string()
+    .max(100, 'Recherche max 100 caractères')
+    .optional()
+    .or(z.literal('')),
+
+  tags: z
+    .array(z.number())
+    .optional()
+    .default([]),
+
+  location_id: z
+    .number()
+    .optional()
+    .or(z.literal(null)),
+
+  health_status: z
+    .string()
+    .optional()
+    .or(z.literal('')),
+
+  sort: z
+    .enum(['name', 'created_at', 'updated_at'])
+    .optional()
+    .default('name'),
+
+  order: z
+    .enum(['asc', 'desc'])
+    .optional()
+    .default('asc'),
+})
+
+/**
+ * Utility function pour valider et retourner erreurs formatées
+ */
+export function validateData(data, schema) {
+  try {
+    const validatedData = schema.parse(data)
+    return { success: true, data: validatedData, errors: null }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errors = formatValidationErrors(error)
+      return { success: false, data: null, errors }
+    }
+    return { success: false, data: null, errors: { general: 'Erreur de validation' } }
+  }
+}
