@@ -213,6 +213,20 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
       const icon = lightMap[tagName] || '';
       return icon ? `${icon} ${tagName}` : tagName;
     }
+
+    if (categoryName === 'Besoins en eau') {
+      const waterMap = {
+        'Fréquent': '💧💧💧💧',
+        'Régulier': '💧💧💧',
+        'Normal': '💧💧',
+        'Rare': '💧',
+        'Très rare': '🫧',
+        'Garder humide': '💦',
+        'Laisser sécher': '🏜️',
+      };
+      const icon = waterMap[tagName] || '';
+      return icon ? `${icon} ${tagName}` : tagName;
+    }
     
     return tagName;
   };

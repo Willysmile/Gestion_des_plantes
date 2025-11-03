@@ -580,6 +580,15 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
         'Ombre': '🌑',
         'Faible': '🌑',
       },
+      'Besoins en eau': {
+        'Fréquent': '💧💧💧💧',
+        'Régulier': '💧💧💧',
+        'Normal': '💧💧',
+        'Rare': '💧',
+        'Très rare': '🫧',
+        'Garder humide': '💦',
+        'Laisser sécher': '🏜️',
+      },
     }
 
     const emojis = emojiMap[categoryName]
