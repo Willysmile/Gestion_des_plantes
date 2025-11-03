@@ -409,7 +409,7 @@ class PlantService:
         from datetime import datetime, timedelta
         
         try:
-            plants = db.query(Plant).filter(Plant.is_deleted == False).all()
+            plants = db.query(Plant).filter(Plant.deleted_at == None).all()
             plants_to_water = []
             
             threshold_date = datetime.utcnow() - timedelta(days=days_ago)
@@ -462,7 +462,7 @@ class PlantService:
         from datetime import datetime, timedelta
         
         try:
-            plants = db.query(Plant).filter(Plant.is_deleted == False).all()
+            plants = db.query(Plant).filter(Plant.deleted_at == None).all()
             plants_to_fertilize = []
             
             threshold_date = datetime.utcnow() - timedelta(days=days_ago)
