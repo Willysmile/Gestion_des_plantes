@@ -31,6 +31,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
   const [seasonalWatering, setSeasonalWatering] = useState(null)
   const [nextSeasonalWatering, setNextSeasonalWatering] = useState(null)
   const [seasonalFertilizing, setSeasonalFertilizing] = useState(null)
+  const [currentSeasonWateringTag, setCurrentSeasonWateringTag] = useState(null)
   const [lookups, setLookups] = useState({
     wateringFrequencies: [],
     lightRequirements: [],
@@ -177,7 +178,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
     return autoTags;
   }, [plant?.location_id, plant?.health_status, plant?.light_requirement_id, categories, lookups?.locations, lookups?.lightRequirements])
 
-  // Combine auto tags + manual tags
+  // Combine auto tags + manual tags + watering tag
   const allDisplayTags = useMemo(() => {
     const tagIds = new Set(autoTagIds.map(t => t.id));
     // Noms des catégories auto
@@ -191,8 +192,22 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
       if (autoCategoryNames.has(catName)) return false;
       return true;
     });
-    return [...autoTagIds, ...manualTags];
-  }, [autoTagIds, plant?.tags])
+    
+    // Ajouter le tag "Besoins en eau" saisonnier si disponible
+    const displayTags = [...autoTagIds, ...manualTags];
+    if (currentSeasonWateringTag) {
+      // Créer un objet tag fictif avec l'icône goutte d'eau
+      const wateringTag = {
+        id: 'seasonal-watering',
+        name: `💧 ${currentSeasonWateringTag.name}`,
+        category: { name: 'Besoins en eau' },
+        isSeasonalWatering: true
+      };
+      displayTags.push(wateringTag);
+    }
+    
+    return displayTags;
+  }, [autoTagIds, plant?.tags, currentSeasonWateringTag])
 
   // Charger la fréquence saisonnière une seule fois quand les lookups sont chargés
   useEffect(() => {
@@ -221,6 +236,29 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
       }
     }
   }, [plant.id, lookups.seasons?.length])
+
+  // Charger la fréquence d'arrosage actuelle pour le tag "Besoins en eau"
+  useEffect(() => {
+    if (plant.id) {
+      const loadCurrentSeasonWatering = async () => {
+        try {
+          const response = await plantsAPI.getCurrentSeasonWatering(plant.id)
+          if (response.data?.frequency_name) {
+            setCurrentSeasonWateringTag({
+              name: response.data.frequency_name,
+              fullName: response.data.full_frequency_name,
+              season: response.data.season
+            })
+            console.log('💧 Current season watering tag loaded:', response.data)
+          }
+        } catch (err) {
+          console.error('Error loading current season watering tag:', err)
+          setCurrentSeasonWateringTag(null)
+        }
+      }
+      loadCurrentSeasonWatering()
+    }
+  }, [plant.id])
 
   const loadSeasonalWatering = async (seasonId) => {
     try {

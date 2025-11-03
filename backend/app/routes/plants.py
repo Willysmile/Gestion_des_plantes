@@ -11,6 +11,7 @@ from app.schemas.plant_schema import PlantCreate, PlantUpdate, PlantResponse, Pl
 from app.services import PlantService
 from app.models.lookup import Location
 from app.utils.sync_health import sync_plant_health_status, sync_all_plants_health
+from app.utils.season_helper import get_current_season_id
 
 
 router = APIRouter(
@@ -422,5 +423,61 @@ async def sync_all_plants_health_endpoint(db: Session = Depends(get_db)):
     return {
         "count": count,
         "message": f"État de santé de {count} plantes synchronisés"
+    }
+
+
+@router.get("/{plant_id}/current-season-watering")
+async def get_current_season_watering(plant_id: int, db: Session = Depends(get_db)):
+    """
+    Récupère la fréquence d'arrosage pour la saison actuelle
+    """
+    from datetime import datetime
+    from app.models.lookup import Season, PlantSeasonalWatering, WateringFrequency
+    
+    # Obtenir le mois courant
+    current_month = datetime.now().month
+    
+    # Obtenir toutes les saisons
+    seasons = db.query(Season).all()
+    if not seasons:
+        return {"frequency_name": None, "message": "Pas de saisons définies"}
+    
+    # Trouver la saison courante
+    current_season_id = get_current_season_id(current_month, seasons)
+    if not current_season_id:
+        return {"frequency_name": None, "message": "Saison non trouvée"}
+    
+    current_season = db.query(Season).filter(Season.id == current_season_id).first()
+    
+    # Trouver la fréquence d'arrosage pour cette plante et cette saison
+    seasonal_watering = db.query(PlantSeasonalWatering).filter(
+        PlantSeasonalWatering.plant_id == plant_id,
+        PlantSeasonalWatering.season_id == current_season.id
+    ).first()
+    
+    if not seasonal_watering or not seasonal_watering.watering_frequency_id:
+        return {"frequency_name": None, "season": current_season.name, "message": "Pas de fréquence définie"}
+    
+    # Obtenir le nom de la fréquence
+    frequency = db.query(WateringFrequency).filter(
+        WateringFrequency.id == seasonal_watering.watering_frequency_id
+    ).first()
+    
+    if not frequency:
+        return {"frequency_name": None, "season": current_season.name, "message": "Fréquence non trouvée"}
+    
+    # Extraire les 2 premiers mots (ignoring contenu entre parenthèses)
+    freq_name = frequency.name
+    # Enlever ce qui est entre parenthèses
+    freq_name_clean = freq_name.split('(')[0].strip()
+    # Prendre les 2 premiers mots
+    freq_name_parts = freq_name_clean.split()
+    short_name = ' '.join(freq_name_parts[:2]) if len(freq_name_parts) > 0 else freq_name_clean
+    
+    return {
+        "frequency_name": short_name,
+        "full_frequency_name": frequency.name,
+        "season": current_season.name,
+        "season_id": current_season.id
     }
 

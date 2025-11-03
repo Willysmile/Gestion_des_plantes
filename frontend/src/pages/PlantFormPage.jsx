@@ -937,6 +937,7 @@ export default function PlantFormPage() {
               formData={formData}
               lookups={lookups}
               selectedTagIds={formData.tags}
+              plantId={id}
               onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
             />
           </fieldset>

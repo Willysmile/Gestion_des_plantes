@@ -103,6 +103,14 @@ export const plantsAPI = {
       throw error
     }
   },
+  getCurrentSeasonWatering: async (id) => {
+    try {
+      return await api.get(`/plants/${id}/current-season-watering`)
+    } catch (error) {
+      console.error(`Error fetching current season watering for plant ${id}:`, error)
+      throw error
+    }
+  },
 }
 
 // Lookups endpoints

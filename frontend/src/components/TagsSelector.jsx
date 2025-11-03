@@ -4,11 +4,20 @@ import useTags from '../hooks/useTags';
 /**
  * Composant pour sélectionner les tags d'une plante en édition
  * Affiche tous les tags (auto + manuels) en chips cliquables sur 2 colonnes
- * Tags auto = couleur bleue, Tags manuels = couleur indigo
- * Confirmation nécessaire pour désélectionner les tags auto
+ * Tags auto = couleur emeraude, Tags manuels = couleur indigo
  */
-export default function TagsSelector({ formData, lookups = {}, selectedTagIds = [], onChange }) {
-  const { categories, getAutoTagCategories, getManualTagCategories } = useTags();
+export default function TagsSelector({ formData, lookups = {}, selectedTagIds = [], plantId = null, onChange }) {
+  const { categories, getAutoTagCategories, getManualTagCategories, getCurrentSeasonWateringTag } = useTags();
+  const [currentSeasonWateringTag, setCurrentSeasonWateringTag] = useState(null);
+
+  // Charger le tag "Besoins en eau" actuel
+  useEffect(() => {
+    if (plantId) {
+      getCurrentSeasonWateringTag(plantId).then(tag => {
+        setCurrentSeasonWateringTag(tag);
+      });
+    }
+  }, [plantId, getCurrentSeasonWateringTag]);
 
   const autoCategories = getAutoTagCategories().map(c => c.name);
   const manualCategories = getManualTagCategories().map(c => c.name);
@@ -164,6 +173,52 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
     onChange(selectedTagIds.filter(id => id !== tagId));
   };
 
+  // Format tag name with difficulty clover indicators
+  const formatTagName = (tagName, categoryName) => {
+    if (categoryName === 'Difficulté') {
+      const difficultyMap = {
+        'Débutant': '☘️',
+        'Facile': '☘️',
+        'Intermédiaire': '☘️☘️',
+        'Avancé': '☘️☘️☘️',
+        'Expert': '☘️☘️☘️'
+      };
+      const clovers = difficultyMap[tagName] || '';
+      return clovers ? `${clovers} ${tagName}` : tagName;
+    }
+    
+    if (categoryName === 'État de la plante') {
+      const healthMap = {
+        'Sain': '🌱',
+        'Malade': '😢',
+        'Rétablie': '💚',
+        'Critique': '❌',
+        'En traitement': '🩹',
+        'En convalescence': '🌱',
+      };
+      const icon = healthMap[tagName] || '';
+      return icon ? `${icon} ${tagName}` : tagName;
+    }
+    
+    if (categoryName === 'Luminosité') {
+      const lightMap = {
+        'Plein soleil': '☀️',
+        'Soleil indirect': '🌤️',
+        'Lumière directe': '☀️',
+        'Lumière indirecte': '🌥️',
+        'Mi-ombre': '🌥️',
+        'Ombre': '🌑',
+        'Ombre profonde': '🌑',
+        'Faible luminosité': '🌑',
+        'Variable': '🌤️'
+      };
+      const icon = lightMap[tagName] || '';
+      return icon ? `${icon} ${tagName}` : tagName;
+    }
+    
+    return tagName;
+  };
+
   if (categories.length === 0) {
     return <div className="text-gray-500 text-sm">Chargement des tags...</div>;
   }
@@ -174,6 +229,40 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {categories.map(category => {
           const isAutoCategory = autoCategories.includes(category.name);
+          
+          // Cas spécial pour "Besoins en eau" : afficher le tag saisonnier
+          if (category.name === 'Besoins en eau' && currentSeasonWateringTag) {
+            return (
+              <div key={category.id} className="space-y-2">
+                <h4 className="text-sm font-semibold text-gray-700">
+                  Besoin en eau: <span className="font-normal">{currentSeasonWateringTag.season}</span>
+                </h4>
+                
+                <div className="flex flex-wrap gap-2">
+                  {/* Afficher le tag saisonnier en vert (auto) */}
+                  <button
+                    type="button"
+                    disabled={true}
+                    className="px-3 py-1 rounded-full text-xs font-medium transition-all cursor-not-allowed bg-emerald-500 text-white font-bold shadow-md inline-flex items-center gap-1"
+                  >
+                    💧 {currentSeasonWateringTag.name}
+                  </button>
+                  
+                  {/* Afficher les autres tags en rouge (non-sélectionnables) */}
+                  {category.tags?.filter(t => t.name !== currentSeasonWateringTag.name).map(tag => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      disabled={true}
+                      className="px-3 py-1 rounded-full text-xs font-medium transition-all cursor-not-allowed bg-red-200 text-red-900 opacity-60"
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          }
           
           return (
             <div key={category.id} className="space-y-2">
@@ -211,7 +300,7 @@ export default function TagsSelector({ formData, lookups = {}, selectedTagIds = 
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                       >
-                        {tag.name}
+                        {formatTagName(tag.name, category.name)}
                       </button>
                     );
                   })

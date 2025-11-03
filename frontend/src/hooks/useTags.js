@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { tagsAPI } from '../lib/api';
+import { plantsAPI } from '../lib/api';
 
 export default function useTags() {
   const [categories, setCategories] = useState([]);
@@ -59,6 +60,24 @@ export default function useTags() {
     return categories.filter(cat => manualNames.includes(cat.name));
   };
 
+  // Get current season watering frequency tag
+  const getCurrentSeasonWateringTag = async (plantId) => {
+    try {
+      const response = await plantsAPI.getCurrentSeasonWatering(plantId);
+      if (response.data?.frequency_name) {
+        return {
+          name: response.data.frequency_name,
+          fullName: response.data.full_frequency_name,
+          season: response.data.season
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Erreur chargement fréquence d\'arrosage:', err);
+      return null;
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -73,5 +92,6 @@ export default function useTags() {
     getTagsByCategory,
     getAutoTagCategories,
     getManualTagCategories,
+    getCurrentSeasonWateringTag,
   };
 }
