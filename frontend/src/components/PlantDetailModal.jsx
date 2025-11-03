@@ -860,23 +860,10 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
                       </div>
                       
                       {/* Colonne 3: Humidité */}
-                      <div className="flex flex-col items-center gap-1 pb-3 border-r border-gray-200">
+                      <div className="flex flex-col items-center gap-1 pb-3">
                         <Droplets className="w-5 h-5 text-cyan-500" />
                         <span className="text-xs text-gray-600 font-semibold">Humidité</span>
                         <div className="text-gray-800 text-xs font-medium">{plant.humidity_level || '—'}%</div>
-                      </div>
-
-                      {/* Colonne 4: Besoin en eau */}
-                      <div className="flex flex-col items-center gap-1">
-                        <Droplet className="w-5 h-5 text-blue-500" />
-                        <span className="text-xs text-gray-600 font-semibold">Arrosage</span>
-                        {currentSeasonWateringTag ? (
-                          <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                            {currentSeasonWateringTag.name}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-500">—</span>
-                        )}
                       </div>
                     </div>
                   </div>
