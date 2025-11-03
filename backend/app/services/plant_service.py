@@ -413,6 +413,8 @@ class PlantService:
             plants_to_water = []
             
             threshold_date = datetime.utcnow() - timedelta(days=days_ago)
+            print(f"[DEBUG] Searching plants to water with threshold: {threshold_date}")
+            print(f"[DEBUG] Total plants: {len(plants)}")
             
             for plant in plants:
                 # Récupérer dernier arrosage
@@ -420,9 +422,12 @@ class PlantService:
                     WateringHistory.plant_id == plant.id
                 ).order_by(WateringHistory.date.desc()).first()
                 
-                # Vérifier si à arroser
-                if not last_watering or last_watering.date <= threshold_date.date():
+                print(f"[DEBUG] Plant {plant.id}: last_watering = {last_watering.date if last_watering else 'None'}")
+                
+                # Vérifier si à arroser (jamais arrosé OU arrosé avant le seuil)
+                if not last_watering or last_watering.date < threshold_date.date():
                     days_since = (datetime.utcnow().date() - (last_watering.date if last_watering else datetime(1900, 1, 1).date())).days
+                    print(f"[DEBUG] Plant {plant.id} needs watering (days_since={days_since})")
                     plants_to_water.append({
                         'id': plant.id,
                         'name': plant.name,
@@ -431,11 +436,14 @@ class PlantService:
                         'last_watering': last_watering.date.isoformat() if last_watering else None,
                     })
             
+            print(f"[DEBUG] Found {len(plants_to_water)} plants to water")
             # Trier par urgence (plus longtemps sans eau = plus urgent)
             plants_to_water.sort(key=lambda p: -p['days_since_watering'])
             return plants_to_water
         except Exception as e:
             print(f"Error in get_plants_to_water: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     @staticmethod
@@ -465,8 +473,8 @@ class PlantService:
                     FertilizingHistory.plant_id == plant.id
                 ).order_by(FertilizingHistory.date.desc()).first()
                 
-                # Vérifier si à fertiliser
-                if not last_fertilizing or last_fertilizing.date <= threshold_date.date():
+                # Vérifier si à fertiliser (jamais fertilisé OU fertilisé avant le seuil)
+                if not last_fertilizing or last_fertilizing.date < threshold_date.date():
                     days_since = (datetime.utcnow().date() - (last_fertilizing.date if last_fertilizing else datetime(1900, 1, 1).date())).days
                     plants_to_fertilize.append({
                         'id': plant.id,

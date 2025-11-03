@@ -292,6 +292,21 @@ export default function PlantFormPage() {
         humidity: correctedData.humidity_level
       })
 
+      // Validation métier: temperature_min < temperature_max
+      if (
+        correctedData.temperature_min !== null && 
+        correctedData.temperature_max !== null && 
+        correctedData.temperature_min >= correctedData.temperature_max
+      ) {
+        setFieldErrors({
+          temperature_min: 'Doit être inférieur à la température max',
+          temperature_max: 'Doit être supérieure à la température min'
+        })
+        setGlobalError('La température minimale doit être inférieure à la maximale')
+        setLoading(false)
+        return
+      }
+
       // Valider avec Zod (validation légère: obligatoire/optionnel seulement)
       const validation = validatePlant(correctedData, !!id)
       if (!validation.success) {
@@ -410,10 +425,18 @@ export default function PlantFormPage() {
           // Pydantic validation error array
           errorMessage = detail.map(e => {
             if (typeof e === 'string') return e
-            if (e.msg) return e.msg
+            if (e.msg) {
+              // Extract the actual error message from Pydantic error
+              // e.g., "Value error, temperature_min doit être < temperature_max"
+              const msg = e.msg
+              if (msg.includes('Value error,')) {
+                return msg.replace('Value error, ', '')
+              }
+              return msg
+            }
             if (e.message) return e.message
             return JSON.stringify(e)
-          }).join(', ')
+          }).join(' | ')
         } else if (typeof detail === 'string') {
           errorMessage = detail
         } else if (typeof detail === 'object' && detail.msg) {
