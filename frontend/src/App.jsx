@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
+import AdvancedDashboardPage from './pages/AdvancedDashboardPage'
 import PlantDetailPage from './pages/PlantDetailPage'
 import PlantFormPage from './pages/PlantFormPage'
 import WateringHistoryPage from './pages/WateringHistoryPage'
@@ -18,6 +19,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard/advanced" element={<AdvancedDashboardPage />} />
           <Route path="/plants/new" element={<PlantFormPage />} />
           <Route path="/plants/:id" element={<PlantDetailPage />} />
           <Route path="/plants/:id/edit" element={<PlantFormPage />} />
