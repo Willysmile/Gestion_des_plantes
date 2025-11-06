@@ -30,17 +30,21 @@ class StatsService:
             active_plants = db.query(Plant).filter(Plant.is_archived == False).count()
             archived_plants = db.query(Plant).filter(Plant.is_archived == True).count()
             
+            # Mapper les vraies valeurs de health_status
+            # Excellente = healthy
             health_excellent = db.query(Plant).filter(
                 Plant.is_archived == False,
-                Plant.health_status == "excellent"
+                Plant.health_status == "healthy"
             ).count()
+            # Bonne = recovering
             health_good = db.query(Plant).filter(
                 Plant.is_archived == False,
-                Plant.health_status == "good"
+                Plant.health_status == "recovering"
             ).count()
+            # Mauvaise = sick ou dead
             health_poor = db.query(Plant).filter(
                 Plant.is_archived == False,
-                Plant.health_status == "poor"
+                Plant.health_status.in_(["sick", "dead"])
             ).count()
             
             # Compter les photos via la relation
@@ -59,6 +63,8 @@ class StatsService:
             }
         except Exception as e:
             print(f"Erreur StatsService.get_dashboard_stats: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 "total_plants": 0,
                 "active_plants": 0,
