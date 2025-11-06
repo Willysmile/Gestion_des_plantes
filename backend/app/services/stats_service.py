@@ -193,3 +193,72 @@ class StatsService:
         except Exception as e:
             print(f"Erreur StatsService.get_upcoming_fertilizing: {e}")
             return []
+
+    @staticmethod
+    def get_activity(db: Session, days: int = 30) -> dict:
+        """
+        Récupère l'activité des derniers N jours (arrosages et fertilisations)
+        Retourne: {
+            "watering_count": int,
+            "fertilizing_count": int,
+            "daily_activity": [
+                {"date": "2025-11-06", "watering": 5, "fertilizing": 2},
+                ...
+            ]
+        }
+        """
+        try:
+            today = datetime.now().date()
+            cutoff_date = today - timedelta(days=days)
+            
+            # Activité d'arrosage par jour
+            watering_activity = db.query(
+                func.date(WateringHistory.date).label("activity_date"),
+                func.count(WateringHistory.id).label("count")
+            ).filter(
+                WateringHistory.date >= cutoff_date,
+                WateringHistory.deleted_at == None
+            ).group_by(func.date(WateringHistory.date)).all()
+            
+            # Activité de fertilisation par jour
+            fertilizing_activity = db.query(
+                func.date(FertilizingHistory.date).label("activity_date"),
+                func.count(FertilizingHistory.id).label("count")
+            ).filter(
+                FertilizingHistory.date >= cutoff_date,
+                FertilizingHistory.deleted_at == None
+            ).group_by(func.date(FertilizingHistory.date)).all()
+            
+            # Organiser les données par date
+            activity_dict = {}
+            for item in watering_activity:
+                date_str = item.activity_date.isoformat()
+                if date_str not in activity_dict:
+                    activity_dict[date_str] = {"date": date_str, "watering": 0, "fertilizing": 0}
+                activity_dict[date_str]["watering"] = item.count
+            
+            for item in fertilizing_activity:
+                date_str = item.activity_date.isoformat()
+                if date_str not in activity_dict:
+                    activity_dict[date_str] = {"date": date_str, "watering": 0, "fertilizing": 0}
+                activity_dict[date_str]["fertilizing"] = item.count
+            
+            # Trier par date
+            daily_activity = sorted(activity_dict.values(), key=lambda x: x["date"])
+            
+            total_watering = sum(item["watering"] for item in daily_activity)
+            total_fertilizing = sum(item["fertilizing"] for item in daily_activity)
+            
+            return {
+                "watering_count": total_watering,
+                "fertilizing_count": total_fertilizing,
+                "daily_activity": daily_activity
+            }
+        except Exception as e:
+            print(f"Erreur StatsService.get_activity: {e}")
+            return {
+                "watering_count": 0,
+                "fertilizing_count": 0,
+                "daily_activity": []
+            }
+

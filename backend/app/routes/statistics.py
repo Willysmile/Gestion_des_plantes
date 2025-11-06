@@ -47,3 +47,23 @@ async def get_upcoming_fertilizing(
     Retourne les plantes jamais fertilisées + celles fertilisées il y a N jours ou plus
     """
     return StatsService.get_upcoming_fertilizing(db, days)
+
+
+@router.get("/activity", response_model=dict)
+async def get_activity(
+    days: int = Query(30, ge=0, le=365, description="Nombre de jours à vérifier"),
+    db: Session = Depends(get_db),
+):
+    """
+    Activité des derniers N jours (arrosages et fertilisations)
+    Retourne: {
+        "watering_count": int,
+        "fertilizing_count": int,
+        "daily_activity": [
+            {"date": "2025-11-06", "watering": 5, "fertilizing": 2},
+            ...
+        ]
+    }
+    """
+    return StatsService.get_activity(db, days)
+
