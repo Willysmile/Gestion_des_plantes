@@ -58,24 +58,17 @@ function LayoutContent() {
             </div>
           ) : (
             <div className="flex gap-2 items-center">
-              <div className="relative group">
-                <Link 
-                  to="/dashboard"
-                  className="relative flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all"
-                >
-                  Tableau de Bord
-                  <div className="absolute -top-2.5 -right-2.5 flex gap-1">
-                    <div className="w-5 h-5 bg-blue-400 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{toWater}</div>
-                    <div className="w-5 h-5 bg-amber-400 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{toFertilize}</div>
-                    <div className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{inCareCount}</div>
-                  </div>
-                </Link>
-                {/* Menu déroulant */}
-                <div className="absolute left-0 mt-0 w-48 bg-white text-gray-800 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-50">
-                  <Link to="/dashboard" className="block px-4 py-2 hover:bg-green-50">📊 Dashboard Simple</Link>
-                  <Link to="/dashboard/advanced" className="block px-4 py-2 hover:bg-green-50 border-t">📈 Dashboard Avancé</Link>
+              <Link 
+                to="/dashboard"
+                className="relative flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all"
+              >
+                Tableau de Bord
+                <div className="absolute -top-2.5 -right-2.5 flex gap-1">
+                  <div className="w-5 h-5 bg-blue-400 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{toWater}</div>
+                  <div className="w-5 h-5 bg-amber-400 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{toFertilize}</div>
+                  <div className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{inCareCount}</div>
                 </div>
-              </div>
+              </Link>
               <Link 
                 to="/plants/new"
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
