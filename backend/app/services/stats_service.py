@@ -2,9 +2,9 @@
 Service de statistiques pour le dashboard
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, cast, Date
 
 from app.models.plant import Plant
 from app.models.histories import WateringHistory, FertilizingHistory
@@ -296,8 +296,8 @@ class StatsService:
                 WateringHistory.plant_id,
                 func.count(WateringHistory.id).label("count")
             ).filter(
-                WateringHistory.date >= first_day,
-                WateringHistory.date <= last_day,
+                func.date(WateringHistory.date) >= first_day.isoformat(),
+                func.date(WateringHistory.date) <= last_day.isoformat(),
                 WateringHistory.deleted_at == None
             ).group_by(func.date(WateringHistory.date), WateringHistory.plant_id).all()
             
@@ -305,7 +305,7 @@ class StatsService:
                 plant = db.query(Plant).filter(Plant.id == watering.plant_id).first()
                 if plant:
                     events.append({
-                        "date": watering.event_date.isoformat(),
+                        "date": watering.event_date if isinstance(watering.event_date, str) else watering.event_date.isoformat(),
                         "type": "watering",
                         "plant_id": watering.plant_id,
                         "plant_name": plant.name,
@@ -318,8 +318,8 @@ class StatsService:
                 FertilizingHistory.plant_id,
                 func.count(FertilizingHistory.id).label("count")
             ).filter(
-                FertilizingHistory.date >= first_day,
-                FertilizingHistory.date <= last_day,
+                func.date(FertilizingHistory.date) >= first_day.isoformat(),
+                func.date(FertilizingHistory.date) <= last_day.isoformat(),
                 FertilizingHistory.deleted_at == None
             ).group_by(func.date(FertilizingHistory.date), FertilizingHistory.plant_id).all()
             
@@ -327,7 +327,7 @@ class StatsService:
                 plant = db.query(Plant).filter(Plant.id == fertilizing.plant_id).first()
                 if plant:
                     events.append({
-                        "date": fertilizing.event_date.isoformat(),
+                        "date": fertilizing.event_date if isinstance(fertilizing.event_date, str) else fertilizing.event_date.isoformat(),
                         "type": "fertilizing",
                         "plant_id": fertilizing.plant_id,
                         "plant_name": plant.name,
