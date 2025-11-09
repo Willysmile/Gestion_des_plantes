@@ -268,3 +268,228 @@ class StatsService:
                 "daily_activity": []
             }
 
+    @staticmethod
+    def get_calendar_events(db: Session, year: int, month: int) -> dict:
+        """
+        Récupère tous les événements pour un mois donné
+        Retourne les arrosages et fertilisations par date
+        """
+        try:
+            from calendar import monthrange
+            
+            # Vérifier la validité du mois
+            if month < 1 or month > 12:
+                return {"events": [], "summary": {}}
+            
+            # Obtenir le nombre de jours dans le mois
+            days_in_month = monthrange(year, month)[1]
+            
+            # Dates limites du mois
+            first_day = datetime(year, month, 1).date()
+            last_day = datetime(year, month, days_in_month).date()
+            
+            events = []
+            
+            # Récupérer tous les arrosages du mois
+            waterings = db.query(
+                func.date(WateringHistory.date).label("event_date"),
+                WateringHistory.plant_id,
+                func.count(WateringHistory.id).label("count")
+            ).filter(
+                WateringHistory.date >= first_day,
+                WateringHistory.date <= last_day,
+                WateringHistory.deleted_at == None
+            ).group_by(func.date(WateringHistory.date), WateringHistory.plant_id).all()
+            
+            for watering in waterings:
+                plant = db.query(Plant).filter(Plant.id == watering.plant_id).first()
+                if plant:
+                    events.append({
+                        "date": watering.event_date.isoformat(),
+                        "type": "watering",
+                        "plant_id": watering.plant_id,
+                        "plant_name": plant.name,
+                        "count": watering.count
+                    })
+            
+            # Récupérer toutes les fertilisations du mois
+            fertilizings = db.query(
+                func.date(FertilizingHistory.date).label("event_date"),
+                FertilizingHistory.plant_id,
+                func.count(FertilizingHistory.id).label("count")
+            ).filter(
+                FertilizingHistory.date >= first_day,
+                FertilizingHistory.date <= last_day,
+                FertilizingHistory.deleted_at == None
+            ).group_by(func.date(FertilizingHistory.date), FertilizingHistory.plant_id).all()
+            
+            for fertilizing in fertilizings:
+                plant = db.query(Plant).filter(Plant.id == fertilizing.plant_id).first()
+                if plant:
+                    events.append({
+                        "date": fertilizing.event_date.isoformat(),
+                        "type": "fertilizing",
+                        "plant_id": fertilizing.plant_id,
+                        "plant_name": plant.name,
+                        "count": fertilizing.count
+                    })
+            
+            # Compter les événements par type
+            watering_count = len([e for e in events if e["type"] == "watering"])
+            fertilizing_count = len([e for e in events if e["type"] == "fertilizing"])
+            
+            # Résumé
+            summary = {
+                "year": year,
+                "month": month,
+                "total_days": days_in_month,
+                "active_days": len(set(e["date"] for e in events)),
+                "water_events": watering_count,
+                "fertilize_events": fertilizing_count,
+                "total_events": len(events)
+            }
+            
+            return {
+                "events": sorted(events, key=lambda x: x["date"]),
+                "summary": summary
+            }
+        except Exception as e:
+            print(f"Erreur StatsService.get_calendar_events: {e}")
+            return {"events": [], "summary": {}}
+
+    @staticmethod
+    def get_advanced_alerts(db: Session) -> dict:
+        """
+        Génère des alertes avancées par sévérité
+        Sévérité: critical > high > medium > low
+        """
+        try:
+            today = datetime.now().date()
+            alerts = []
+            
+            # Plantes à arroser (jamais arrosées ou > 7 jours)
+            never_watered = db.query(Plant).filter(
+                Plant.is_archived == False,
+                ~Plant.watering_histories.any()
+            ).all()
+            
+            for plant in never_watered:
+                alerts.append({
+                    "id": f"water_{plant.id}_never",
+                    "type": "watering",
+                    "plant_id": plant.id,
+                    "plant_name": plant.name,
+                    "message": f"{plant.name} n'a jamais été arrosée",
+                    "severity": "high",
+                    "action": "water",
+                    "date": None
+                })
+            
+            # Plantes critiquement sèches (> 14 jours)
+            recent_waterings = db.query(
+                WateringHistory.plant_id,
+                func.max(WateringHistory.date).label("last_date")
+            ).group_by(WateringHistory.plant_id).subquery()
+            
+            critical_dry = db.query(Plant).join(
+                recent_waterings,
+                Plant.id == recent_waterings.c.plant_id
+            ).filter(
+                Plant.is_archived == False,
+                recent_waterings.c.last_date <= today - timedelta(days=14)
+            ).all()
+            
+            for plant in critical_dry:
+                last_watering = db.query(
+                    func.max(WateringHistory.date)
+                ).filter(WateringHistory.plant_id == plant.id).scalar()
+                days_since = (today - last_watering).days if last_watering else 0
+                
+                alerts.append({
+                    "id": f"water_{plant.id}_critical",
+                    "type": "watering",
+                    "plant_id": plant.id,
+                    "plant_name": plant.name,
+                    "message": f"{plant.name} - URGENT: Non arrosée depuis {days_since} jours",
+                    "severity": "critical",
+                    "action": "water",
+                    "date": last_watering.isoformat() if last_watering else None
+                })
+            
+            # Plantes à arroser bientôt (7-14 jours)
+            soon_to_water = db.query(Plant).join(
+                recent_waterings,
+                Plant.id == recent_waterings.c.plant_id
+            ).filter(
+                Plant.is_archived == False,
+                recent_waterings.c.last_date > today - timedelta(days=14),
+                recent_waterings.c.last_date <= today - timedelta(days=7)
+            ).all()
+            
+            for plant in soon_to_water:
+                last_watering = db.query(
+                    func.max(WateringHistory.date)
+                ).filter(WateringHistory.plant_id == plant.id).scalar()
+                days_since = (today - last_watering).days if last_watering else 0
+                
+                alerts.append({
+                    "id": f"water_{plant.id}_medium",
+                    "type": "watering",
+                    "plant_id": plant.id,
+                    "plant_name": plant.name,
+                    "message": f"{plant.name} - À arroser dans {14 - days_since} jours",
+                    "severity": "medium",
+                    "action": "water",
+                    "date": last_watering.isoformat() if last_watering else None
+                })
+            
+            # Plantes saines - aucune alerte
+            healthy = db.query(Plant).join(
+                recent_waterings,
+                Plant.id == recent_waterings.c.plant_id
+            ).filter(
+                Plant.is_archived == False,
+                recent_waterings.c.last_date > today - timedelta(days=7)
+            ).all()
+            
+            for plant in healthy:
+                alerts.append({
+                    "id": f"water_{plant.id}_ok",
+                    "type": "watering",
+                    "plant_id": plant.id,
+                    "plant_name": plant.name,
+                    "message": f"{plant.name} - Bien hydratée ✓",
+                    "severity": "low",
+                    "action": "none",
+                    "date": None
+                })
+            
+            # Regrouper par sévérité
+            by_severity = {
+                "critical": [a for a in alerts if a["severity"] == "critical"],
+                "high": [a for a in alerts if a["severity"] == "high"],
+                "medium": [a for a in alerts if a["severity"] == "medium"],
+                "low": [a for a in alerts if a["severity"] == "low"]
+            }
+            
+            return {
+                "alerts": sorted(alerts, key=lambda x: {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}[x['severity']]),
+                "by_severity": by_severity,
+                "summary": {
+                    "critical_count": len(by_severity["critical"]),
+                    "high_count": len(by_severity["high"]),
+                    "medium_count": len(by_severity["medium"]),
+                    "low_count": len(by_severity["low"]),
+                    "total_count": len(alerts)
+                }
+            }
+        except Exception as e:
+            print(f"Erreur StatsService.get_advanced_alerts: {e}")
+            import traceback
+            traceback.print_exc()
+            return {
+                "alerts": [],
+                "by_severity": {"critical": [], "high": [], "medium": [], "low": []},
+                "summary": {"critical_count": 0, "high_count": 0, "medium_count": 0, "low_count": 0, "total_count": 0}
+            }
+

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { PlantsToWaterList, PlantsToFertilizeList, PlantsInCareList } from '../components/WateringNotifications'
 import { useWateringStats } from '../hooks/useWateringNotifications'
-import { Droplet, AlertCircle, TrendingUp, Heart, Leaf, BarChart3 } from 'lucide-react'
+import { Droplet, AlertCircle, TrendingUp, Heart, Leaf, BarChart3, Calendar, Bell } from 'lucide-react'
 import axios from 'axios'
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
+import CalendarView from '../components/CalendarView'
+import AlertsPanel from '../components/AlertsPanel'
 
 const COLORS = {
   excellent: '#06b6d4',
@@ -18,6 +20,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState(null)
   const [activityData, setActivityData] = useState([])
   const [loadingStats, setLoadingStats] = useState(true)
+  const [activeTab, setActiveTab] = useState('overview') // 'overview', 'calendar', 'alerts'
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -68,7 +71,47 @@ export default function DashboardPage() {
         <p className="text-gray-600 mt-2">Vue d'ensemble complète de vos plantes</p>
       </div>
 
-      {/* SECTION 1: Actions Rapides */}
+      {/* Navigation Tabs */}
+      <div className="flex gap-2 bg-gray-50 p-2 rounded-lg w-full">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${
+            activeTab === 'overview'
+              ? 'bg-white text-green-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <BarChart3 size={18} />
+          Aperçu
+        </button>
+        <button
+          onClick={() => setActiveTab('calendar')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${
+            activeTab === 'calendar'
+              ? 'bg-white text-green-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Calendar size={18} />
+          Calendrier
+        </button>
+        <button
+          onClick={() => setActiveTab('alerts')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${
+            activeTab === 'alerts'
+              ? 'bg-white text-green-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Bell size={18} />
+          Alertes
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'overview' && (
+        <>
+
       <div>
         <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
           <AlertCircle className="w-6 h-6 text-orange-600" />
@@ -254,6 +297,18 @@ export default function DashboardPage() {
           <p className="text-green-700">Toutes vos plantes sont bien entretenues.</p>
           <p className="text-green-600 text-sm mt-2">Revenez bientôt pour de nouveaux soins à apporter.</p>
         </div>
+      )}
+      </>
+      )}
+
+      {/* Calendar Tab */}
+      {activeTab === 'calendar' && (
+        <CalendarView />
+      )}
+
+      {/* Alerts Tab */}
+      {activeTab === 'alerts' && (
+        <AlertsPanel />
       )}
     </div>
   )

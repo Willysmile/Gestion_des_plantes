@@ -67,3 +67,66 @@ async def get_activity(
     """
     return StatsService.get_activity(db, days)
 
+
+@router.get("/calendar", response_model=dict)
+async def get_calendar(
+    year: int = Query(2025),
+    month: int = Query(11),
+    db: Session = Depends(get_db),
+):
+    """
+    Récupère les événements du calendrier pour un mois donné
+    Retourne: {
+        "events": [
+            {"date": "2025-11-15", "type": "watering", "plant_id": 5, "plant_name": "Monstera", "count": 1},
+            ...
+        ],
+        "summary": {
+            "year": 2025,
+            "month": 11,
+            "total_days": 30,
+            "active_days": 12,
+            "water_events": 25,
+            "fertilize_events": 8,
+            "total_events": 33
+        }
+    }
+    """
+    return StatsService.get_calendar_events(db, year, month)
+
+
+@router.get("/alerts", response_model=dict)
+async def get_alerts(db: Session = Depends(get_db)):
+    """
+    Récupère les alertes avancées par sévérité
+    Retourne: {
+        "alerts": [
+            {
+                "id": "water_5_critical",
+                "type": "watering",
+                "plant_id": 5,
+                "plant_name": "Monstera",
+                "message": "Monstera - URGENT: Non arrosée depuis 20 jours",
+                "severity": "critical",
+                "action": "water",
+                "date": "2025-10-20"
+            },
+            ...
+        ],
+        "by_severity": {
+            "critical": [...],
+            "high": [...],
+            "medium": [...],
+            "low": [...]
+        },
+        "summary": {
+            "critical_count": 3,
+            "high_count": 5,
+            "medium_count": 10,
+            "low_count": 8,
+            "total_count": 26
+        }
+    }
+    """
+    return StatsService.get_advanced_alerts(db)
+
