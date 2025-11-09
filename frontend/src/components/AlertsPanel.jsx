@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, AlertCircle, AlertOctagon, CheckCircle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, AlertCircle, AlertOctagon, CheckCircle, RefreshCw, X, Clock } from 'lucide-react';
 import { getAdvancedAlerts } from '../utils/api';
 
 export default function AlertsPanel() {
@@ -7,6 +7,8 @@ export default function AlertsPanel() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expandedSeverity, setExpandedSeverity] = useState('critical');
+  const [dismissedAlerts, setDismissedAlerts] = useState(new Set());
+  const [snoozedAlerts, setSnoozedAlerts] = useState(new Map());
 
   useEffect(() => {
     fetchAlerts();
@@ -81,14 +83,37 @@ export default function AlertsPanel() {
     low: alerts.filter(a => a.severity === 'low')
   };
 
+  // Filtrer les alertes snooze et dismiss
+  const filteredAlerts = alerts.filter(alert => {
+    if (dismissedAlerts.has(alert.id)) return false;
+    
+    const snoozedUntil = snoozedAlerts.get(alert.id);
+    if (snoozedUntil && new Date() < snoozedUntil) return false;
+    
+    return true;
+  });
+
+  const filteredGroupedAlerts = {
+    critical: filteredAlerts.filter(a => a.severity === 'critical'),
+    high: filteredAlerts.filter(a => a.severity === 'high'),
+    medium: filteredAlerts.filter(a => a.severity === 'medium'),
+    low: filteredAlerts.filter(a => a.severity === 'low')
+  };
+
   const handleMarkAsRead = (alertId) => {
-    // TODO: Implémenter marquage comme lu
-    console.log('Marquer comme lu:', alertId);
+    setDismissedAlerts(new Set([...dismissedAlerts, alertId]));
+  };
+
+  const handleSnooze = (alertId, minutes = 60) => {
+    const snoozeUntil = new Date(Date.now() + minutes * 60000);
+    setSnoozedAlerts(new Map(snoozedAlerts).set(alertId, snoozeUntil));
   };
 
   const handleTakeAction = (alert) => {
     // TODO: Implémenter action (arroser, fertiliser, etc.)
     console.log('Action:', alert.action, 'pour plante:', alert.plant_id);
+    // Après l'action, marquer comme lu
+    handleMarkAsRead(alert.id);
   };
 
   return (
@@ -110,32 +135,32 @@ export default function AlertsPanel() {
       {summary && (
         <div className="grid grid-cols-4 gap-4 mb-6 bg-gray-50 p-4 rounded-lg">
           <div
-            className="cursor-pointer"
+            className="cursor-pointer hover:bg-white rounded transition-colors p-2"
             onClick={() => setExpandedSeverity('critical')}
           >
             <p className="text-sm text-gray-600">🔴 Critique</p>
-            <p className="text-2xl font-bold text-red-600">{summary.critical_count || 0}</p>
+            <p className="text-2xl font-bold text-red-600">{filteredGroupedAlerts.critical.length}</p>
           </div>
           <div
-            className="cursor-pointer"
+            className="cursor-pointer hover:bg-white rounded transition-colors p-2"
             onClick={() => setExpandedSeverity('high')}
           >
             <p className="text-sm text-gray-600">🟠 Élevé</p>
-            <p className="text-2xl font-bold text-orange-600">{summary.high_count || 0}</p>
+            <p className="text-2xl font-bold text-orange-600">{filteredGroupedAlerts.high.length}</p>
           </div>
           <div
-            className="cursor-pointer"
+            className="cursor-pointer hover:bg-white rounded transition-colors p-2"
             onClick={() => setExpandedSeverity('medium')}
           >
             <p className="text-sm text-gray-600">🟡 Moyen</p>
-            <p className="text-2xl font-bold text-yellow-600">{summary.medium_count || 0}</p>
+            <p className="text-2xl font-bold text-yellow-600">{filteredGroupedAlerts.medium.length}</p>
           </div>
           <div
-            className="cursor-pointer"
+            className="cursor-pointer hover:bg-white rounded transition-colors p-2"
             onClick={() => setExpandedSeverity('low')}
           >
             <p className="text-sm text-gray-600">🟢 Faible</p>
-            <p className="text-2xl font-bold text-green-600">{summary.low_count || 0}</p>
+            <p className="text-2xl font-bold text-green-600">{filteredGroupedAlerts.low.length}</p>
           </div>
         </div>
       )}
@@ -145,7 +170,7 @@ export default function AlertsPanel() {
         <div className="text-center py-8">
           <p className="text-gray-500">Chargement des alertes...</p>
         </div>
-      ) : alerts.length === 0 ? (
+      ) : filteredAlerts.length === 0 ? (
         <div className="text-center py-8 bg-green-50 rounded-lg">
           <CheckCircle size={48} className="mx-auto text-green-600 mb-2" />
           <p className="text-green-700 font-semibold">Aucune alerte ! 🎉</p>
@@ -154,7 +179,7 @@ export default function AlertsPanel() {
       ) : (
         <div className="space-y-6">
           {severityOrder.map(severity => {
-            const severityAlerts = groupedAlerts[severity];
+            const severityAlerts = filteredGroupedAlerts[severity];
             if (severityAlerts.length === 0) return null;
 
             const isExpanded = expandedSeverity === severity;
@@ -185,17 +210,32 @@ export default function AlertsPanel() {
                 {/* Contenu de la section */}
                 {isExpanded && (
                   <div className="bg-gray-50 p-4 space-y-3">
-                    {severityAlerts.map(alert => (
+                    {severityAlerts.map(alert => {
+                      const isSnoozed = snoozedAlerts.has(alert.id) && new Date() < snoozedAlerts.get(alert.id);
+                      const isDismissed = dismissedAlerts.has(alert.id);
+                      
+                      if (isDismissed) return null;
+                      
+                      return (
                       <div
                         key={alert.id}
                         className={`p-4 rounded-lg border-l-4 flex items-start justify-between ${
-                          getSeverityColor(severity)
+                          isSnoozed ? 'opacity-60 bg-gray-100' : getSeverityColor(severity)
                         }`}
                       >
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900">
-                            {alert.plant_name}
-                          </p>
+                          <div className="flex items-start gap-2">
+                            <p className="font-semibold text-gray-900 flex-1">
+                              {alert.plant_name}
+                            </p>
+                            <button
+                              onClick={() => handleMarkAsRead(alert.id)}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              title="Fermer"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
                           <p className="text-sm text-gray-700 mt-1">
                             {alert.message}
                           </p>
@@ -204,29 +244,47 @@ export default function AlertsPanel() {
                               Depuis: {new Date(alert.date).toLocaleDateString('fr-FR')}
                             </p>
                           )}
+                          {isSnoozed && (
+                            <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                              <Clock size={12} />
+                              Masquée temporairement
+                            </p>
+                          )}
                         </div>
 
                         {/* Actions */}
-                        {alert.action !== 'none' && (
-                          <button
-                            onClick={() => handleTakeAction(alert)}
-                            className={`ml-4 px-3 py-2 rounded font-medium text-sm whitespace-nowrap transition-all ${
-                              severity === 'critical'
-                                ? 'bg-red-600 text-white hover:bg-red-700'
-                                : severity === 'high'
-                                ? 'bg-orange-600 text-white hover:bg-orange-700'
-                                : severity === 'medium'
-                                ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                                : 'bg-gray-400 text-white hover:bg-gray-500'
-                            }`}
-                          >
-                            {alert.action === 'water' && '💧 Arroser'}
-                            {alert.action === 'fertilize' && '🥗 Fertiliser'}
-                            {alert.action === 'check' && '👀 Vérifier'}
-                          </button>
-                        )}
+                        <div className="ml-4 flex gap-2 flex-shrink-0">
+                          {!isSnoozed && alert.action !== 'none' && (
+                            <button
+                              onClick={() => handleTakeAction(alert)}
+                              className={`px-3 py-2 rounded font-medium text-sm whitespace-nowrap transition-all ${
+                                severity === 'critical'
+                                  ? 'bg-red-600 text-white hover:bg-red-700'
+                                  : severity === 'high'
+                                  ? 'bg-orange-600 text-white hover:bg-orange-700'
+                                  : severity === 'medium'
+                                  ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                                  : 'bg-gray-400 text-white hover:bg-gray-500'
+                              }`}
+                            >
+                              {alert.action === 'water' && '💧'}
+                              {alert.action === 'fertilize' && '🥗'}
+                              {alert.action === 'check' && '👀'}
+                            </button>
+                          )}
+                          {!isSnoozed && (
+                            <button
+                              onClick={() => handleSnooze(alert.id, 60)}
+                              className="px-3 py-2 rounded font-medium text-sm bg-gray-300 text-gray-800 hover:bg-gray-400 transition-all"
+                              title="Masquer pendant 1h"
+                            >
+                              <Clock size={16} />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

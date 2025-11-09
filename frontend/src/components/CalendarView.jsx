@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { getCalendarEvents } from '../utils/api';
 
 export default function CalendarView() {
@@ -7,6 +7,7 @@ export default function CalendarView() {
   const [events, setEvents] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -14,12 +15,14 @@ export default function CalendarView() {
   useEffect(() => {
     const fetchCalendar = async () => {
       setLoading(true);
+      setError(null);
       try {
         const data = await getCalendarEvents(year, month);
         setEvents(data.events || []);
         setSummary(data.summary || {});
       } catch (error) {
         console.error('Erreur chargement calendrier:', error);
+        setError(error.message || 'Erreur lors du chargement');
         setEvents([]);
         setSummary({});
       } finally {
@@ -84,6 +87,12 @@ export default function CalendarView() {
     setCurrentDate(new Date(year, month, 1));
   };
 
+  const handleRefresh = async () => {
+    const data = await getCalendarEvents(year, month);
+    setEvents(data.events || []);
+    setSummary(data.summary || {});
+  };
+
   const formatDate = (day) => {
     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
@@ -107,7 +116,8 @@ export default function CalendarView() {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={handlePrevMonth}
-          className="p-2 hover:bg-gray-200 rounded-lg"
+          className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+          title="Mois précédent"
         >
           <ChevronLeft size={20} />
         </button>
@@ -116,13 +126,35 @@ export default function CalendarView() {
           {monthNames[month - 1]} {year}
         </h2>
 
-        <button
-          onClick={handleNextMonth}
-          className="p-2 hover:bg-gray-200 rounded-lg"
-        >
-          <ChevronRight size={20} />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="p-2 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+            title="Rafraîchir"
+          >
+            <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button
+            onClick={handleNextMonth}
+            className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+            title="Mois suivant"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
+          <AlertCircle size={20} className="text-red-600 flex-shrink-0" />
+          <div>
+            <p className="text-red-800 font-semibold">Erreur</p>
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Résumé */}
       {summary && (
