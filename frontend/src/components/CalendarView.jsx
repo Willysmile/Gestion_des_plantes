@@ -103,8 +103,8 @@ export default function CalendarView() {
 
   const handleOpenPlantModal = async (plantId) => {
     try {
-      const plant = await plantsAPI.getById(plantId);
-      setSelectedPlant(plant);
+      const response = await plantsAPI.getById(plantId);
+      setSelectedPlant(response.data || response);
     } catch (err) {
       console.error('Erreur lors du chargement de la plante:', err);
       setError('Erreur lors de l\'accès aux détails de la plante');
