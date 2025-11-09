@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, RefreshCw, AlertCircle, X, Droplets, Leaf, Check } from 'lucide-react';
 import { getCalendarEvents } from '../utils/api';
+import { plantsAPI } from '../lib/api';
 import { API_CONFIG } from '../config';
+import PlantDetailModal from './PlantDetailModal';
 
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -13,6 +15,7 @@ export default function CalendarView() {
   const [selectedDay, setSelectedDay] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionSuccess, setActionSuccess] = useState(null);
+  const [selectedPlant, setSelectedPlant] = useState(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -96,6 +99,20 @@ export default function CalendarView() {
     const data = await getCalendarEvents(year, month);
     setEvents(data.events || []);
     setSummary(data.summary || {});
+  };
+
+  const handleOpenPlantModal = async (plantId) => {
+    try {
+      const plant = await plantsAPI.getById(plantId);
+      setSelectedPlant(plant);
+    } catch (err) {
+      console.error('Erreur lors du chargement de la plante:', err);
+      setError('Erreur lors de l\'accès aux détails de la plante');
+    }
+  };
+
+  const handleClosePlantModal = () => {
+    setSelectedPlant(null);
   };
 
   const formatDate = (day) => {
@@ -388,11 +405,7 @@ export default function CalendarView() {
                     <div className="flex-1">
                       <p 
                         className="font-semibold text-gray-800 cursor-pointer hover:text-blue-600 hover:underline"
-                        onClick={() => {
-                          // Ouvrir modale de détail plante
-                          // Cette fonctionnalité sera implémentée ensuite
-                          console.log('Click sur plante:', event.plant_id);
-                        }}
+                        onClick={() => handleOpenPlantModal(event.plant_id)}
                         title="Cliquer pour voir les détails de la plante"
                       >
                         {event.plant_name}
@@ -479,6 +492,14 @@ export default function CalendarView() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modale de détail plante - Affichée par-dessus la modale calendrier */}
+      {selectedPlant && (
+        <PlantDetailModal 
+          plant={selectedPlant} 
+          onClose={handleClosePlantModal}
+        />
       )}
     </div>
   );

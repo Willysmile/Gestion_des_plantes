@@ -621,7 +621,7 @@ export default function PlantDetailModal({ plant: initialPlant, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-1"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-1"
       onClick={onClose}
     >
       <div
