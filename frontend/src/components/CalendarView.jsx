@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, RefreshCw, AlertCircle, X, Droplets, Leaf } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, AlertCircle, X, Droplets, Leaf, Check } from 'lucide-react';
 import { getCalendarEvents } from '../utils/api';
+import { API_CONFIG } from '../config';
 
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -10,6 +11,8 @@ export default function CalendarView() {
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionSuccess, setActionSuccess] = useState(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -98,6 +101,68 @@ export default function CalendarView() {
   const formatDate = (day) => {
     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
+
+  const handleWaterPlant = async (plantId, eventDate) => {
+    try {
+      setActionLoading(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/plants/${plantId}/watering-history`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: eventDate,
+            quantity_ml: 250,
+            notes: 'Arrosage manuel depuis le calendrier'
+          })
+        }
+      );
+
+      if (!response.ok) throw new Error('Erreur lors de l\'arrosage');
+
+      setActionSuccess('✅ Arrosage enregistré !');
+      setTimeout(() => setActionSuccess(null), 3000);
+      
+      // Rafraîchir le calendrier
+      await handleRefresh();
+    } catch (err) {
+      console.error('Erreur:', err);
+      setError('Erreur lors de l\'arrosage');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleFertilizePlant = async (plantId, eventDate) => {
+    try {
+      setActionLoading(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/plants/${plantId}/fertilizing-history`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: eventDate,
+            fertilizer_type: 'engrais complet',
+            notes: 'Fertilisation manuelle depuis le calendrier'
+          })
+        }
+      );
+
+      if (!response.ok) throw new Error('Erreur lors de la fertilisation');
+
+      setActionSuccess('✅ Fertilisation enregistrée !');
+      setTimeout(() => setActionSuccess(null), 3000);
+      
+      // Rafraîchir le calendrier
+      await handleRefresh();
+    } catch (err) {
+      console.error('Erreur:', err);
+      setError('Erreur lors de la fertilisation');
+    } finally {
+      setActionLoading(false);
+    }
+  }
 
   const getEventsForDay = (day) => {
     if (!day) return [];
@@ -296,6 +361,14 @@ export default function CalendarView() {
               </button>
             </div>
 
+            {/* Message de succès */}
+            {actionSuccess && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+                <Check size={16} />
+                {actionSuccess}
+              </div>
+            )}
+
             {/* Événements du jour */}
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {eventsByDate[selectedDate]?.map((event, idx) => (
@@ -323,15 +396,41 @@ export default function CalendarView() {
                   {/* Boutons d'action */}
                   <div className="flex gap-2 mt-3">
                     {event.type === 'watering' && (
-                      <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                        <Droplets size={14} />
-                        Arroser
+                      <button 
+                        onClick={() => handleWaterPlant(event.plant_id, selectedDate)}
+                        disabled={actionLoading}
+                        className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                      >
+                        {actionLoading ? (
+                          <>
+                            <RefreshCw size={14} className="animate-spin" />
+                            En cours...
+                          </>
+                        ) : (
+                          <>
+                            <Droplets size={14} />
+                            Arroser
+                          </>
+                        )}
                       </button>
                     )}
                     {event.type === 'fertilizing' && (
-                      <button className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                        <Leaf size={14} />
-                        Fertiliser
+                      <button 
+                        onClick={() => handleFertilizePlant(event.plant_id, selectedDate)}
+                        disabled={actionLoading}
+                        className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                      >
+                        {actionLoading ? (
+                          <>
+                            <RefreshCw size={14} className="animate-spin" />
+                            En cours...
+                          </>
+                        ) : (
+                          <>
+                            <Leaf size={14} />
+                            Fertiliser
+                          </>
+                        )}
                       </button>
                     )}
                   </div>
