@@ -103,11 +103,15 @@ export default function CalendarView() {
   };
 
   const getWateringCount = (day) => {
-    return getEventsForDay(day).filter(e => e.type === 'watering').length;
+    return getEventsForDay(day).filter(e => e.type === 'watering' && !e.is_predicted).length;
+  };
+
+  const getPredictedWateringCount = (day) => {
+    return getEventsForDay(day).filter(e => e.type === 'watering' && e.is_predicted).length;
   };
 
   const getFertilizingCount = (day) => {
-    return getEventsForDay(day).filter(e => e.type === 'fertilizing').length;
+    return getEventsForDay(day).filter(e => e.type === 'fertilizing' && !e.is_predicted).length;
   };
 
   return (
@@ -165,7 +169,12 @@ export default function CalendarView() {
           </div>
           <div>
             <p className="text-sm text-gray-600">Arrosages</p>
-            <p className="text-2xl font-bold text-blue-400">{summary.water_events || 0}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-2xl font-bold text-blue-400">{summary.water_events || 0}</p>
+              {(summary.water_events_predicted || 0) > 0 && (
+                <p className="text-sm text-blue-300">+{summary.water_events_predicted} prédits</p>
+              )}
+            </div>
           </div>
           <div>
             <p className="text-sm text-gray-600">Fertilisations</p>
@@ -203,6 +212,7 @@ export default function CalendarView() {
 
               const dayEvents = getEventsForDay(day);
               const wateringCount = getWateringCount(day);
+              const predictedWateringCount = getPredictedWateringCount(day);
               const fertilizingCount = getFertilizingCount(day);
               const hasEvents = dayEvents.length > 0;
 
@@ -214,16 +224,22 @@ export default function CalendarView() {
                       ? 'border-green-400 bg-green-50'
                       : 'border-gray-200 bg-white'
                   }`}
-                  title={dayEvents.map(e => `${e.plant_name} (${e.type})`).join('\n')}
+                  title={dayEvents.map(e => `${e.plant_name} (${e.type})${e.is_predicted ? ' [prédit]' : ''}`).join('\n')}
                 >
                   <p className="font-bold text-sm mb-1">{day}</p>
 
                   {hasEvents && (
-                    <div className="text-xs space-y-1">
+                    <div className="text-xs space-y-0.5">
                       {wateringCount > 0 && (
                         <div className="flex items-center text-blue-600">
                           <span className="inline-block w-2 h-2 bg-blue-400 rounded-full mr-1" />
                           <span>{wateringCount} arrosage{wateringCount > 1 ? 's' : ''}</span>
+                        </div>
+                      )}
+                      {predictedWateringCount > 0 && (
+                        <div className="flex items-center text-blue-400">
+                          <span className="inline-block w-2 h-2 bg-blue-300 rounded-full mr-1" style={{opacity: 0.5}} />
+                          <span className="italic opacity-75">{predictedWateringCount} prédit{predictedWateringCount > 1 ? 's' : ''}</span>
                         </div>
                       )}
                       {fertilizingCount > 0 && (
@@ -246,10 +262,14 @@ export default function CalendarView() {
       )}
 
       {/* Légende */}
-      <div className="mt-6 pt-6 border-t flex gap-6 text-sm">
+      <div className="mt-6 pt-6 border-t flex gap-6 text-sm flex-wrap">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-blue-400 rounded-full" />
           <span className="text-gray-700">Arrosage</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-blue-300 rounded-full opacity-50" />
+          <span className="text-gray-600 italic">Arrosage prédit</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-amber-400 rounded-full" />
