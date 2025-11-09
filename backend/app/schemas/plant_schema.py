@@ -162,11 +162,11 @@ class PlantResponse(BaseModel):
     soil_humidity: Optional[str] = None
     soil_type: Optional[str] = None
     pot_size: Optional[str] = None
-    is_indoor: bool
-    is_outdoor: bool
-    is_favorite: bool
-    is_toxic: bool
-    is_archived: bool
+    is_indoor: Optional[bool] = False
+    is_outdoor: Optional[bool] = False
+    is_favorite: Optional[bool] = False
+    is_toxic: Optional[bool] = False
+    is_archived: Optional[bool] = False
     archived_date: Optional[datetime] = None
     archived_reason: Optional[str] = None
     deleted_at: Optional[datetime] = None
@@ -186,8 +186,8 @@ class PlantListResponse(BaseModel):
     scientific_name: Optional[str] = None
     health_status: Optional[str] = None
     location_id: Optional[int] = None
-    is_favorite: bool
-    is_archived: bool
+    is_favorite: Optional[bool] = False
+    is_archived: Optional[bool] = False
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)

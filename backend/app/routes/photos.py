@@ -150,7 +150,7 @@ async def get_photo_file(
     thumb: bool = Query(False),
     db: Session = Depends(get_db)
 ):
-    """Servir le fichier photo WebP ou thumbnail"""
+    """Servir le fichier photo JPG"""
     # Vérifier que la photo existe en DB
     photo = db.query(PhotoModel).filter(
         PhotoModel.plant_id == plant_id,
@@ -160,17 +160,23 @@ async def get_photo_file(
     if not photo:
         raise HTTPException(status_code=404, detail="Photo non trouvée")
     
-    # Construire le chemin du fichier
-    if thumb:
-        file_path = settings.PHOTOS_DIR / str(plant_id) / "thumbs" / filename
-    else:
-        file_path = settings.PHOTOS_DIR / str(plant_id) / filename
+    # Construire le chemin du fichier - les photos sont directement dans /data/photos/
+    file_path = settings.PHOTOS_DIR / filename
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Fichier non trouvé")
     
+    # Détecter le type MIME selon l'extension
+    media_type = "image/jpeg"
+    if filename.lower().endswith(".png"):
+        media_type = "image/png"
+    elif filename.lower().endswith(".webp"):
+        media_type = "image/webp"
+    elif filename.lower().endswith(".gif"):
+        media_type = "image/gif"
+    
     return FileResponse(
         path=file_path,
-        media_type="image/webp",
+        media_type=media_type,
         filename=filename
     )
