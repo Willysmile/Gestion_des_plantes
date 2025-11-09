@@ -363,29 +363,25 @@ class StatsService:
                     ).order_by(WateringHistory.date.desc()).first()
                     
                     if last_watering:
-                        # Calculer les prochains arrosages à partir du dernier
+                        # Calculer le PROCHAIN arrosage à partir du dernier
                         current_date = last_watering.date
                         if isinstance(current_date, str):
                             current_date = datetime.fromisoformat(current_date).date()
                         
-                        # Générer les prédictions jusqu'à la fin du mois
-                        while True:
-                            next_date = current_date + timedelta(days=freq_obj.days_interval)
-                            if next_date > last_day:
-                                break
-                            if next_date >= first_day:  # Dans le mois courant
-                                event_key = f"{next_date.isoformat()}-watering-{plant.id}"
-                                if event_key not in dates_used:
-                                    events.append({
-                                        "date": next_date.isoformat(),
-                                        "type": "watering",
-                                        "plant_id": plant.id,
-                                        "plant_name": plant.name,
-                                        "count": 1,
-                                        "is_predicted": True
-                                    })
-                                    dates_used.add(event_key)
-                            current_date = next_date
+                        # Générer UNE SEULE prédiction (le prochain arrosage)
+                        next_date = current_date + timedelta(days=freq_obj.days_interval)
+                        if next_date <= last_day and next_date >= first_day:  # Dans le mois courant
+                            event_key = f"{next_date.isoformat()}-watering-{plant.id}"
+                            if event_key not in dates_used:
+                                events.append({
+                                    "date": next_date.isoformat(),
+                                    "type": "watering",
+                                    "plant_id": plant.id,
+                                    "plant_name": plant.name,
+                                    "count": 1,
+                                    "is_predicted": True
+                                })
+                                dates_used.add(event_key)
             
             # Compter les événements par type
             watering_count = len([e for e in events if e["type"] == "watering" and not e.get("is_predicted", False)])
