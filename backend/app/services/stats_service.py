@@ -8,6 +8,7 @@ from sqlalchemy import func, cast, Date
 
 from app.models.plant import Plant
 from app.models.histories import WateringHistory, FertilizingHistory
+from app.models.lookup import WateringFrequency
 
 
 class StatsService:
@@ -272,10 +273,11 @@ class StatsService:
     def get_calendar_events(db: Session, year: int, month: int) -> dict:
         """
         Récupère tous les événements pour un mois donné
-        Retourne les arrosages et fertilisations par date
+        Retourne les arrosages et fertilisations par date (passés ET prédits)
         """
         try:
             from calendar import monthrange
+            from sqlalchemy.orm import joinedload
             
             # Vérifier la validité du mois
             if month < 1 or month > 12:
@@ -289,8 +291,9 @@ class StatsService:
             last_day = datetime(year, month, days_in_month).date()
             
             events = []
+            dates_used = set()  # Pour éviter les doublons
             
-            # Récupérer tous les arrosages du mois
+            # 1. Récupérer tous les arrosages HISTORIQUES du mois
             waterings = db.query(
                 func.date(WateringHistory.date).label("event_date"),
                 WateringHistory.plant_id,
@@ -304,15 +307,18 @@ class StatsService:
             for watering in waterings:
                 plant = db.query(Plant).filter(Plant.id == watering.plant_id).first()
                 if plant:
+                    event_key = f"{watering.event_date}-watering-{watering.plant_id}"
                     events.append({
                         "date": watering.event_date if isinstance(watering.event_date, str) else watering.event_date.isoformat(),
                         "type": "watering",
                         "plant_id": watering.plant_id,
                         "plant_name": plant.name,
-                        "count": watering.count
+                        "count": watering.count,
+                        "is_predicted": False
                     })
+                    dates_used.add(event_key)
             
-            # Récupérer toutes les fertilisations du mois
+            # 2. Récupérer toutes les fertilisations HISTORIQUES du mois
             fertilizings = db.query(
                 func.date(FertilizingHistory.date).label("event_date"),
                 FertilizingHistory.plant_id,
@@ -326,17 +332,65 @@ class StatsService:
             for fertilizing in fertilizings:
                 plant = db.query(Plant).filter(Plant.id == fertilizing.plant_id).first()
                 if plant:
+                    event_key = f"{fertilizing.event_date}-fertilizing-{fertilizing.plant_id}"
                     events.append({
                         "date": fertilizing.event_date if isinstance(fertilizing.event_date, str) else fertilizing.event_date.isoformat(),
                         "type": "fertilizing",
                         "plant_id": fertilizing.plant_id,
                         "plant_name": plant.name,
-                        "count": fertilizing.count
+                        "count": fertilizing.count,
+                        "is_predicted": False
                     })
+                    dates_used.add(event_key)
+            
+            # 3. AJOUTER LES PRÉDICTIONS D'ARROSAGES FUTURS basées sur la fréquence
+            plants_with_freq = db.query(Plant).filter(
+                Plant.watering_frequency_id != None,
+                Plant.is_archived == False
+            ).all()
+            
+            for plant in plants_with_freq:
+                # Récupérer la fréquence d'arrosage
+                freq_obj = db.query(WateringFrequency).filter(
+                    WateringFrequency.id == plant.watering_frequency_id
+                ).first()
+                
+                if freq_obj and freq_obj.days_interval:
+                    # Trouver le dernier arrosage
+                    last_watering = db.query(WateringHistory).filter(
+                        WateringHistory.plant_id == plant.id,
+                        WateringHistory.deleted_at == None
+                    ).order_by(WateringHistory.date.desc()).first()
+                    
+                    if last_watering:
+                        # Calculer les prochains arrosages à partir du dernier
+                        current_date = last_watering.date
+                        if isinstance(current_date, str):
+                            current_date = datetime.fromisoformat(current_date).date()
+                        
+                        # Générer les prédictions jusqu'à la fin du mois
+                        while True:
+                            next_date = current_date + timedelta(days=freq_obj.days_interval)
+                            if next_date > last_day:
+                                break
+                            if next_date >= first_day:  # Dans le mois courant
+                                event_key = f"{next_date.isoformat()}-watering-{plant.id}"
+                                if event_key not in dates_used:
+                                    events.append({
+                                        "date": next_date.isoformat(),
+                                        "type": "watering",
+                                        "plant_id": plant.id,
+                                        "plant_name": plant.name,
+                                        "count": 1,
+                                        "is_predicted": True
+                                    })
+                                    dates_used.add(event_key)
+                            current_date = next_date
             
             # Compter les événements par type
-            watering_count = len([e for e in events if e["type"] == "watering"])
-            fertilizing_count = len([e for e in events if e["type"] == "fertilizing"])
+            watering_count = len([e for e in events if e["type"] == "watering" and not e.get("is_predicted", False)])
+            watering_predicted = len([e for e in events if e["type"] == "watering" and e.get("is_predicted", False)])
+            fertilizing_count = len([e for e in events if e["type"] == "fertilizing" and not e.get("is_predicted", False)])
             
             # Résumé
             summary = {
@@ -345,6 +399,7 @@ class StatsService:
                 "total_days": days_in_month,
                 "active_days": len(set(e["date"] for e in events)),
                 "water_events": watering_count,
+                "water_events_predicted": watering_predicted,
                 "fertilize_events": fertilizing_count,
                 "total_events": len(events)
             }
