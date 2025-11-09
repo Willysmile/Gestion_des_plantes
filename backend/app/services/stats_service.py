@@ -384,35 +384,58 @@ class StatsService:
                     })
                     dates_used.add(event_key)
             
-            # 3. AJOUTER LES PRÉDICTIONS D'ARROSAGES FUTURS basées sur la fréquence
-            plants_with_freq = db.query(Plant).filter(
-                Plant.watering_frequency_id != None,
+            # 3. AJOUTER LES PRÉDICTIONS D'ARROSAGES FUTURS basées sur la fréquence SAISONNIÈRE
+            plants = db.query(Plant).filter(
                 Plant.is_archived == False
             ).all()
             
-            for plant in plants_with_freq:
-                # Récupérer la fréquence d'arrosage
-                freq_obj = db.query(WateringFrequency).filter(
-                    WateringFrequency.id == plant.watering_frequency_id
-                ).first()
+            for plant in plants:
+                # Trouver le dernier arrosage
+                last_watering = db.query(WateringHistory).filter(
+                    WateringHistory.plant_id == plant.id,
+                    WateringHistory.deleted_at == None
+                ).order_by(WateringHistory.date.desc()).first()
                 
-                if freq_obj and freq_obj.days_interval:
-                    # Trouver le dernier arrosage
-                    last_watering = db.query(WateringHistory).filter(
-                        WateringHistory.plant_id == plant.id,
-                        WateringHistory.deleted_at == None
-                    ).order_by(WateringHistory.date.desc()).first()
+                if last_watering:
+                    # Calculer le PROCHAIN arrosage à partir du dernier
+                    current_date = last_watering.date
+                    if isinstance(current_date, str):
+                        current_date = datetime.fromisoformat(current_date).date()
                     
-                    if last_watering:
-                        # Calculer le PROCHAIN arrosage à partir du dernier
-                        current_date = last_watering.date
-                        if isinstance(current_date, str):
-                            current_date = datetime.fromisoformat(current_date).date()
-                        
-                        last_watering_date_str = current_date.isoformat() if isinstance(current_date, date) else current_date
-                        
-                        # Générer UNE SEULE prédiction (le prochain arrosage)
-                        next_date = current_date + timedelta(days=freq_obj.days_interval)
+                    last_watering_date_str = current_date.isoformat() if isinstance(current_date, date) else current_date
+                    
+                    # Déterminer la saison du mois actuel
+                    current_month = month
+                    current_season = db.query(Season).filter(
+                        ((Season.start_month <= Season.end_month) & (Season.start_month <= current_month) & (current_month <= Season.end_month)) |
+                        ((Season.start_month > Season.end_month) & ((current_month >= Season.start_month) | (current_month <= Season.end_month)))
+                    ).first()
+                    
+                    # Récupérer la fréquence saisonnière, sinon la fréquence par défaut
+                    seasonal_freq_days = None
+                    if current_season:
+                        seasonal_watering = db.query(PlantSeasonalWatering).filter(
+                            PlantSeasonalWatering.plant_id == plant.id,
+                            PlantSeasonalWatering.season_id == current_season.id
+                        ).first()
+                        if seasonal_watering and seasonal_watering.watering_frequency_id:
+                            freq_obj = db.query(WateringFrequency).filter(
+                                WateringFrequency.id == seasonal_watering.watering_frequency_id
+                            ).first()
+                            if freq_obj:
+                                seasonal_freq_days = freq_obj.days_interval
+                    
+                    # Si pas de fréquence saisonnière, utiliser la fréquence par défaut
+                    if seasonal_freq_days is None and plant.watering_frequency_id:
+                        freq_obj = db.query(WateringFrequency).filter(
+                            WateringFrequency.id == plant.watering_frequency_id
+                        ).first()
+                        if freq_obj:
+                            seasonal_freq_days = freq_obj.days_interval
+                    
+                    # Générer UNE SEULE prédiction (le prochain arrosage)
+                    if seasonal_freq_days:
+                        next_date = current_date + timedelta(days=seasonal_freq_days)
                         if next_date <= last_day and next_date >= first_day:  # Dans le mois courant
                             event_key = f"{next_date.isoformat()}-watering-{plant.id}"
                             if event_key not in dates_used:
