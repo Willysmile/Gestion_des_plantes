@@ -102,16 +102,22 @@ export default function CalendarView() {
     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
-  const handleWaterPlant = async (plantId, eventDate) => {
+  const getTodayDate = () => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  };
+
+  const handleWaterPlant = async (plantId) => {
     try {
       setActionLoading(true);
+      const todayDate = getTodayDate();
       const response = await fetch(
         `${API_CONFIG.BASE_URL}/plants/${plantId}/watering-history`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            date: eventDate,
+            date: todayDate,
             quantity_ml: 250,
             notes: 'Arrosage manuel depuis le calendrier'
           })
@@ -133,16 +139,17 @@ export default function CalendarView() {
     }
   };
 
-  const handleFertilizePlant = async (plantId, eventDate) => {
+  const handleFertilizePlant = async (plantId) => {
     try {
       setActionLoading(true);
+      const todayDate = getTodayDate();
       const response = await fetch(
         `${API_CONFIG.BASE_URL}/plants/${plantId}/fertilizing-history`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            date: eventDate,
+            date: todayDate,
             fertilizer_type: 'engrais complet',
             notes: 'Fertilisation manuelle depuis le calendrier'
           })
@@ -397,7 +404,7 @@ export default function CalendarView() {
                   <div className="flex gap-2 mt-3">
                     {event.type === 'watering' && (
                       <button 
-                        onClick={() => handleWaterPlant(event.plant_id, selectedDate)}
+                        onClick={() => handleWaterPlant(event.plant_id)}
                         disabled={actionLoading}
                         className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
                       >
@@ -416,7 +423,7 @@ export default function CalendarView() {
                     )}
                     {event.type === 'fertilizing' && (
                       <button 
-                        onClick={() => handleFertilizePlant(event.plant_id, selectedDate)}
+                        onClick={() => handleFertilizePlant(event.plant_id)}
                         disabled={actionLoading}
                         className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
                       >
