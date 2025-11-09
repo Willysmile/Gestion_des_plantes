@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, RefreshCw, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, AlertCircle, X, Droplets, Leaf } from 'lucide-react';
 import { getCalendarEvents } from '../utils/api';
 
 export default function CalendarView() {
@@ -8,6 +8,8 @@ export default function CalendarView() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -149,14 +151,11 @@ export default function CalendarView() {
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Erreur */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
-          <AlertCircle size={20} className="text-red-600 flex-shrink-0" />
-          <div>
-            <p className="text-red-800 font-semibold">Erreur</p>
-            <p className="text-red-700 text-sm">{error}</p>
-          </div>
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 rounded-lg flex items-center gap-2 text-red-700">
+          <AlertCircle size={20} />
+          <span>{error}</span>
         </div>
       )}
 
@@ -169,12 +168,7 @@ export default function CalendarView() {
           </div>
           <div>
             <p className="text-sm text-gray-600">Arrosages</p>
-            <div className="flex items-center gap-2">
-              <p className="text-2xl font-bold text-blue-400">{summary.water_events || 0}</p>
-              {(summary.water_events_predicted || 0) > 0 && (
-                <p className="text-sm text-blue-300">+{summary.water_events_predicted} prédits</p>
-              )}
-            </div>
+            <p className="text-2xl font-bold text-blue-400">{summary.water_events || 0}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Fertilisations</p>
@@ -188,13 +182,8 @@ export default function CalendarView() {
       )}
 
       {/* Calendrier */}
-      {loading ? (
-        <div className="text-center py-8">
-          <p className="text-gray-500">Chargement du calendrier...</p>
-        </div>
-      ) : (
-        <div>
-          {/* Jours de la semaine */}
+      {!loading && (
+        <div className="mb-6">
           <div className="grid grid-cols-7 gap-2 mb-2">
             {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => (
               <div key={day} className="text-center font-semibold text-gray-600 text-sm py-2">
@@ -219,6 +208,12 @@ export default function CalendarView() {
               return (
                 <div
                   key={day}
+                  onClick={() => {
+                    if (hasEvents) {
+                      setSelectedDate(formatDate(day));
+                      setSelectedDay(day);
+                    }
+                  }}
                   className={`h-24 p-2 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
                     hasEvents
                       ? 'border-green-400 bg-green-50'
@@ -280,6 +275,72 @@ export default function CalendarView() {
           <span className="text-gray-700">Jour avec événements</span>
         </div>
       </div>
+
+      {/* Modale des événements du jour */}
+      {selectedDate && selectedDay && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold">
+                {selectedDay} {monthNames[month - 1]} {year}
+              </h3>
+              <button
+                onClick={() => {
+                  setSelectedDate(null);
+                  setSelectedDay(null);
+                }}
+                className="p-1 hover:bg-gray-200 rounded transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Événements du jour */}
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {eventsByDate[selectedDate]?.map((event, idx) => (
+                <div key={idx} className={`p-3 rounded-lg border-l-4 ${
+                  event.type === 'watering' 
+                    ? 'border-l-blue-400 bg-blue-50' 
+                    : 'border-l-amber-400 bg-amber-50'
+                }`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="font-semibold text-gray-800">{event.plant_name}</p>
+                      <p className="text-xs text-gray-600">
+                        {event.type === 'watering' ? 'Arrosage' : 'Fertilisation'}
+                        {event.is_predicted ? ' (prédit)' : ' (réel)'}
+                      </p>
+                    </div>
+                    {event.type === 'watering' && (
+                      <Droplets size={18} className="text-blue-400 mt-1" />
+                    )}
+                    {event.type === 'fertilizing' && (
+                      <Leaf size={18} className="text-amber-400 mt-1" />
+                    )}
+                  </div>
+
+                  {/* Boutons d'action */}
+                  <div className="flex gap-2 mt-3">
+                    {event.type === 'watering' && (
+                      <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                        <Droplets size={14} />
+                        Arroser
+                      </button>
+                    )}
+                    {event.type === 'fertilizing' && (
+                      <button className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                        <Leaf size={14} />
+                        Fertiliser
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
