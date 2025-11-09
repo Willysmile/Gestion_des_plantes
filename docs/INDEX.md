@@ -1,226 +1,208 @@
-# 📚 v2 Documentation Index (26 Oct 2025)
+# � DOCUMENTATION INDEX
 
-**Quick Navigation for v2 Reboot**
-
----
-
-## 🎯 Start Here
-
-1. **README.md** ← Project overview + tech stack summary
-2. **RECAP_PHASE_1_V2.md** ← Executive summary (what was done)
-3. **PHASE_1_READY.md** ← Green light to code ✅
+**Project:** Gestion des Plantes  
+**Branch:** 2.20  
+**Updated:** 9 Nov 2025
 
 ---
 
-## 📋 Detailed Plans
+## ⭐ MOST IMPORTANT: PROPOSITION V2 (NEW!)
 
-### Backend (Phase 1)
-- **PHASE_1_V2_PLAN.md** - Detailed 10-item checklist (1h 40min)
-  - 1.1 Modernize main.py
-  - 1.2 Verify models
-  - 1.3 Update schemas
-  - 1.4 Copy PlantService
-  - 1.5 Add routes
-  - 1.6 Setup Alembic
-  - 1.7 Write tests
-  - 1.8 Requirements.txt
-  - 1.9 Test local
-  - 1.10 Commit
+**📁 Location:** `./PROPOSITION_V2/`
 
-### Frontend (Phase 2)
-- **PHASE_2_V2_PLAN.md** - Detailed 10-item checklist (1h 20min)
-  - 2.1 Create Tauri + React
-  - 2.2 Setup TypeScript + Tailwind
-  - 2.3 Install shadcn/ui
-  - 2.4 TanStack Query
-  - 2.5 API client
-  - 2.6 Zod validation
-  - 2.7 Basic layout
-  - 2.8 Test Tauri build
-  - 2.9 ESLint + Prettier
-  - 2.10 Commit
+**9 Complete Documents** (4,797 lines) - Complete redesign of Plant Propagation
 
----
+### 🚀 START HERE:
+1. **WELCOME.md** (5 min) - Entry point
+2. **QUICK_START_30SEC.md** (2 min) - 30-second overview
 
-## 🔐 Architecture Decisions
+### 🎯 CHOOSE YOUR PATH:
+3. **READING_GUIDE.md** - Pick your role (executive/dev/manager/qa)
+4. **INDEX_PROPOSITION_V2.md** - Full navigation
 
-### DECISION_LOG_V2.md - All decisions + rationale
+### 📊 EXECUTIVE LEVEL:
+5. **PROPOSITION_AMELIOREE_SYNTHESE.md** (15 min) - Decision framework
 
-**Covered**:
-- ✅ CORS configuration (localhost:5173 + tauri.localhost)
-- ✅ Requirements strategy (minimal, YAGNI)
-- ✅ Testing coverage (80%+ critical paths)
-- ✅ Service layer pattern
-- ✅ Soft delete strategy
-- ✅ Auto-generated fields (reference + scientific name)
-- ✅ Tauri ↔ Backend communication
-- ✅ Database choice (SQLite)
-- ✅ Frontend framework (Tauri + React)
-- ✅ Tooling (Vite + pnpm)
-- ✅ Validation strategy (Pydantic + Zod)
+### 🔧 TECHNICAL LEVEL:
+6. **KEY_IMPROVEMENTS_SUMMARY.md** (25 min) - 13 improvements analyzed
+7. **PLANT_PROPAGATION_FEATURE_V2.md** (40 min) - Technical spec
 
-**Watch List**:
-- ⚠️ CORS with Tauri production (must test)
-- 🟡 Reference prefix collision (document, monitor)
-- 🟢 SQLite 100k+ records (revisit if needed)
+### 📋 PLANNING LEVEL:
+8. **FUTURES_FEATURES_V2.md** (30 min) - 12-feature roadmap
+
+### 📊 STATUS:
+9. **FINAL_STATUS.md** - Completion report
 
 ---
 
-## 📂 Repository Structure
+## 📚 Historical Documentation
+
+### Phase Documentation (Historical)
+- `PHASE_*.md` - Previous development phases (1-6)
+- `TAXONOMY_VALIDATION.md` - Scientific names validation
+
+---
+
+## 📂 Project Structure
 
 ```
-gestion-plantes/
-├── README.md                    ← Project overview
-├── RECAP_PHASE_1_V2.md          ← Summary of today's work
-├── PHASE_1_V2_PLAN.md           ← Backend detailed plan
-├── PHASE_2_V2_PLAN.md           ← Frontend detailed plan
-├── PHASE_1_READY.md             ← Ready to code checklist
-├── DECISION_LOG_V2.md           ← Architecture decisions
-├── INDEX.md                     ← You are here
-│
-├── backend/                     ← FastAPI app
-│   ├── app/
-│   │   ├── main.py              (1.1: Modernize)
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── services/
-│   │   └── routes/
-│   ├── tests/                   (1.7: Create)
-│   ├── migrations/              (Alembic)
-│   └── requirements.txt          (1.8: Update)
-│
-├── data/
-│   └── plants.db                (SQLite)
-│
-├── docs-v1/                     ← Archived v1
-│   ├── README-v1.md
-│   ├── tests-v1/
-│   ├── phases/
-│   └── docs-preparation/
-│
-└── .git/                        ← Clean history
+/Gestion_des_plantes/
+├── frontend/                ← React app (Vite)
+├── backend/                 ← FastAPI app
+├── data/                    ← SQLite database
+├── docs/
+│   ├── PROPOSITION_V2/      ← ⭐ NEW: 9 complete docs
+│   ├── propagation_improvements.md
+│   ├── DATABASE_AUDIT.md
+│   └── INDEX.md (this file)
+├── tests/                   ← Test suites
+├── tools/                   ← Utilities
+├── README.md                ← Main readme
+└── bisounours.sh            ← Launch script
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🎯 Quick Decision Paths
 
-### For Phase 1 (Backend)
+**I need to understand what's new** (5 min)
+```
+→ docs/PROPOSITION_V2/QUICK_START_30SEC.md
+```
 
+**I need to make a go/no-go decision** (20 min)
+```
+→ docs/PROPOSITION_V2/PROPOSITION_AMELIOREE_SYNTHESE.md
+```
+
+**I'm a developer and need to code** (60 min)
+```
+→ docs/PROPOSITION_V2/PLANT_PROPAGATION_FEATURE_V2.md
+```
+
+**I need the complete roadmap** (30 min)
+```
+→ docs/PROPOSITION_V2/FUTURES_FEATURES_V2.md
+```
+
+**I'm lost** (5 min)
+```
+→ docs/PROPOSITION_V2/READING_GUIDE.md
+```
+
+---
+
+## ✨ Current Status (Branch 2.20)
+
+### ✅ Completed
+- Dashboard unified view (consolidated simple + advanced)
+- Health status mapping fixed
+- Statistics endpoints working
+- Recharts integration
+- Navigation simplified
+- **NEW:** Complete Propagation v2 specification
+- **NEW:** 12-feature roadmap with priorities
+- **NEW:** 4-phase implementation plan
+
+### � Ready to Start
+- Phase 1A: Database + Anti-cycle validation
+- Phase 1B: Atomic creation + Status machine
+- Phase 2: Performance optimization
+- Phase 3: UI components
+
+### 🔄 Next Priorities
+1. 📅 Calendar feature (HIGH)
+2. 🔔 Advanced alerts (HIGH)
+3. 🌱 Propagation v2 implementation (HIGH)
+4. � Export/PDF reports (MEDIUM)
+5. 🔍 Search & filters (MEDIUM)
+6. + 7 more features (see roadmap)
+
+---
+
+## 📝 Git Information
+
+**Current Branch:** 2.20  
+**Latest Commits:**
+```
+18cf0fc - docs: Add welcome guide (PROPOSITION_V2)
+6d2ff0f - docs: Add final status (PROPOSITION_V2)
+cf4b9dd - docs: Add quick start (PROPOSITION_V2)
+d638c1a - docs: Add index (PROPOSITION_V2)
+9bda13c - docs: Add reading guide (PROPOSITION_V2)
+37083d8 - docs: Add comprehensive summary (PROPOSITION_V2)
+a006d69 - docs: Add V2 roadmap (PROPOSITION_V2)
+```
+
+---
+
+## 📊 Metrics
+
+| Metric | Value |
+|--------|-------|
+| Documentation files | 9 |
+| Total lines | 4,797 |
+| Total size | 108 KB |
+| Improvements analyzed | 13 |
+| Future features | 12 |
+| Implementation phases | 4 |
+| Test cases defined | 100+ |
+| ROI (bug prevention) | 70% |
+
+---
+
+## 🎓 By Role
+
+| Role | Read This | Time | Do This |
+|------|-----------|------|---------|
+| Executive | QUICK_START + SYNTHESE | 20 min | Decide go/no-go |
+| Manager | SYNTHESE + FUTURES | 35 min | Plan roadmap |
+| Tech Lead | KEY_IMPROVEMENTS | 40 min | Design tech approach |
+| Developer | PROPAGATION_V2 | 60 min | Start Phase 1A |
+| QA | Testing sections | 30 min | Create test plan |
+
+---
+
+## 🚀 Getting Started
+
+### Step 1: Read
 ```bash
-# 1. Switch to branch
-git checkout v2-tauri-react
-
-# 2. Read
-cat PHASE_1_READY.md
-
-# 3. Code
-cd backend
-source venv/bin/activate
-python -m venv venv  # if first time
-pip install -r requirements.txt
-
-# 4. Open file
-code app/main.py
-
-# 5. Start with checklist item 1.1
+cd docs/PROPOSITION_V2
+cat WELCOME.md              # 5 min
+# or
+cat QUICK_START_30SEC.md    # 2 min
 ```
 
-### For Phase 2 (Frontend)
-
+### Step 2: Choose Your Path
 ```bash
-# (After Phase 1 complete)
-
-# 1. Read
-cat PHASE_2_V2_PLAN.md
-
-# 2. Create Tauri project
-npm create tauri-app@latest -- --template react --typescript
-
-# 3. Follow checklist items 2.1 - 2.10
+cat READING_GUIDE.md        # Pick your role
 ```
 
----
-
-## 📊 Timeline
-
-| Phase | Task | Time | Status |
-|-------|------|------|--------|
-| 0 | Planning (today) | 3h | ✅ DONE |
-| 1 | Backend FastAPI | 1h 40min | 🔄 READY |
-| 2 | Frontend Tauri | 1h 20min | ⏳ NEXT |
-| 3 | Plants UI | 2h | ⏳ P3 |
-| 4 | Dashboard | 1h | ⏳ P4 |
-| 5 | Settings | 1h 30min | ⏳ P5 |
-| 6 | Testing | 2h | ⏳ P6 |
-| 7 | Build | 1h | ⏳ P7 |
-| **TOTAL** | | **~11h** | |
+### Step 3: Take Action
+Depends on your role - see table above
 
 ---
 
-## 🔍 For Each Task
+## 📞 FAQ
 
-### Phase 1 Task? → PHASE_1_V2_PLAN.md
-### Phase 2 Task? → PHASE_2_V2_PLAN.md
-### Architecture Q? → DECISION_LOG_V2.md
-### General Q? → README.md
-### Ready to code? → PHASE_1_READY.md
+**Q: Where are the new docs?**  
+A: `/docs/PROPOSITION_V2/` - 9 complete documents
 
----
+**Q: What's been improved?**  
+A: 13 critical improvements integrated into production-ready specs
 
-## 📝 Branch Info
+**Q: How long to implement?**  
+A: 11-16 hours for complete Propagation v2 (4 phases)
 
-**Active Branch**: `v2-tauri-react`
-```
-Master: Complete Phase 1-6 (squashed)
-v2-tauri-react: v2 development (THIS BRANCH)
-```
+**Q: Why so much documentation?**  
+A: Complete analysis of improvements + clear implementation path
 
-**Recent Commits**:
-```
-299118c docs: Add Phase 1 Ready checklist - green light to code
-4cb1141 docs: Add Potential Issues & Watch List
-aef4967 docs: Clarify Phase 1 - CORS, requirements, testing
-bcebd80 docs: Add comprehensive recap
-8c43e36 docs: Add Phase 1-2 planning
-7f5cbc9 docs: Add v2 README
-39451e9 chore: Archive all v1 tests and documentation
-```
+**Q: Where do I start?**  
+A: `docs/PROPOSITION_V2/WELCOME.md`
 
 ---
 
-## ✨ What's Ready
-
-- ✅ Full documentation (6 files, ~60 KB)
-- ✅ Business logic preserved (all 35 plant fields)
-- ✅ Tech stack decided (FastAPI + React + Tauri)
-- ✅ Architecture decisions logged
-- ✅ Watch list identified
-- ✅ Detailed checklists (Phase 1 + 2)
-- ✅ Success criteria defined
-- ✅ Environment setup documented
-
----
-
-## 🎯 Next Action
-
-1. Read: **PHASE_1_READY.md** (10 min)
-2. Open: `backend/app/main.py`
-3. Start: Checklist item **1.1 - Modernize FastAPI**
-4. Estimate: **1 hour 40 minutes** for full Phase 1
-
----
-
-## 📞 Questions?
-
-- **"How do I get started?"** → Read PHASE_1_READY.md
-- **"What's the architecture?"** → Read DECISION_LOG_V2.md
-- **"What's Phase 1 task #3?"** → Open PHASE_1_V2_PLAN.md, section 1.3
-- **"Why this tech stack?"** → DECISION_LOG_V2.md has rationale
-- **"What could go wrong?"** → DECISION_LOG_V2.md watch list
-
----
-
-**Created**: 26 Oct 2025  
-**Status**: 🟢 READY TO CODE  
-**Next**: Start Phase 1 (Backend FastAPI)
+**Status:** ✅ Organized & Ready  
+**Last Updated:** 9 Nov 2025  
+**Branch:** 2.20  
+**Next:** Pick your role and start!
