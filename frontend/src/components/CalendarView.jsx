@@ -306,7 +306,7 @@ export default function CalendarView() {
                       {predictedWateringCount > 0 && (
                         <div className="flex items-center text-blue-400">
                           <span className="inline-block w-2 h-2 bg-blue-300 rounded-full mr-1" style={{opacity: 0.5}} />
-                          <span className="italic opacity-75">{predictedWateringCount} prédit{predictedWateringCount > 1 ? 's' : ''}</span>
+                          <span className="italic opacity-75">{predictedWateringCount} futur{predictedWateringCount > 1 ? 's' : ''} arrosage{predictedWateringCount > 1 ? 's' : ''}</span>
                         </div>
                       )}
                       {fertilizingCount > 0 && (
@@ -385,9 +385,40 @@ export default function CalendarView() {
                     : 'border-l-amber-400 bg-amber-50'
                 }`}>
                   <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-gray-800">{event.plant_name}</p>
-                      <p className="text-xs text-gray-600">
+                    <div className="flex-1">
+                      <p 
+                        className="font-semibold text-gray-800 cursor-pointer hover:text-blue-600 hover:underline"
+                        onClick={() => {
+                          // Ouvrir modale de détail plante
+                          // Cette fonctionnalité sera implémentée ensuite
+                          console.log('Click sur plante:', event.plant_id);
+                        }}
+                        title="Cliquer pour voir les détails de la plante"
+                      >
+                        {event.plant_name}
+                      </p>
+                      
+                      {/* Affichage des infos selon le type d'événement */}
+                      {event.is_predicted && event.last_watering_date && (
+                        <p className="text-xs text-gray-600">
+                          Dernier arrosage : {new Date(event.last_watering_date).toLocaleDateString('fr-FR')}
+                        </p>
+                      )}
+                      
+                      {!event.is_predicted && event.type === 'watering' && event.seasonal_frequency_days && (
+                        <>
+                          <p className="text-xs text-gray-600">
+                            Fréquence ({event.seasonal_name}) : Tous les {event.seasonal_frequency_days}j
+                          </p>
+                          {event.next_watering_estimated && (
+                            <p className="text-xs text-gray-600">
+                              Prochain estimé : {new Date(event.next_watering_estimated).toLocaleDateString('fr-FR')}
+                            </p>
+                          )}
+                        </>
+                      )}
+                      
+                      <p className="text-xs text-gray-600 mt-1">
                         {event.type === 'watering' ? 'Arrosage' : 'Fertilisation'}
                         {event.is_predicted ? ' (prédit)' : ' (réel)'}
                       </p>
@@ -400,47 +431,49 @@ export default function CalendarView() {
                     )}
                   </div>
 
-                  {/* Boutons d'action */}
-                  <div className="flex gap-2 mt-3">
-                    {event.type === 'watering' && (
-                      <button 
-                        onClick={() => handleWaterPlant(event.plant_id)}
-                        disabled={actionLoading}
-                        className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                      >
-                        {actionLoading ? (
-                          <>
-                            <RefreshCw size={14} className="animate-spin" />
-                            En cours...
-                          </>
-                        ) : (
-                          <>
-                            <Droplets size={14} />
-                            Arroser
-                          </>
-                        )}
-                      </button>
-                    )}
-                    {event.type === 'fertilizing' && (
-                      <button 
-                        onClick={() => handleFertilizePlant(event.plant_id)}
-                        disabled={actionLoading}
-                        className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                      >
-                        {actionLoading ? (
-                          <>
-                            <RefreshCw size={14} className="animate-spin" />
-                            En cours...
-                          </>
-                        ) : (
-                          <>
-                            <Leaf size={14} />
-                            Fertiliser
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
+                  {/* Boutons d'action - Afficher seulement pour les prédictions */}
+                  {event.is_predicted && (
+                    <div className="flex gap-2 mt-3">
+                      {event.type === 'watering' && (
+                        <button 
+                          onClick={() => handleWaterPlant(event.plant_id)}
+                          disabled={actionLoading}
+                          className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          {actionLoading ? (
+                            <>
+                              <RefreshCw size={14} className="animate-spin" />
+                              En cours...
+                            </>
+                          ) : (
+                            <>
+                              <Droplets size={14} />
+                              Arroser
+                            </>
+                          )}
+                        </button>
+                      )}
+                      {event.type === 'fertilizing' && (
+                        <button 
+                          onClick={() => handleFertilizePlant(event.plant_id)}
+                          disabled={actionLoading}
+                          className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          {actionLoading ? (
+                            <>
+                              <RefreshCw size={14} className="animate-spin" />
+                              En cours...
+                            </>
+                          ) : (
+                            <>
+                              <Leaf size={14} />
+                              Fertiliser
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

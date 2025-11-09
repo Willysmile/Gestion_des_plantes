@@ -8,7 +8,7 @@ from sqlalchemy import func, cast, Date
 
 from app.models.plant import Plant
 from app.models.histories import WateringHistory, FertilizingHistory
-from app.models.lookup import WateringFrequency
+from app.models.lookup import WateringFrequency, PlantSeasonalWatering, Season
 
 
 class StatsService:
@@ -307,15 +307,56 @@ class StatsService:
             for watering in waterings:
                 plant = db.query(Plant).filter(Plant.id == watering.plant_id).first()
                 if plant:
-                    event_key = f"{watering.event_date}-watering-{watering.plant_id}"
-                    events.append({
-                        "date": watering.event_date if isinstance(watering.event_date, str) else watering.event_date.isoformat(),
+                    event_date = watering.event_date if isinstance(watering.event_date, str) else watering.event_date.isoformat()
+                    
+                    # Déterminer la saison à la date de l'arrosage
+                    watering_date = datetime.fromisoformat(event_date).date() if isinstance(event_date, str) else watering.event_date
+                    month = watering_date.month
+                    
+                    # Trouver la saison correspondante
+                    season = db.query(Season).filter(
+                        ((Season.start_month <= Season.end_month) & (Season.start_month <= month) & (month <= Season.end_month)) |
+                        ((Season.start_month > Season.end_month) & ((month >= Season.start_month) | (month <= Season.end_month)))
+                    ).first()
+                    
+                    # Récupérer la fréquence saisonnière
+                    seasonal_watering = None
+                    seasonal_freq_days = None
+                    next_watering_date = None
+                    season_name = None
+                    
+                    if season:
+                        season_name = season.name
+                        seasonal_watering = db.query(PlantSeasonalWatering).filter(
+                            PlantSeasonalWatering.plant_id == plant.id,
+                            PlantSeasonalWatering.season_id == season.id
+                        ).first()
+                        
+                        if seasonal_watering and seasonal_watering.watering_frequency_id:
+                            freq_obj = db.query(WateringFrequency).filter(
+                                WateringFrequency.id == seasonal_watering.watering_frequency_id
+                            ).first()
+                            if freq_obj and freq_obj.days_interval:
+                                seasonal_freq_days = freq_obj.days_interval
+                                next_watering_date = (watering_date + timedelta(days=seasonal_freq_days)).isoformat()
+                    
+                    event_key = f"{event_date}-watering-{watering.plant_id}"
+                    event_obj = {
+                        "date": event_date,
                         "type": "watering",
                         "plant_id": watering.plant_id,
                         "plant_name": plant.name,
                         "count": watering.count,
                         "is_predicted": False
-                    })
+                    }
+                    
+                    # Ajouter les infos saisonnières pour les arrosages réels
+                    if seasonal_freq_days:
+                        event_obj["seasonal_frequency_days"] = seasonal_freq_days
+                        event_obj["seasonal_name"] = season_name
+                        event_obj["next_watering_estimated"] = next_watering_date
+                    
+                    events.append(event_obj)
                     dates_used.add(event_key)
             
             # 2. Récupérer toutes les fertilisations HISTORIQUES du mois
@@ -368,6 +409,8 @@ class StatsService:
                         if isinstance(current_date, str):
                             current_date = datetime.fromisoformat(current_date).date()
                         
+                        last_watering_date_str = current_date.isoformat() if isinstance(current_date, date) else current_date
+                        
                         # Générer UNE SEULE prédiction (le prochain arrosage)
                         next_date = current_date + timedelta(days=freq_obj.days_interval)
                         if next_date <= last_day and next_date >= first_day:  # Dans le mois courant
@@ -379,7 +422,8 @@ class StatsService:
                                     "plant_id": plant.id,
                                     "plant_name": plant.name,
                                     "count": 1,
-                                    "is_predicted": True
+                                    "is_predicted": True,
+                                    "last_watering_date": last_watering_date_str
                                 })
                                 dates_used.add(event_key)
             
