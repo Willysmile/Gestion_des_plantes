@@ -590,9 +590,9 @@ def main():
                 description, health_status, difficulty_level, growth_speed,
                 flowering_season, light_requirement_id, watering_frequency_id,
                 temperature_min, temperature_max, humidity_level, soil_type,
-                pot_size, is_indoor, is_outdoor, is_favorite, is_toxic,
+                pot_size, is_indoor, is_outdoor, is_favorite, is_toxic, is_archived,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
         """, (
             plant_data["name"],
             plant_data["scientific_name"],
@@ -616,6 +616,7 @@ def main():
             plant_data["is_outdoor"],
             plant_data["is_favorite"],
             plant_data["is_toxic"],
+            0,  # is_archived = False
         ))
         
         plant_id = cursor.lastrowid
