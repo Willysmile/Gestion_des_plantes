@@ -11,6 +11,14 @@ from starlette.testclient import TestClient
 from app.main import app
 from app.utils.db import get_db
 from app.models.base import BaseModel
+# Importation de tous les modèles pour s'assurer qu'ils sont enregistrés
+from app.models import (
+    Plant, PhotoModel, Unit, Location, PurchasePlace, WateringFrequency,
+    LightRequirement, FertilizerType, DiseaseType, TreatmentType, 
+    PlantHealthStatus, WateringHistory, FertilizingHistory, RepottingHistory,
+    DiseaseHistory, PlantHistory, Tag, TagCategory, AuditLog
+)
+from app.scripts.seed_lookups import seed_all
 
 
 # Create test database
@@ -51,6 +59,13 @@ def client():
     
     # Create test database
     BaseModel.metadata.create_all(bind=engine)
+    
+    # Seed lookups
+    db = TestingSessionLocal()
+    try:
+        seed_all(db)
+    finally:
+        db.close()
     
     # Create test client using Starlette TestClient
     test_client = TestClient(app)

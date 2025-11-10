@@ -47,6 +47,7 @@ class PlantCreate(BaseModel):
     humidity_level: Optional[int] = None
     soil_humidity: Optional[str] = None
     soil_type: Optional[str] = None
+    soil_ideal_ph: Optional[float] = Field(None, ge=0, le=14, description="pH ideal du sol (0-14)")
     pot_size: Optional[str] = None
     
     # Flags
@@ -80,6 +81,14 @@ class PlantCreate(BaseModel):
         """Valide que l'humidité est entre 0 et 100"""
         if v is not None and (v < 0 or v > 100):
             raise ValueError("L'humidité doit être entre 0 et 100%")
+        return v
+    
+    @field_validator("soil_ideal_ph")
+    @classmethod
+    def validate_soil_ph(cls, v):
+        """Valide que le pH du sol est entre 0 et 14"""
+        if v is not None and (v < 0 or v > 14):
+            raise ValueError("Le pH du sol doit être entre 0 et 14")
         return v
     
     @field_validator("purchase_price")
@@ -161,6 +170,7 @@ class PlantResponse(BaseModel):
     humidity_level: Optional[int] = None
     soil_humidity: Optional[str] = None
     soil_type: Optional[str] = None
+    soil_ideal_ph: Optional[float] = None
     pot_size: Optional[str] = None
     is_indoor: Optional[bool] = False
     is_outdoor: Optional[bool] = False

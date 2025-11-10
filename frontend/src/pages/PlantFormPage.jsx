@@ -35,6 +35,7 @@ export default function PlantFormPage() {
     temperature_max: '',
     humidity_level: '',
     soil_type: '',
+    soil_ideal_ph: '',
     health_status: 'healthy',
     is_favorite: false,
     is_indoor: false,
@@ -82,6 +83,7 @@ export default function PlantFormPage() {
         temperature_max: existingPlant.temperature_max || '',
         humidity_level: existingPlant.humidity_level || '',
         soil_type: existingPlant.soil_type || '',
+        soil_ideal_ph: existingPlant.soil_ideal_ph || '',
         health_status: existingPlant.health_status || 'healthy',
         is_favorite: existingPlant.is_favorite || false,
         is_indoor: existingPlant.is_indoor || false,
@@ -776,6 +778,24 @@ export default function PlantFormPage() {
                   className={getFieldClass('soil_type')}
                   placeholder="Ex: terreau"
                 />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-2">pH idéal du sol</label>
+                <input
+                  type="number"
+                  name="soil_ideal_ph"
+                  value={formData.soil_ideal_ph}
+                  onChange={handleChange}
+                  className={getFieldClass('soil_ideal_ph')}
+                  placeholder="Ex: 6.5"
+                  min="0"
+                  max="14"
+                  step="0.1"
+                />
+                {fieldErrors.soil_ideal_ph && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.soil_ideal_ph}</p>
+                )}
               </div>
 
               <div>

@@ -42,6 +42,7 @@ class Plant(BaseModel):
     humidity_level = Column(Integer)
     soil_humidity = Column(String(50))
     soil_type = Column(String(100))
+    soil_ideal_ph = Column(DECIMAL(3, 1), nullable=True)  # pH scale 0-14
     pot_size = Column(String(50))
     
     # Flags

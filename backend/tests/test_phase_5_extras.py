@@ -10,17 +10,7 @@ Goal: Quick 5-10% coverage gain with 100% pass rate
 """
 
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-
-from app.main import app
-from app.utils.db import get_db
-
-
-@pytest.fixture
-def client():
-    """FastAPI test client"""
-    return TestClient(app)
 
 
 # ===== PLANT GET/POST ENDPOINTS =====
