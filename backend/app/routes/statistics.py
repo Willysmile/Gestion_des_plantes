@@ -130,3 +130,45 @@ async def get_alerts(db: Session = Depends(get_db)):
     """
     return StatsService.get_advanced_alerts(db)
 
+
+@router.get("/notifications", response_model=dict)
+async def get_upcoming_notifications(
+    days: int = Query(7, ge=1, le=365, description="Nombre de jours de prédictions"),
+    db: Session = Depends(get_db),
+):
+    """
+    Récupère les notifications prédictives basées sur les calendriers de prédictions
+    Retourne les arrosages et fertilisations prédites pour les N prochains jours
+    
+    Retourne: {
+        "waterings": [
+            {
+                "plant_id": 4,
+                "plant_name": "Sansevieria",
+                "predicted_date": "2025-11-12",
+                "days_until": 2,
+                "last_event_date": "2025-11-09"
+            },
+            ...
+        ],
+        "fertilizings": [
+            {
+                "plant_id": 5,
+                "plant_name": "Monstera",
+                "predicted_date": "2025-11-15",
+                "days_until": 5,
+                "last_event_date": "2025-11-08"
+            },
+            ...
+        ],
+        "summary": {
+            "count_watering": 19,
+            "count_fertilizing": 9,
+            "days_ahead": 7,
+            "total_count": 28,
+            "most_urgent": "Arroser Sansevieria dans 2 jours"
+        }
+    }
+    """
+    return StatsService.get_upcoming_predictions(db, days)
+
