@@ -8,7 +8,7 @@ from sqlalchemy import func, cast, Date
 
 from app.models.plant import Plant
 from app.models.histories import WateringHistory, FertilizingHistory
-from app.models.lookup import WateringFrequency, PlantSeasonalWatering, Season
+from app.models.lookup import WateringFrequency, PlantSeasonalWatering, PlantSeasonalFertilizing, FertilizerFrequency, Season
 
 
 class StatsService:
@@ -450,10 +450,66 @@ class StatsService:
                                 })
                                 dates_used.add(event_key)
             
+            # 4. AJOUTER LES PRÉDICTIONS DE FERTILISATIONS FUTURES basées sur la fréquence SAISONNIÈRE
+            for plant in plants:
+                # Trouver la dernière fertilisation
+                last_fertilizing = db.query(FertilizingHistory).filter(
+                    FertilizingHistory.plant_id == plant.id,
+                    FertilizingHistory.deleted_at == None
+                ).order_by(FertilizingHistory.date.desc()).first()
+                
+                if last_fertilizing:
+                    # Calculer la PROCHAINE fertilisation à partir de la dernière
+                    current_date = last_fertilizing.date
+                    if isinstance(current_date, str):
+                        current_date = datetime.fromisoformat(current_date).date()
+                    
+                    last_fertilizing_date_str = current_date.isoformat() if isinstance(current_date, date) else current_date
+                    
+                    # Déterminer la saison du mois actuel
+                    current_month = month
+                    current_season = db.query(Season).filter(
+                        ((Season.start_month <= Season.end_month) & (Season.start_month <= current_month) & (current_month <= Season.end_month)) |
+                        ((Season.start_month > Season.end_month) & ((current_month >= Season.start_month) | (current_month <= Season.end_month)))
+                    ).first()
+                    
+                    # Récupérer la fréquence saisonnière, sinon utiliser une fréquence par défaut
+                    seasonal_freq_days = None
+                    if current_season:
+                        seasonal_fertilizing = db.query(PlantSeasonalFertilizing).filter(
+                            PlantSeasonalFertilizing.plant_id == plant.id,
+                            PlantSeasonalFertilizing.season_id == current_season.id
+                        ).first()
+                        if seasonal_fertilizing and seasonal_fertilizing.fertilizer_frequency_id:
+                            freq_obj = db.query(FertilizerFrequency).filter(
+                                FertilizerFrequency.id == seasonal_fertilizing.fertilizer_frequency_id
+                            ).first()
+                            if freq_obj and freq_obj.weeks_interval:
+                                # Convertir les semaines en jours
+                                seasonal_freq_days = freq_obj.weeks_interval * 7
+                    
+                    # Générer UNE SEULE prédiction (la prochaine fertilisation)
+                    if seasonal_freq_days:
+                        next_date = current_date + timedelta(days=seasonal_freq_days)
+                        if next_date <= last_day and next_date >= first_day:  # Dans le mois courant
+                            event_key = f"{next_date.isoformat()}-fertilizing-{plant.id}"
+                            if event_key not in dates_used:
+                                events.append({
+                                    "date": next_date.isoformat(),
+                                    "type": "fertilizing",
+                                    "plant_id": plant.id,
+                                    "plant_name": plant.name,
+                                    "count": 1,
+                                    "is_predicted": True,
+                                    "last_fertilizing_date": last_fertilizing_date_str
+                                })
+                                dates_used.add(event_key)
+            
             # Compter les événements par type
             watering_count = len([e for e in events if e["type"] == "watering" and not e.get("is_predicted", False)])
             watering_predicted = len([e for e in events if e["type"] == "watering" and e.get("is_predicted", False)])
             fertilizing_count = len([e for e in events if e["type"] == "fertilizing" and not e.get("is_predicted", False)])
+            fertilizing_predicted = len([e for e in events if e["type"] == "fertilizing" and e.get("is_predicted", False)])
             
             # Résumé
             summary = {
@@ -464,6 +520,7 @@ class StatsService:
                 "water_events": watering_count,
                 "water_events_predicted": watering_predicted,
                 "fertilize_events": fertilizing_count,
+                "fertilize_events_predicted": fertilizing_predicted,
                 "total_events": len(events)
             }
             
