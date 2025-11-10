@@ -667,5 +667,4 @@ class StatsService:
                 "by_severity": {"critical": [], "high": [], "medium": [], "low": []},
                 "summary": {"critical_count": 0, "high_count": 0, "medium_count": 0, "low_count": 0, "total_count": 0}
             }
-            }
 
