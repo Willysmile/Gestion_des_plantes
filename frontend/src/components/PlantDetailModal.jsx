@@ -10,6 +10,7 @@ import { WateringFormModal } from './WateringFormModal'
 import { FertilizingFormModal } from './FertilizingFormModal'
 import { RepottingFormModal } from './RepottingFormModal'
 import { DiseaseFormModal } from './DiseaseFormModal'
+import { SeasonalWateringFormModal } from './SeasonalWateringFormModal'
 import { useModal } from '../contexts/ModalContext'
 import useTags from '../hooks/useTags'
 

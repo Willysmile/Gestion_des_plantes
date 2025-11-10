@@ -119,7 +119,10 @@ export default function NotesHistory({ plantId, hideHeader = false, onClose = ()
         </Link>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              setShowForm(true)
+              setShowList(true)
+            }}
             className="flex items-center gap-1 bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded text-xs transition"
           >
             <Plus className="w-3 h-3" />
