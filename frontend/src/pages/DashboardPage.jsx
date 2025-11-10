@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { PlantsToWaterList, PlantsToFertilizeList, PlantsInCareList } from '../components/WateringNotifications'
 import { useWateringStats } from '../hooks/useWateringNotifications'
-import { Droplet, AlertCircle, TrendingUp, Heart, Leaf, BarChart3, Calendar, Bell } from 'lucide-react'
+import { Droplet, AlertCircle, TrendingUp, Heart, Leaf, BarChart3, Calendar, Bell, Zap } from 'lucide-react'
 import axios from 'axios'
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
 import CalendarView from '../components/CalendarView'
 import AlertsPanel from '../components/AlertsPanel'
+import SmartNotifications from '../components/SmartNotifications'
 
 const COLORS = {
   excellent: '#06b6d4',
@@ -20,7 +21,8 @@ export default function DashboardPage() {
   const [stats, setStats] = useState(null)
   const [activityData, setActivityData] = useState([])
   const [loadingStats, setLoadingStats] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview') // 'overview', 'calendar', 'alerts'
+  const [activeTab, setActiveTab] = useState('overview') // 'overview', 'calendar', 'alerts', 'notifications'
+  const [notificationsDays, setNotificationsDays] = useState(7)
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -106,6 +108,17 @@ export default function DashboardPage() {
           <Bell size={18} />
           Alertes
         </button>
+        <button
+          onClick={() => setActiveTab('notifications')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${
+            activeTab === 'notifications'
+              ? 'bg-white text-green-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Zap size={18} />
+          Notifications
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -155,6 +168,25 @@ export default function DashboardPage() {
               <Leaf className="w-12 h-12 text-green-400 opacity-50" />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Smart Notifications Mini Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-blue-600" />
+            Tâches Prédites (7 prochains jours)
+          </h2>
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Voir tous →
+          </button>
+        </div>
+        <div className="max-h-48 overflow-y-auto">
+          <SmartNotifications days={7} />
         </div>
       </div>
 
@@ -309,6 +341,35 @@ export default function DashboardPage() {
       {/* Alerts Tab */}
       {activeTab === 'alerts' && (
         <AlertsPanel />
+      )}
+
+      {/* Smart Notifications Tab */}
+      {activeTab === 'notifications' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <Zap className="w-6 h-6 text-blue-600" />
+                Notifications Intelligentes
+              </h2>
+              <p className="text-gray-600 text-sm mt-1">Tâches prédites basées sur les fréquences saisonnières</p>
+            </div>
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
+              <span className="text-sm text-gray-600">Période:</span>
+              <select
+                value={notificationsDays}
+                onChange={(e) => setNotificationsDays(parseInt(e.target.value))}
+                className="px-3 py-1 rounded border border-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+              >
+                <option value={7}>7 jours</option>
+                <option value={14}>14 jours</option>
+                <option value={30}>30 jours</option>
+                <option value={60}>60 jours</option>
+              </select>
+            </div>
+          </div>
+          <SmartNotifications days={notificationsDays} />
+        </div>
       )}
     </div>
   )
