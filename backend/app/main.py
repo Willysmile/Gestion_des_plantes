@@ -22,10 +22,15 @@ from app.models import (
     DiseaseHistory, PlantHistory, Tag, TagCategory, AuditLog
 )
 from app.scripts.seed_plants import seed_plants
+# Audit listeners pour auto-logging
+from app.listeners import AuditListeners
 import os
 
 # Initialize database
 init_db()
+
+# Register audit event listeners (disabled for now - complex with TestClient)
+# AuditListeners.register()
 
 # Seed lookup tables and sample plants at startup
 db = next(get_db())
