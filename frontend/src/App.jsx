@@ -10,6 +10,7 @@ import RepottingHistoryPage from './pages/RepottingHistoryPage'
 import DiseaseHistoryPage from './pages/DiseaseHistoryPage'
 import PlantNotesPage from './pages/PlantNotesPage'
 import SettingsPage from './pages/SettingsPage'
+import AuditDashboardPage from './pages/AuditDashboardPage'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/audit" element={<AuditDashboardPage />} />
           <Route path="/plants/new" element={<PlantFormPage />} />
           <Route path="/plants/:id" element={<PlantDetailPage />} />
           <Route path="/plants/:id/edit" element={<PlantFormPage />} />
