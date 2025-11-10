@@ -1,12 +1,27 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import api from '../config'
+import {
+  AuditDailyActivityChart,
+  AuditEntityBreakdownChart,
+  AuditUserActivityChart,
+  AuditActionByEntityChart,
+} from '../components/AuditCharts'
 
 export default function AuditDashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  
+  // Stats
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [statsError, setStatsError] = useState(null)
+  const [dailyActivity, setDailyActivity] = useState([])
+  const [entityBreakdown, setEntityBreakdown] = useState([])
+  const [userActivity, setUserActivity] = useState([])
+  const [actionByEntity, setActionByEntity] = useState([])
+  const [showStats, setShowStats] = useState(false)
   
   // Filtres
   const [filterType, setFilterType] = useState(searchParams.get('type') || 'all')
@@ -22,6 +37,38 @@ export default function AuditDashboardPage() {
   useEffect(() => {
     loadLogs()
   }, [filterType, filterAction, filterDays, searchEntity])
+
+  // Charger les stats
+  useEffect(() => {
+    if (showStats) {
+      loadStats()
+    }
+  }, [showStats, filterDays])
+
+  const loadStats = async () => {
+    setStatsLoading(true)
+    setStatsError(null)
+    try {
+      const days = filterDays === 'all' ? 365 : parseInt(filterDays)
+      
+      // Charger les 4 stats en parallèle
+      const [dailyRes, entityRes, userRes, actionRes] = await Promise.all([
+        api.get(`/api/audit/stats/daily-activity?days=${days}`),
+        api.get(`/api/audit/stats/entity-breakdown?days=${days}`),
+        api.get(`/api/audit/stats/user-activity?limit=10&days=${days}`),
+        api.get(`/api/audit/stats/action-by-entity?days=${days}`),
+      ])
+
+      setDailyActivity(dailyRes.data || [])
+      setEntityBreakdown(entityRes.data || [])
+      setUserActivity(userRes.data || [])
+      setActionByEntity(actionRes.data || [])
+    } catch (err) {
+      setStatsError(err.response?.data?.detail || 'Erreur lors du chargement des statistiques')
+    } finally {
+      setStatsLoading(false)
+    }
+  }
 
   const loadLogs = async () => {
     setLoading(true)
@@ -103,7 +150,7 @@ export default function AuditDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
@@ -113,13 +160,25 @@ export default function AuditDashboardPage() {
               </h1>
               <p className="text-slate-600 mt-2">Suivi complet de tous les changements</p>
             </div>
-            <button
-              onClick={handleCleanup}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-              disabled={loading}
-            >
-              🗑️ Nettoyer logs
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowStats(!showStats)}
+                className={`px-4 py-2 rounded-lg transition font-medium ${
+                  showStats
+                    ? 'bg-purple-600 text-white hover:bg-purple-700'
+                    : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+                }`}
+              >
+                📊 {showStats ? 'Masquer' : 'Afficher'} Stats
+              </button>
+              <button
+                onClick={handleCleanup}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
+                disabled={loading}
+              >
+                🗑️ Nettoyer logs
+              </button>
+            </div>
           </div>
 
           {/* Filtres */}
@@ -209,6 +268,43 @@ export default function AuditDashboardPage() {
         {error && (
           <div className={`rounded-lg p-4 mb-6 ${error.includes('succès') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
             {error}
+          </div>
+        )}
+
+        {statsError && (
+          <div className="rounded-lg p-4 mb-6 bg-red-100 text-red-800">
+            {statsError}
+          </div>
+        )}
+
+        {/* Stats Section */}
+        {showStats && (
+          <div className="mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Daily Activity Chart */}
+              <AuditDailyActivityChart 
+                data={dailyActivity} 
+                isLoading={statsLoading}
+              />
+
+              {/* Entity Breakdown Chart */}
+              <AuditEntityBreakdownChart 
+                data={entityBreakdown} 
+                isLoading={statsLoading}
+              />
+
+              {/* User Activity Chart */}
+              <AuditUserActivityChart 
+                data={userActivity} 
+                isLoading={statsLoading}
+              />
+
+              {/* Action by Entity Chart */}
+              <AuditActionByEntityChart 
+                data={actionByEntity} 
+                isLoading={statsLoading}
+              />
+            </div>
           </div>
         )}
 
