@@ -27,7 +27,36 @@ from app.scripts.seed_plants import seed_plants
 from app.listeners import AuditListeners
 import os
 
-# Initialize database
+# Create FastAPI app FIRST
+app = FastAPI(
+    title="Gestion des Plantes",
+    description="Desktop plant management application",
+    version="2.0.0"
+)
+
+# ADD CORS MIDDLEWARE IMMEDIATELY - MUST BE BEFORE ANY ROUTES
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:5176",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5175",
+        "http://127.0.0.1:5176",
+        "https://tauri.localhost",
+        "tauri://localhost",
+        "*",  # Allow all origins for development
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    max_age=3600,
+)
+
+# THEN initialize database and seed
 init_db()
 
 # Register audit event listeners (disabled for now - complex with TestClient)
@@ -40,43 +69,6 @@ try:
     # seed_plants(db)  # Disabled - create plants manually with new fields
 finally:
     db.close()
-
-# Create FastAPI app
-app = FastAPI(
-    title=settings.APP_NAME,
-    description="Desktop plant management application",
-    version="2.0.0"
-)
-
-# CORS configuration for Tauri + React development
-# ⚠️ CRITICAL: Both dev (Vite) and production (Tauri) origins needed
-CORS_ORIGINS = [
-    "http://localhost:5173",        # Vite dev server (React)
-    "http://localhost:5174",        # Vite dev server alternative port
-    "http://localhost:5175",        # Vite dev server alternative port 2
-    "http://localhost:5176",        # Vite dev server alternative port 3
-    "http://127.0.0.1:5173",        # Alternative localhost
-    "http://127.0.0.1:5174",        # Alternative localhost alt port
-    "http://127.0.0.1:5175",        # Alternative localhost alt port 2
-    "http://127.0.0.1:5176",        # Alternative localhost alt port 3
-    "https://tauri.localhost",      # Tauri production (correct format)
-    "tauri://localhost",            # Legacy fallback (may not work)
-]
-
-# Add localhost backend variations for internal testing
-if os.getenv("ENVIRONMENT", "development") != "production":
-    CORS_ORIGINS.extend([
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-    ])
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Include routers
 app.include_router(plants_router)
