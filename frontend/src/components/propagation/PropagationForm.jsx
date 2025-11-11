@@ -26,10 +26,15 @@ const PropagationForm = ({ plants = [], onSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+    const newFormData = { ...formData, [name]: value };
+    
+    // Si on change la source_type, réinitialiser la méthode
+    if (name === 'source_type') {
+      const validMethods = sourceOptions[value];
+      newFormData.method = validMethods?.[0] || 'soil';
+    }
+    
+    setFormData(newFormData);
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
