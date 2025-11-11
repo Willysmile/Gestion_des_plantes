@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useGetPropagations, useGetPropagationStats } from '../hooks/usePropagations';
-import { useGetPlants } from '../hooks/usePlants';
+import { usePlants } from '../hooks/usePlants';
 import PropagationCard from '../components/propagation/PropagationCard';
 import PropagationForm from '../components/propagation/PropagationForm';
 
 const PropagationDashboard = () => {
   const { propagations, loading: loadingProps, fetch: fetchProps } = useGetPropagations();
   const { stats, fetch: fetchStats } = useGetPropagationStats();
-  const { plants } = useGetPlants();
+  const { plants } = usePlants();
   
   const [showForm, setShowForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
