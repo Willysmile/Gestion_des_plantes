@@ -232,9 +232,9 @@ class TestFrequencyIntegrity:
         assert response.status_code == 200
         data = response.json()
 
-        # Au moins une fréquence doit avoir un interval_days valide
-        has_valid_interval = any(f.get("interval_days") for f in data)
-        assert has_valid_interval, "Au moins une fréquence devrait avoir interval_days"
+        # Au moins une fréquence doit avoir un days valide
+        has_valid_interval = any(f.get("days") for f in data)
+        assert has_valid_interval, "Au moins une fréquence devrait avoir days"
 
     def test_fertilizer_frequency_intervals(self):
         """Vérifier que les intervalles de fertilisation ont du sens"""
@@ -242,9 +242,9 @@ class TestFrequencyIntegrity:
         assert response.status_code == 200
         data = response.json()
 
-        # Au moins une fréquence doit avoir un weeks_interval valide
-        has_valid_interval = any(f.get("weeks_interval") for f in data)
-        assert has_valid_interval, "Au moins une fréquence devrait avoir weeks_interval"
+        # Au moins une fréquence doit avoir un weeks valide
+        has_valid_interval = any(f.get("weeks") for f in data)
+        assert has_valid_interval, "Au moins une fréquence devrait avoir weeks"
 
     def test_no_duplicate_frequencies(self):
         """Vérifier qu'il n'y a pas de doublons"""
