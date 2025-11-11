@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGetGenealogy } from '../../hooks/usePropagations';
+import { useGetGenealogy } from '../hooks/usePropagations';
 import * as d3 from 'd3';
 
 const GenealogyTreePage = () => {

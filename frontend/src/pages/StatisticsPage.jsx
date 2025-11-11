@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGetPropagationStats, useGetOverduePropagations } from '../../hooks/usePropagations';
+import { useGetPropagationStats, useGetOverduePropagations } from '../hooks/usePropagations';
 
 const StatisticsPage = () => {
   const { data: stats } = useGetPropagationStats();

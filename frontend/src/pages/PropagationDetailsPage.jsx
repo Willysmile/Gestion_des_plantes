@@ -6,8 +6,8 @@ import {
   useDeletePropagation,
   useGetPropagationEvents,
   useAddPropagationEvent,
-} from '../../hooks/usePropagations';
-import PropagationForm from '../../components/propagation/PropagationForm';
+} from '../hooks/usePropagations';
+import PropagationForm from '../components/propagation/PropagationForm';
 
 const PropagationDetailsPage = () => {
   const { id } = useParams();

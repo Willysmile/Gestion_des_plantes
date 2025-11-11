@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useGetCalendarEvents } from '../../hooks/usePropagations';
+import { useGetCalendarEvents } from '../hooks/usePropagations';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
