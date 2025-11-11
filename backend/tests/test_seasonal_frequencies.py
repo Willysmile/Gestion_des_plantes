@@ -32,7 +32,7 @@ class TestSeasonalWateringAPI:
 
     def test_get_seasonal_watering(self, db: Session, plant_data):
         """GET /plants/{id}/seasonal-watering/{season_id}"""
-        response = client.get(f"/plants/{plant_data.id}/seasonal-watering/1")
+        response = client.get(f"/api/plants/{plant_data.id}/seasonal-watering/1")
         assert response.status_code in [200, 404]  # OK ou pas trouvé
 
     def test_put_seasonal_watering(self, db: Session, plant_data):
@@ -48,8 +48,8 @@ class TestSeasonalWateringAPI:
             assert "watering_frequency_id" in data or data is None
 
     def test_get_all_seasonal_watering(self, db: Session, plant_data):
-        """GET /plants/{id}/seasonal-watering - Récupérer toutes les saisons"""
-        response = client.get(f"/plants/{plant_data.id}/seasonal-watering")
+        """GET /api/plants/{id}/seasonal-watering - Récupérer toutes les saisons"""
+        response = client.get(f"/api/plants/{plant_data.id}/seasonal-watering")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -72,7 +72,7 @@ class TestSeasonalFertilizingAPI:
 
     def test_get_seasonal_fertilizing(self, db: Session, plant_data):
         """GET /plants/{id}/seasonal-fertilizing/{season_id}"""
-        response = client.get(f"/plants/{plant_data.id}/seasonal-fertilizing/1")
+        response = client.get(f"/api/plants/{plant_data.id}/seasonal-fertilizing/1")
         assert response.status_code in [200, 404]
 
     def test_put_seasonal_fertilizing(self, db: Session, plant_data):
@@ -86,7 +86,7 @@ class TestSeasonalFertilizingAPI:
 
     def test_get_all_seasonal_fertilizing(self, db: Session, plant_data):
         """GET /plants/{id}/seasonal-fertilizing"""
-        response = client.get(f"/plants/{plant_data.id}/seasonal-fertilizing")
+        response = client.get(f"/api/plants/{plant_data.id}/seasonal-fertilizing")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -96,8 +96,8 @@ class TestLookupFrequencies:
     """Tests pour les lookups de fréquences"""
 
     def test_get_watering_frequencies(self):
-        """GET /lookups/watering-frequencies"""
-        response = client.get("/lookups/watering-frequencies")
+        """GET /api/lookups/watering-frequencies"""
+        response = client.get("/api/lookups/watering-frequencies")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -110,8 +110,8 @@ class TestLookupFrequencies:
         assert "Normal (1x/semaine)" in freq_names
 
     def test_get_fertilizer_frequencies(self):
-        """GET /lookups/fertilizer-frequencies"""
-        response = client.get("/lookups/fertilizer-frequencies")
+        """GET /api/lookups/fertilizer-frequencies"""
+        response = client.get("/api/lookups/fertilizer-frequencies")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -124,7 +124,7 @@ class TestLookupFrequencies:
 
     def test_get_seasons(self):
         """GET /lookups/seasons"""
-        response = client.get("/lookups/seasons")
+        response = client.get("/api/lookups/seasons")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -175,16 +175,16 @@ class TestSeasonalWorkflow:
         plant = setup_plant
 
         # 1. Vérifier que la plante existe
-        response = client.get(f"/plants/{plant.id}")
+        response = client.get(f"/api/plants/{plant.id}")
         assert response.status_code == 200
 
         # 2. Récupérer les fréquences saisonnières
-        watering_response = client.get(f"/plants/{plant.id}/seasonal-watering")
+        watering_response = client.get(f"/api/plants/{plant.id}/seasonal-watering")
         assert watering_response.status_code == 200
         watering_data = watering_response.json()
         assert len(watering_data) > 0
 
-        fertilizing_response = client.get(f"/plants/{plant.id}/seasonal-fertilizing")
+        fertilizing_response = client.get(f"/api/plants/{plant.id}/seasonal-fertilizing")
         assert fertilizing_response.status_code == 200
         fertilizing_data = fertilizing_response.json()
         assert len(fertilizing_data) > 0
@@ -202,7 +202,7 @@ class TestSeasonalWorkflow:
         from datetime import datetime
         month = datetime.now().month
 
-        response = client.get("/lookups/seasons")
+        response = client.get("/api/lookups/seasons")
         assert response.status_code == 200
         seasons = response.json()
 
@@ -228,7 +228,7 @@ class TestFrequencyIntegrity:
 
     def test_watering_frequency_intervals(self):
         """Vérifier que les intervalles d'arrosage ont du sens"""
-        response = client.get("/lookups/watering-frequencies")
+        response = client.get("/api/lookups/watering-frequencies")
         assert response.status_code == 200
         data = response.json()
 
@@ -238,7 +238,7 @@ class TestFrequencyIntegrity:
 
     def test_fertilizer_frequency_intervals(self):
         """Vérifier que les intervalles de fertilisation ont du sens"""
-        response = client.get("/lookups/fertilizer-frequencies")
+        response = client.get("/api/lookups/fertilizer-frequencies")
         assert response.status_code == 200
         data = response.json()
 
@@ -249,13 +249,13 @@ class TestFrequencyIntegrity:
     def test_no_duplicate_frequencies(self):
         """Vérifier qu'il n'y a pas de doublons"""
         # Watering
-        watering_response = client.get("/lookups/watering-frequencies")
+        watering_response = client.get("/api/lookups/watering-frequencies")
         watering_data = watering_response.json()
         watering_names = [f["name"] for f in watering_data]
         assert len(watering_names) == len(set(watering_names)), "Doublons trouvés en arrosage"
 
         # Fertilizer
-        fertilizer_response = client.get("/lookups/fertilizer-frequencies")
+        fertilizer_response = client.get("/api/lookups/fertilizer-frequencies")
         fertilizer_data = fertilizer_response.json()
         fertilizer_names = [f["name"] for f in fertilizer_data]
         assert len(fertilizer_names) == len(set(fertilizer_names)), "Doublons trouvés en fertilisation"

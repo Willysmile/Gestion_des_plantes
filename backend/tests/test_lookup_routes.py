@@ -17,11 +17,11 @@ def test_get_lookup_collections_empty(client):
 
 
 @pytest.mark.parametrize("path", [
-    "/api/lookups/units/1",
-    "/api/lookups/disease-types/1",
-    "/api/lookups/treatment-types/1",
-    "/api/lookups/plant-health-statuses/1",
-    "/api/lookups/fertilizer-types/1",
+    "/api/lookups/units/99999",
+    "/api/lookups/disease-types/99999",
+    "/api/lookups/treatment-types/99999",
+    "/api/lookups/plant-health-statuses/99999",
+    "/api/lookups/fertilizer-types/99999",
 ])
 def test_get_lookup_by_id_not_found(client, path):
     if "fertilizer-types" in path:

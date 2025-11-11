@@ -277,6 +277,30 @@ async def restore_plant(
     return plant
 
 
+@router.get("/{plant_id}/seasonal-watering")
+async def get_all_seasonal_watering(
+    plant_id: int,
+    db: Session = Depends(get_db),
+):
+    """Récupère toutes les fréquences d'arrosage saisonnier d'une plante"""
+    plant = db.query(Plant).filter(Plant.id == plant_id).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plante non trouvée")
+    
+    from app.models.plant import PlantSeasonalWatering
+    seasonal_waterings = db.query(PlantSeasonalWatering).filter(
+        PlantSeasonalWatering.plant_id == plant_id
+    ).all()
+    
+    return [
+        {
+            "id": sw.id,
+            "season_id": sw.season_id,
+            "watering_frequency_id": sw.watering_frequency_id,
+        } for sw in seasonal_waterings
+    ] if seasonal_waterings else []
+
+
 @router.get("/{plant_id}/seasonal-watering/{season_id}")
 async def get_seasonal_watering(
     plant_id: int,
@@ -337,6 +361,30 @@ async def update_seasonal_watering(
         return {"id": freq.id, "name": freq.name, "days_interval": freq.days_interval}
     
     return {"id": seasonal.id, "message": "Fréquence mise à jour"}
+
+
+@router.get("/{plant_id}/seasonal-fertilizing")
+async def get_all_seasonal_fertilizing(
+    plant_id: int,
+    db: Session = Depends(get_db),
+):
+    """Récupère toutes les fréquences de fertilisation saisonnière d'une plante"""
+    plant = db.query(Plant).filter(Plant.id == plant_id).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plante non trouvée")
+    
+    from app.models.plant import PlantSeasonalFertilizing
+    seasonal_fertilizing = db.query(PlantSeasonalFertilizing).filter(
+        PlantSeasonalFertilizing.plant_id == plant_id
+    ).all()
+    
+    return [
+        {
+            "id": sf.id,
+            "season_id": sf.season_id,
+            "fertilizer_frequency_id": sf.fertilizer_frequency_id,
+        } for sf in seasonal_fertilizing
+    ] if seasonal_fertilizing else []
 
 
 @router.get("/{plant_id}/seasonal-fertilizing/{season_id}")
