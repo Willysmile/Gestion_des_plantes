@@ -1,6 +1,12 @@
 # 🌳 FEATURE PROPAGATION - Recap Complet
 **11 Novembre 2025** | Sans code (Planning seulement)
 
+> **📖 Version améliorée:** Voir [`FEATURE_PROPAGATION_FINAL.md`](FEATURE_PROPAGATION_FINAL.md) pour architecture optimisée avec:
+> - Table unifiée `plant_propagations` (meilleure que `plant_cuttings`)
+> - Machine à états complète (pending → rooting → established)
+> - Validation anti-cycle et règles métier
+> - 18+ endpoints API finalisés
+
 ---
 
 ## 📌 Vue d'Ensemble
