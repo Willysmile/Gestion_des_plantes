@@ -310,6 +310,11 @@ async def get_seasonal_watering(
     """Récupère la fréquence d'arrosage pour une saison donnée"""
     from app.models.lookup import PlantSeasonalWatering, WateringFrequency
     
+    # Vérifier que la plante existe
+    plant = db.query(Plant).filter(Plant.id == plant_id).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plante non trouvée")
+    
     seasonal = db.query(PlantSeasonalWatering).filter(
         PlantSeasonalWatering.plant_id == plant_id,
         PlantSeasonalWatering.season_id == season_id

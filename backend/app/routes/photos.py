@@ -160,8 +160,8 @@ async def get_photo_file(
     if not photo:
         raise HTTPException(status_code=404, detail="Photo non trouvée")
     
-    # Construire le chemin du fichier - les photos sont directement dans /data/photos/
-    file_path = settings.PHOTOS_DIR / filename
+    # Construire le chemin du fichier - les photos sont dans /data/photos/{plant_id}/
+    file_path = settings.PHOTOS_DIR / str(plant_id) / filename
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Fichier non trouvé")

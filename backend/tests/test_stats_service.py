@@ -23,9 +23,9 @@ def test_get_dashboard_stats_empty(db):
 @pytest.mark.usefixtures("db")
 def test_get_dashboard_stats_counts(db):
     # Create plants
-    p1 = Plant(name="P1", health_status="excellent", is_archived=False)
-    p2 = Plant(name="P2", health_status="good", is_archived=False)
-    p3 = Plant(name="P3", health_status="poor", is_archived=True)
+    p1 = Plant(name="P1", health_status="healthy", is_archived=False)
+    p2 = Plant(name="P2", health_status="recovering", is_archived=False)
+    p3 = Plant(name="P3", health_status="sick", is_archived=True)
     db.add_all([p1, p2, p3])
     db.commit()
 
