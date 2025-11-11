@@ -9,7 +9,8 @@ from typing import List
 from app.utils.db import get_db
 from app.schemas.plant_schema import PlantCreate, PlantUpdate, PlantResponse, PlantListResponse
 from app.services import PlantService
-from app.models.lookup import Location
+from app.models.lookup import Location, PlantSeasonalWatering, PlantSeasonalFertilizing, FertilizerFrequency
+from app.models.plant import Plant
 from app.utils.sync_health import sync_plant_health_status, sync_all_plants_health
 from app.utils.season_helper import get_current_season_id
 
@@ -287,7 +288,6 @@ async def get_all_seasonal_watering(
     if not plant:
         raise HTTPException(status_code=404, detail="Plante non trouvée")
     
-    from app.models.plant import PlantSeasonalWatering
     seasonal_waterings = db.query(PlantSeasonalWatering).filter(
         PlantSeasonalWatering.plant_id == plant_id
     ).all()
@@ -373,7 +373,6 @@ async def get_all_seasonal_fertilizing(
     if not plant:
         raise HTTPException(status_code=404, detail="Plante non trouvée")
     
-    from app.models.plant import PlantSeasonalFertilizing
     seasonal_fertilizing = db.query(PlantSeasonalFertilizing).filter(
         PlantSeasonalFertilizing.plant_id == plant_id
     ).all()
@@ -394,8 +393,6 @@ async def get_seasonal_fertilizing(
     db: Session = Depends(get_db),
 ):
     """Récupère la fréquence de fertilisation pour une saison donnée"""
-    from app.models.lookup import PlantSeasonalFertilizing, FertilizerFrequency
-    
     seasonal = db.query(PlantSeasonalFertilizing).filter(
         PlantSeasonalFertilizing.plant_id == plant_id,
         PlantSeasonalFertilizing.season_id == season_id
