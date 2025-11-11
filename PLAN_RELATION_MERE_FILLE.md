@@ -1,182 +1,249 @@
-# 📋 Plan: Relation Mère/Fille pour Boutures
+# 📋 Plan: Relation Mère/Fille/Soeur pour Propagation
+
+**📖 Voir aussi:** [`RECAP_FEATURE_PROPAGATION.md`](RECAP_FEATURE_PROPAGATION.md) pour le recap complet
 
 ## 🎯 Objectif Simple
 
-**Permettre de tracker les générations de plantes:**
+**Permettre de tracker les générations de plantes avec source & méthode:**
 ```
-Monstera (original #1) ← mère
-├─ Bouture #2 (2024-10) ← fille
-├─ Bouture #3 (2024-12) ← fille
-└─ Bouture #4 (2025-01) ← fille
+Monstera (original #1) ← MÈRE
+│
+├─ Bouture #2 (Oct 2024) ← FILLE 1 (cutting + water, 2-3 sem)
+│  └─ Soeur: Bouture #3
+│
+└─ Bouture #3 (Oct 2024) ← FILLE 2 (cutting + water, 2-3 sem)
+   └─ Soeur: Bouture #2
+   
+Relations:
+✅ #2 et #3 = SOEURS (même mère, même jour)
+✅ #1 = MÈRE de #2 et #3
+✅ #2/#3 peuvent devenir MÈRES à leur tour
 ```
 
 ---
 
-## � Types de Propagation Supportés
+## 🔗 Types de Propagation Supportés
 
-### **4 Méthodes Principales**
+### **4 Types de Relations**
+
+```
+MÈRE:   Plante source originale
+        ├─ Peut générer N enfants (filles)
+        ├─ Peut devenir fille d'une autre (si elle-même issue de bouture)
+        └─ Exemple: Monstera achetée en 2020
+
+FILLE:  Issue directe d'une mère
+        ├─ Via: cutting, seeds, division, offset
+        ├─ Via: water, soil, air-layer, substrate
+        ├─ Peut devenir mère à son tour
+        └─ Exemple: Bouture prélevée Oct 2024
+
+SOEUR:  Partage la même mère
+        ├─ Peut être du même jour (lancée ensemble)
+        ├─ Peut être de jours différents (même source, jours différents)
+        ├─ Même ou différentes méthodes
+        └─ Exemple: 3 boutures du Monstera en même temps
+
+PETITE-FILLE: Enfant d'une fille
+        ├─ Exemple: Bouture d'une bouture
+        └─ Arbre généalogique sur 3+ générations
+```
+
+### **4 Sources de Propagation**
 
 ```python
-source_type: "cutting"      # Bouture (tige + feuilles)
+source_type: "cutting"      # Bouture (tige + feuilles) - PLUS COURANT
              "seeds"        # Graines (reproduction sexuée)
              "division"     # Division (séparer plant multi-tiges)
              "offset"       # Rejeton (petite plante détachée)
+```
 
-method:      "water"        # Eau (bouteille verre)
+### **4 Méthodes de Culture**
+
+```python
+method:      "water"        # Eau (bouteille verre) - PLUS RAPIDE
              "soil"         # Terreau
              "air-layer"    # Marcottage aérien
              "substrate"    # Substrat spécialisé
-             "tissue"       # Culture de tissus (avancé)
 ```
 
-### **Exemples par Plante**
+### **Matrice: Source × Méthode (Optimale)**
+
+| Source | Water | Soil | Air-layer | Substrate |
+|--------|-------|------|-----------|-----------|
+| **cutting** | ✅✅ 2-3 sem | ✅ 3-4 sem | ✅ 4-6 sem | ✅ 2-4 sem |
+| **seeds** | ❌ rare | ✅ 1-2 mois | ❌ non | ✅ 1-2 mois |
+| **division** | ⚠️ possible | ✅✅ immédiat | ❌ non | ⚠️ possible |
+| **offset** | ⚠️ possible | ✅✅ 1-2 sem | ❌ non | ✅ 1-2 sem |
+
+✅✅ = Optimal | ✅ = Bon | ⚠️ = Possible | ❌ = Rare
+
+### **Exemples Réels par Plante**
 
 | Plante | Type | Méthode | Durée |
 |--------|------|---------|-------|
-| **Monstera** | cutting | water | 2-3 semaines |
-| **Pothos** | cutting | water | 1-2 semaines |
-| **Snake Plant** | division | soil | immédiat |
-| **Peperomia** | offset | soil | 1-2 semaines |
-| **Calathea** | division | soil | 1-2 semaines |
-| **Hoya** | cutting + air-layer | soil | 4-6 semaines |
-| **Succulente** | leaf cutting | soil | 3-4 semaines |
-| **Orchidée** | tissue | substrate | 2-3 mois |
+| **Monstera** | cutting | water | ✅✅ 2-3 sem | Ultra rapide |
+| **Pothos** | cutting | water | ✅✅ 1-2 sem | Le plus rapide |
+| **Snake Plant** | division | soil | ✅✅ immédiat | Instant |
+| **Peperomia** | offset | soil | ✅✅ 1-2 sem | Rejets naturels |
+| **Calathea** | division | soil | ✅ 1-2 sem | Séparer tiges |
+| **Hoya** | cutting | air-layer | ✅ 4-6 sem | Pour branches épaisses |
+| **Succulente** | leaf cutting | soil | ✅ 3-4 sem | Feuille seule |
+| **Orchidée** | tissue | substrate | ⚠️ 2-3 mois | Avancé |
 
 ---
 
-## 🌱 Cycle de Vie d'une Bouture
+## 🌱 3 Niveaux de Données pour Tracker Propagation
 
+### **Niveau 1: Relation Simple (Parent-Child)**
 ```
-1. SOURCE (Mère)
-   └─ Monstera #1 (originale)
-   
-2. HARVEST (Prélèvement)
-   └─ Date: 1er Nov 2025
-   └─ Type: cutting (tige)
-   └─ Size: 3 feuilles, 4 pouces
-   
-3. PROPAGATION (En cours)
-   └─ Method: water
-   └─ Status: rooting
-   └─ Days passed: 2
-   
-4. TIMELINE
-   Day 0:   "Prélevée, mise en eau"
-   Day 3:   "Roots apparentes (3mm)"
-   Day 7:   "Roots bien formées (1cm)"
-   Day 10:  "Nouvelle feuille"
-   Day 14:  "Ready-to-pot (roots 2cm)"
-   
-5. CONVERSION
-   └─ Plant #2 créée
-   └─ Rempoté en substrat
-   └─ Status: "Plante indépendante"
-   
-6. RESULT
-   └─ Success: ✅ (potted)
-   ou
-   └─ Failed: ❌ (no roots, rot)
+Colonne ajoutée à PLANTS:
+├─ parent_plant_id ← FK vers plants(id)
+├─ Permet: "Voir la mère", "Voir les enfants", "Arbre complet"
+└─ Exemple: Monstera #2.parent_plant_id = 1 (mère)
+
+Accès rapide:
+- Voir tous les enfants d'une mère
+- Voir la mère d'une plante
+- Générer l'arbre généalogique
 ```
 
+### **Niveau 2: Métadonnées de Bouture (PlantCuttings table)**
+```
+Nouvelle table PLANT_CUTTINGS:
+├─ id
+├─ parent_plant_id ← FK plants(id) [LA MÈRE]
+├─ source_type ← "cutting", "seeds", "division", "offset"
+├─ method ← "water", "soil", "air-layer", "substrate"
+├─ date_harvested ← Quand prélevée (1er Nov 2025)
+├─ expected_ready ← Quand prête (auto-calculé: date_harvested + durée)
+├─ status ← "rooting", "growing", "ready-to-pot", "potted", "failed"
+├─ notes ← Texte libre
+└─ success_rate_estimate ← % selon type + méthode
+
+Accès:
+- Quelle source et méthode utilisées?
+- Quand sera-t-elle prête? (estimateur)
+- Quel est le statut actuel?
+- Quel taux de succès pour ce type/méthode?
+```
+
+### **Niveau 3: Timeline Complète (CuttingHistory table)**
+```
+Nouvelle table CUTTING_HISTORY:
+├─ id
+├─ cutting_id ← FK plant_cuttings(id) [QUE TRACKER]
+├─ date ← Quand cet événement?
+├─ event ← "rooted", "leaves-grown", "ready-to-pot", "potted", "failed"
+├─ measurement ← JSON: {root_length_cm: 1.5, leaves: 3, roots: 4}
+├─ notes ← "Première racine visible!"
+└─ [photos] ← Intégrées à chaque étape
+
+Timeline exemple:
+Day 0 (Nov 1):   "Bouture prélevée"
+Day 3 (Nov 4):   "Racines apparentes (3mm)"
+Day 7 (Nov 8):   "Racines bien formées (1.2cm)"
+Day 10 (Nov 11): "Nouvelle feuille!"
+Day 14 (Nov 15): "READY-TO-POT (roots 2cm)"
+Day 21 (Nov 22): "Rempoté en substrat"
+
+Accès:
+- Voir chaque étape jour par jour
+- Photos de chaque étape
+- Mesures précises (root_length, leaves, roots)
+- Notes et observations
+- Détecter problèmes (pas de racines après 10j?)
+- Apprendre des patterns
+```
+
 ---
 
-## 🏗️ Architecture (2 Options)
+## 🏗️ Architecture Complète (Option B Recommandée)
 
-### **Option A: Minimal (1 colonne)**
+### **Changement à PLANTS Table**
+```sql
+ALTER TABLE plants ADD COLUMN parent_plant_id INTEGER;
+ALTER TABLE plants ADD FOREIGN KEY (parent_plant_id) REFERENCES plants(id);
 
-Ajouter `parent_plant_id` à PLANTS table.
+-- nullable: une plante peut être une mère originale (pas de parent)
+```
 
-**Pros:** Simple (1-2h), relation directe
-**Cons:** Pas de métadonnées
-
----
-
-### **Option B: Complète (2 tables)** ⭐ RECOMMANDÉ
-
-**Table 1: PlantCutting**
+### **Nouvelle Table 1: PLANT_CUTTINGS**
 ```sql
 CREATE TABLE plant_cuttings (
-    id INTEGER PRIMARY KEY,
-    parent_plant_id INTEGER NOT NULL,
-    source_type VARCHAR(50),      -- "cutting", "seeds", "division", "offset"
-    method VARCHAR(50),            -- "water", "soil", "air-layer", "substrate"
-    date_harvested DATETIME,
-    expected_ready DATETIME,
-    status VARCHAR(50),            -- "rooting", "growing", "ready-to-pot", "potted"
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent_plant_id INTEGER NOT NULL,          -- FK vers plants(id) [LA MÈRE]
+    source_type VARCHAR(50) NOT NULL,          -- "cutting", "seeds", "division", "offset"
+    method VARCHAR(50) NOT NULL,               -- "water", "soil", "air-layer", "substrate"
+    date_harvested DATETIME NOT NULL,          -- Quand prélevée
+    expected_ready DATETIME,                   -- Quand prête (auto-calculé)
+    status VARCHAR(50) DEFAULT 'rooting',      -- rooting, growing, ready-to-pot, potted, failed
+    success_rate_estimate FLOAT DEFAULT 0.85,  -- % estimé selon type+method
     notes TEXT,
-    created_at DATETIME,
-    updated_at DATETIME,
-    FOREIGN KEY (parent_plant_id) REFERENCES plants(id)
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_plant_id) REFERENCES plants(id) ON DELETE CASCADE
 );
 ```
 
-**Table 2: CuttingHistory**
+### **Nouvelle Table 2: CUTTING_HISTORY**
 ```sql
 CREATE TABLE cutting_history (
-    id INTEGER PRIMARY KEY,
-    cutting_id INTEGER NOT NULL,
-    date DATETIME,
-    event VARCHAR(50),             -- "rooted", "leaves-grown", "ready-to-pot"
-    measurement JSON,              -- {root_length_cm: 1.5, leaves: 3}
-    notes TEXT,
-    created_at DATETIME,
-    FOREIGN KEY (cutting_id) REFERENCES plant_cuttings(id)
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cutting_id INTEGER NOT NULL,               -- FK vers plant_cuttings(id)
+    date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    event VARCHAR(50) NOT NULL,                -- "rooted", "leaves-grown", "ready-to-pot", "potted", "failed"
+    measurement JSON,                          -- {root_length_cm: 1.5, leaves: 3, roots: 4, health: "good"}
+    notes TEXT,                                -- Observation libre
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cutting_id) REFERENCES plant_cuttings(id) ON DELETE CASCADE
 );
 ```
 
-**Pros:** 
-- ✅ Support 4 types propagation + 4 méthodes
-- ✅ Timeline complète (rooting → potted)
-- ✅ Success rate tracking
-- ✅ Estimateur de date prête
+**Exemple de données:**
+```sql
+-- Monstera originale (mère)
+INSERT INTO plants (name, scientific_name, parent_plant_id, ...) 
+VALUES ('Monstera Deliciosa', 'Monstera deliciosa', NULL, ...);  -- id = 1
 
-**Cons:** 3.5-4 heures
+-- Bouture #1 lancée 1er Nov
+INSERT INTO plant_cuttings (parent_plant_id, source_type, method, date_harvested, expected_ready, status, notes)
+VALUES (1, 'cutting', 'water', '2025-11-01', '2025-11-18', 'rooting', 'Tige 3 feuilles');  -- id = 100
+
+-- Timeline de la bouture
+INSERT INTO cutting_history (cutting_id, date, event, measurement, notes)
+VALUES (100, '2025-11-01', 'rooted', '{}', 'Mise en eau');
+VALUES (100, '2025-11-04', 'rooted', '{"root_length_cm": 0.3}', 'Première racine!');
+VALUES (100, '2025-11-08', 'rooted', '{"root_length_cm": 1.2, "roots": 4}', 'Racines bien formées');
+VALUES (100, '2025-11-15', 'ready-to-pot', '{"root_length_cm": 2.0, "roots": 5}', 'PRÊTE!');
+```
 
 ---
 
-## 💾 Plan d'Implémentation
+## 💾 Plan d'Implémentation Détaillé
 
-### **Phase 1: Database (30 min)**
+### **Phase 1: Database (30-45 min)**
 
 **Créer migration 010:**
 ```bash
 cd backend
-alembic revision --autogenerate -m "Add plant propagation tracking"
-# Edit: migration file pour ajouter colonnes/tables
-alembic upgrade head
+alembic revision --autogenerate -m "Add plant propagation tracking (parent_plant_id + cuttings + history)"
 ```
 
-**Schéma:**
-```sql
--- Option B: Complet (Recommandé)
-CREATE TABLE plant_cuttings (
-    id INTEGER PRIMARY KEY,
-    parent_plant_id INTEGER NOT NULL,
-    source_type VARCHAR(50),
-    method VARCHAR(50),
-    date_harvested DATETIME,
-    status VARCHAR(50),
-    notes TEXT,
-    created_at DATETIME,
-    updated_at DATETIME,
-    FOREIGN KEY (parent_plant_id) REFERENCES plants(id)
-);
+**À éditer dans le fichier migration:**
+- Ajouter colonne parent_plant_id à plants
+- Créer table plant_cuttings (12 colonnes)
+- Créer table cutting_history (7 colonnes)
+- Ajouter indices sur parent_plant_id, cutting_id, status
 
-CREATE TABLE cutting_history (
-    id INTEGER PRIMARY KEY,
-    cutting_id INTEGER NOT NULL,
-    date DATETIME,
-    event VARCHAR(50),
-    measurement JSON,
-    notes TEXT,
-    created_at DATETIME,
-    FOREIGN KEY (cutting_id) REFERENCES plant_cuttings(id)
-);
+**Vérifier:**
+```bash
+alembic upgrade head  # Appliquer migration
 ```
 
 ---
 
-### **Phase 2: Models (30 min)**
+### **Phase 2: Models (30-45 min)**
 
 **File: `backend/app/models/propagation.py` (nouveau)**
 
