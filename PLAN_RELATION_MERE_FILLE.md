@@ -12,61 +12,125 @@ Monstera (original #1) ← mère
 
 ---
 
-## 🏗️ Architecture (Approche Simple)
+## � Types de Propagation Supportés
 
-### **Option A: Ajout minimal (1 colonne)**
+### **4 Méthodes Principales**
 
 ```python
-# Dans Plant model:
-parent_plant_id = Column(Integer, ForeignKey('plants.id'), nullable=True)
+source_type: "cutting"      # Bouture (tige + feuilles)
+             "seeds"        # Graines (reproduction sexuée)
+             "division"     # Division (séparer plant multi-tiges)
+             "offset"       # Rejeton (petite plante détachée)
 
-# Auto-relationship:
-parent = relationship("Plant", remote_side=[id], backref="children")
+method:      "water"        # Eau (bouteille verre)
+             "soil"         # Terreau
+             "air-layer"    # Marcottage aérien
+             "substrate"    # Substrat spécialisé
+             "tissue"       # Culture de tissus (avancé)
 ```
 
-**Pros:**
-- ✅ 1 colonne seulement
-- ✅ Simple à implémenter (1-2 heures)
-- ✅ Relation parent-child directe
+### **Exemples par Plante**
 
-**Cons:**
-- ❌ Pas de métadonnées (date, méthode)
-- ❌ Pas de timeline de propagation
+| Plante | Type | Méthode | Durée |
+|--------|------|---------|-------|
+| **Monstera** | cutting | water | 2-3 semaines |
+| **Pothos** | cutting | water | 1-2 semaines |
+| **Snake Plant** | division | soil | immédiat |
+| **Peperomia** | offset | soil | 1-2 semaines |
+| **Calathea** | division | soil | 1-2 semaines |
+| **Hoya** | cutting + air-layer | soil | 4-6 semaines |
+| **Succulente** | leaf cutting | soil | 3-4 semaines |
+| **Orchidée** | tissue | substrate | 2-3 mois |
 
 ---
 
-### **Option B: Table dédiée CUTTINGS (recommandé)**
+## 🌱 Cycle de Vie d'une Bouture
 
-```python
-# Table 1: PlantCutting
-class PlantCutting(BaseModel):
-    __tablename__ = "plant_cuttings"
-    
-    parent_plant_id = Column(Integer, ForeignKey('plants.id'))  # Mère
-    source_type = Column(String(50))  # "cutting", "seeds", "division"
-    method = Column(String(50))        # "water", "soil", "air-layer"
-    date_harvested = Column(DateTime)
-    status = Column(String(50))        # "rooting", "growing", "ready-to-pot", "potted"
-    notes = Column(Text)
-
-# Table 2: CuttingHistory
-class CuttingHistory(BaseModel):
-    __tablename__ = "cutting_history"
-    
-    cutting_id = Column(Integer, ForeignKey('plant_cuttings.id'))
-    date = Column(DateTime)
-    event = Column(String(50))         # "rooted", "leaves-grown", "ready-to-pot"
-    measurement = Column(JSON)         # {root_length_cm: 1.5}
-    notes = Column(Text)
+```
+1. SOURCE (Mère)
+   └─ Monstera #1 (originale)
+   
+2. HARVEST (Prélèvement)
+   └─ Date: 1er Nov 2025
+   └─ Type: cutting (tige)
+   └─ Size: 3 feuilles, 4 pouces
+   
+3. PROPAGATION (En cours)
+   └─ Method: water
+   └─ Status: rooting
+   └─ Days passed: 2
+   
+4. TIMELINE
+   Day 0:   "Prélevée, mise en eau"
+   Day 3:   "Roots apparentes (3mm)"
+   Day 7:   "Roots bien formées (1cm)"
+   Day 10:  "Nouvelle feuille"
+   Day 14:  "Ready-to-pot (roots 2cm)"
+   
+5. CONVERSION
+   └─ Plant #2 créée
+   └─ Rempoté en substrat
+   └─ Status: "Plante indépendante"
+   
+6. RESULT
+   └─ Success: ✅ (potted)
+   ou
+   └─ Failed: ❌ (no roots, rot)
 ```
 
-**Pros:**
-- ✅ Complet avec timeline
-- ✅ Métadonnées de propagation
-- ✅ Permet success rate tracking
+---
 
-**Cons:**
-- ⏱️ 3-4 heures d'implémentation
+## 🏗️ Architecture (2 Options)
+
+### **Option A: Minimal (1 colonne)**
+
+Ajouter `parent_plant_id` à PLANTS table.
+
+**Pros:** Simple (1-2h), relation directe
+**Cons:** Pas de métadonnées
+
+---
+
+### **Option B: Complète (2 tables)** ⭐ RECOMMANDÉ
+
+**Table 1: PlantCutting**
+```sql
+CREATE TABLE plant_cuttings (
+    id INTEGER PRIMARY KEY,
+    parent_plant_id INTEGER NOT NULL,
+    source_type VARCHAR(50),      -- "cutting", "seeds", "division", "offset"
+    method VARCHAR(50),            -- "water", "soil", "air-layer", "substrate"
+    date_harvested DATETIME,
+    expected_ready DATETIME,
+    status VARCHAR(50),            -- "rooting", "growing", "ready-to-pot", "potted"
+    notes TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (parent_plant_id) REFERENCES plants(id)
+);
+```
+
+**Table 2: CuttingHistory**
+```sql
+CREATE TABLE cutting_history (
+    id INTEGER PRIMARY KEY,
+    cutting_id INTEGER NOT NULL,
+    date DATETIME,
+    event VARCHAR(50),             -- "rooted", "leaves-grown", "ready-to-pot"
+    measurement JSON,              -- {root_length_cm: 1.5, leaves: 3}
+    notes TEXT,
+    created_at DATETIME,
+    FOREIGN KEY (cutting_id) REFERENCES plant_cuttings(id)
+);
+```
+
+**Pros:** 
+- ✅ Support 4 types propagation + 4 méthodes
+- ✅ Timeline complète (rooting → potted)
+- ✅ Success rate tracking
+- ✅ Estimateur de date prête
+
+**Cons:** 3.5-4 heures
 
 ---
 
@@ -84,12 +148,7 @@ alembic upgrade head
 
 **Schéma:**
 ```sql
--- Option A: Simple
-ALTER TABLE plants 
-ADD COLUMN parent_plant_id INTEGER 
-FOREIGN KEY REFERENCES plants(id);
-
--- Option B: Complet
+-- Option B: Complet (Recommandé)
 CREATE TABLE plant_cuttings (
     id INTEGER PRIMARY KEY,
     parent_plant_id INTEGER NOT NULL,
@@ -131,8 +190,9 @@ class PlantCutting(BaseModel):
     
     parent_plant_id = Column(Integer, ForeignKey('plants.id'), nullable=False)
     source_type = Column(String(50))      # "cutting", "seeds", "division", "offset"
-    method = Column(String(50))           # "water", "soil", "air-layer"
+    method = Column(String(50))           # "water", "soil", "air-layer", "substrate"
     date_harvested = Column(DateTime)
+    expected_ready = Column(DateTime)     # Estimé: quand sera prête
     status = Column(String(50))           # "rooting", "growing", "ready-to-pot", "potted", "failed"
     notes = Column(Text)
     
