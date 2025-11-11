@@ -70,6 +70,12 @@ function LayoutContent() {
                 </div>
               </Link>
               <Link 
+                to="/propagations"
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Propagations
+              </Link>
+              <Link 
                 to="/plants/new"
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
               >

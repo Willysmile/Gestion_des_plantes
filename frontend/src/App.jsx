@@ -11,6 +11,11 @@ import DiseaseHistoryPage from './pages/DiseaseHistoryPage'
 import PlantNotesPage from './pages/PlantNotesPage'
 import SettingsPage from './pages/SettingsPage'
 import AuditDashboardPage from './pages/AuditDashboardPage'
+import PropagationDashboard from './pages/PropagationDashboard'
+import PropagationDetailsPage from './pages/PropagationDetailsPage'
+import PropagationCalendarPage from './pages/PropagationCalendarPage'
+import GenealogyTreePage from './pages/GenealogyTreePage'
+import StatisticsPage from './pages/StatisticsPage'
 
 export default function App() {
   return (
@@ -28,6 +33,11 @@ export default function App() {
           <Route path="/plants/:id/repotting-history" element={<RepottingHistoryPage />} />
           <Route path="/plants/:id/disease-history" element={<DiseaseHistoryPage />} />
           <Route path="/plants/:id/notes" element={<PlantNotesPage />} />
+          <Route path="/propagations" element={<PropagationDashboard />} />
+          <Route path="/propagations/:id" element={<PropagationDetailsPage />} />
+          <Route path="/propagations/calendar" element={<PropagationCalendarPage />} />
+          <Route path="/propagations/genealogy" element={<GenealogyTreePage />} />
+          <Route path="/propagations/statistics" element={<StatisticsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
