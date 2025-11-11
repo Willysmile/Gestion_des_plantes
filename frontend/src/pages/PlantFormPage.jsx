@@ -251,6 +251,7 @@ export default function PlantFormPage() {
     corrected.temperature_min = corrected.temperature_min === '' ? null : Number(corrected.temperature_min)
     corrected.temperature_max = corrected.temperature_max === '' ? null : Number(corrected.temperature_max)
     corrected.humidity_level = corrected.humidity_level === '' ? null : Number(corrected.humidity_level)
+    corrected.soil_ideal_ph = corrected.soil_ideal_ph === '' ? null : Number(corrected.soil_ideal_ph)
 
     return corrected
   }

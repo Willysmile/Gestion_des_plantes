@@ -4,6 +4,10 @@ Pytest configuration and fixtures
 
 import os
 import pytest
+
+# DISABLE AUDIT LISTENERS FOR TESTING
+os.environ['TESTING'] = '1'
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
@@ -53,11 +57,12 @@ def db():
 
 @pytest.fixture(scope="function")
 def client():
-    """Create FastAPI test client with dependency override"""
+    """Create FastAPI test client with fresh database for each test"""
     # Override get_db dependency
     app.dependency_overrides[get_db] = override_get_db
     
-    # Create test database
+    # Drop and recreate test database for EACH test
+    BaseModel.metadata.drop_all(bind=engine)
     BaseModel.metadata.create_all(bind=engine)
     
     # Seed lookups
@@ -72,7 +77,10 @@ def client():
     
     yield test_client
     
-    # Cleanup
+    # Cleanup: Drop all tables after test
+    BaseModel.metadata.drop_all(bind=engine)
+    
+    # Clear all overrides
     app.dependency_overrides.clear()
     BaseModel.metadata.drop_all(bind=engine)
 

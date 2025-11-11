@@ -129,10 +129,10 @@ def test_get_tags(client):
 
 def test_create_tag(client):
     """Test POST /api/settings/tags"""
-    resp = client.post("/api/settings/tags", json={"name": "Indoor", "tag_category_id": 1})
+    resp = client.post("/api/settings/tags", json={"name": "TestTag123", "category_id": 1})
     assert resp.status_code == 201
     tag = resp.json()
-    assert tag["name"] == "Indoor"
+    assert tag["name"] == "TestTag123"
 
 
 def test_get_diseases(client):
@@ -145,10 +145,10 @@ def test_get_diseases(client):
 
 def test_create_disease(client):
     """Test POST /api/settings/diseases"""
-    resp = client.post("/api/settings/diseases", json={"name": "Powdery Mildew"})
+    resp = client.post("/api/settings/diseases", json={"name": "TestDisease123"})
     assert resp.status_code == 201
     disease = resp.json()
-    assert disease["name"] == "Powdery Mildew"
+    assert disease["name"] == "TestDisease123"
 
 
 def test_get_treatments(client):

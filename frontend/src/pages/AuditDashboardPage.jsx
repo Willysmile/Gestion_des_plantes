@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import api from '../config'
+import api from '../lib/api'
 import {
   AuditDailyActivityChart,
   AuditEntityBreakdownChart,
@@ -35,6 +35,7 @@ export default function AuditDashboardPage() {
 
   // Charger les logs
   useEffect(() => {
+    console.log('📋 AuditDashboardPage mounted, loading logs...')
     loadLogs()
   }, [filterType, filterAction, filterDays, searchEntity])
 
@@ -53,10 +54,10 @@ export default function AuditDashboardPage() {
       
       // Charger les 4 stats en parallèle
       const [dailyRes, entityRes, userRes, actionRes] = await Promise.all([
-        api.get(`/api/audit/stats/daily-activity?days=${days}`),
-        api.get(`/api/audit/stats/entity-breakdown?days=${days}`),
-        api.get(`/api/audit/stats/user-activity?limit=10&days=${days}`),
-        api.get(`/api/audit/stats/action-by-entity?days=${days}`),
+        api.get(`/audit/stats/daily-activity?days=${days}`),
+        api.get(`/audit/stats/entity-breakdown?days=${days}`),
+        api.get(`/audit/stats/user-activity?limit=10&days=${days}`),
+        api.get(`/audit/stats/action-by-entity?days=${days}`),
       ])
 
       setDailyActivity(dailyRes.data || [])
@@ -64,33 +65,49 @@ export default function AuditDashboardPage() {
       setUserActivity(userRes.data || [])
       setActionByEntity(actionRes.data || [])
     } catch (err) {
-      setStatsError(err.response?.data?.detail || 'Erreur lors du chargement des statistiques')
+      let errorMsg = 'Erreur lors du chargement des statistiques'
+      if (err.response?.data?.detail) {
+        errorMsg = typeof err.response.data.detail === 'string' ? err.response.data.detail : JSON.stringify(err.response.data.detail)
+      } else if (err.message) {
+        errorMsg = err.message
+      }
+      setStatsError(errorMsg)
     } finally {
       setStatsLoading(false)
     }
   }
 
   const loadLogs = async () => {
+    console.log('🔍 loadLogs called')
     setLoading(true)
     setError(null)
     try {
-      let url = '/api/audit/logs'
+      let url = '/audit/logs'
       const params = new URLSearchParams()
       params.append('limit', limit)
 
       // Déterminer l'endpoint basé sur les filtres
       if (filterDays !== 'all' && filterDays !== 'custom') {
-        url = `/api/audit/logs/recent?days=${filterDays}`
+        url = `/audit/logs/recent?days=${filterDays}`
       } else if (filterAction !== 'all') {
-        url = `/api/audit/logs/action/${filterAction}`
+        url = `/audit/logs/action/${filterAction}`
       } else if (filterType !== 'all' && searchEntity) {
-        url = `/api/audit/logs/entity/${filterType}/${searchEntity}`
+        url = `/audit/logs/entity/${filterType}/${searchEntity}`
       }
 
+      console.log('📡 Fetching from:', url)
       const response = await api.get(url, { params })
+      console.log('✅ Got response:', response.data)
       setLogs(response.data)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Erreur de chargement')
+      console.error('❌ Error loading logs:', err)
+      let errorMsg = 'Erreur de chargement'
+      if (err.response?.data?.detail) {
+        errorMsg = typeof err.response.data.detail === 'string' ? err.response.data.detail : JSON.stringify(err.response.data.detail)
+      } else if (err.message) {
+        errorMsg = err.message
+      }
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -106,15 +123,25 @@ export default function AuditDashboardPage() {
   }
 
   const handleCleanup = async () => {
-    if (!window.confirm('Supprimer les logs de plus de 90 jours?')) return
+    if (!window.confirm('Supprimer tous les logs?')) return
     
     try {
       setLoading(true)
-      await api.delete('/api/audit/logs/cleanup?days=90')
-      setError('Logs supprimés avec succès')
+      const res = await api.delete('/audit/logs/cleanup')
+      let successMsg = 'Logs supprimés avec succès'
+      if (res.data?.message) {
+        successMsg = res.data.message
+      }
+      setError(successMsg)
       loadLogs()
     } catch (err) {
-      setError(err.response?.data?.detail || 'Erreur de suppression')
+      let errorMsg = 'Erreur de suppression'
+      if (err.response?.data?.detail) {
+        errorMsg = typeof err.response.data.detail === 'string' ? err.response.data.detail : JSON.stringify(err.response.data.detail)
+      } else if (err.message) {
+        errorMsg = err.message
+      }
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -273,12 +300,12 @@ export default function AuditDashboardPage() {
 
         {statsError && (
           <div className="rounded-lg p-4 mb-6 bg-red-100 text-red-800">
-            {statsError}
+            Erreur statistiques temporairement désactivées
           </div>
         )}
 
-        {/* Stats Section */}
-        {showStats && (
+        {/* Stats Section - TEMPORAIREMENT DÉSACTIVÉ */}
+        {false && showStats && (
           <div className="mb-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Daily Activity Chart */}

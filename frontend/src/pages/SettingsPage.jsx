@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Settings as SettingsIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { lookupsAPI } from '../lib/api'
 import TagsManagement from '../components/TagsManagement'
 
@@ -7,6 +8,7 @@ import TagsManagement from '../components/TagsManagement'
 const pluralizeUnit = (count) => count > 1 ? 'unités' : 'unité'
 
 export default function SettingsPage() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('units')
   
   // Units state
@@ -206,6 +208,19 @@ export default function SettingsPage() {
           }`}
         >
           Tags 🏷️
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('audit')
+            resetForm()
+          }}
+          className={`px-4 py-2 font-medium transition ${
+            activeTab === 'audit'
+              ? 'border-b-2 border-purple-500 text-purple-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Audit 📋
         </button>
       </div>
 
@@ -518,6 +533,22 @@ export default function SettingsPage() {
       {activeTab === 'tags' && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <TagsManagement />
+        </div>
+      )}
+
+      {/* Audit Tab */}
+      {activeTab === 'audit' && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex flex-col gap-4">
+            <h2 className="text-xl font-semibold text-gray-800">Journaux d'audit</h2>
+            <p className="text-gray-600">Consulter et gérer les logs d'audit du système.</p>
+            <button
+              onClick={() => navigate('/audit')}
+              className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg transition w-fit font-medium"
+            >
+              📋 Aller aux logs d'audit
+            </button>
+          </div>
         </div>
       )}
     </div>

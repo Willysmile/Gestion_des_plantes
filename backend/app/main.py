@@ -59,8 +59,9 @@ app.add_middleware(
 # THEN initialize database and seed
 init_db()
 
-# Register audit event listeners (disabled for now - complex with TestClient)
-# AuditListeners.register()
+# Register audit event listeners ONLY IF NOT IN TESTING MODE
+if not os.getenv('TESTING'):
+    AuditListeners.register()
 
 # Seed lookup tables and sample plants at startup
 db = next(get_db())

@@ -92,11 +92,15 @@ class AuditLogService:
             .all()
     
     @staticmethod
-    def delete_old_logs(db: Session, days: int = 90) -> int:
+    def delete_old_logs(db: Session, days: Optional[int] = 90) -> int:
         """Supprimer les logs de plus de N jours (nettoyage)"""
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
-        count = db.query(AuditLog)\
-            .filter(AuditLog.created_at < cutoff_date)\
-            .delete()
+        if days is None:
+            # Supprimer TOUS les logs
+            count = db.query(AuditLog).delete()
+        else:
+            cutoff_date = datetime.utcnow() - timedelta(days=days)
+            count = db.query(AuditLog)\
+                .filter(AuditLog.created_at < cutoff_date)\
+                .delete()
         db.commit()
         return count

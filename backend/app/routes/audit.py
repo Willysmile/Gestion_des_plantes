@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.utils.db import get_db
 from app.services.audit_service import AuditLogService
 from app.schemas.audit_schema import AuditLogResponse, AuditLogListResponse
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/audit", tags=["audit"])
@@ -68,11 +68,38 @@ def get_recent_logs(
     return logs
 
 
+
+
 @router.delete("/logs/cleanup")
 def cleanup_old_logs(
-    days: int = Query(90, ge=1, le=365),
+    days: Optional[int] = Query(None, ge=1, le=365),
     db: Session = Depends(get_db)
 ):
-    """Supprime les logs de plus de N jours (nettoyage)"""
+    """Supprime les logs de plus de N jours (nettoyage). Si days=None, supprime TOUS les logs"""
     count = AuditLogService.delete_old_logs(db, days=days)
     return {"deleted_count": count, "message": f"{count} logs supprimés"}
+
+
+@router.post("/logs/create-test")
+def create_test_log(db: Session = Depends(get_db)):
+    """Crée un log de test pour la démo (développement uniquement)"""
+    from datetime import datetime
+    from app.models import AuditLog
+    
+    test_log = AuditLog(
+        action="UPDATE",
+        entity_type="Plant",
+        entity_id=1,
+        field_name="description",
+        old_value="Ancienne description",
+        new_value="Nouvelle description mise à jour",
+        user_id=None,
+        description="Log de test pour la démo",
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+    db.add(test_log)
+    db.commit()
+    db.refresh(test_log)
+    return {"id": test_log.id, "message": "Log de test créé"}
+

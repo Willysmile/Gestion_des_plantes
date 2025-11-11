@@ -4,7 +4,7 @@ import pytest
 @pytest.mark.usefixtures("client", "db")
 def test_settings_locations_crud(client, db):
     # create location
-    payload = {"name": "Salon"}
+    payload = {"name": "TestLocation123"}
     resp = client.post("/api/settings/locations", json=payload)
     assert resp.status_code == 201
     data = resp.json()

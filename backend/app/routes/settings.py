@@ -12,7 +12,7 @@ from app.utils.db import get_db
 from app.services.settings_service import SettingsService
 from app.models.lookup import (
     Location, PurchasePlace, WateringFrequency,
-    LightRequirement, FertilizerType
+    LightRequirement, FertilizerType, DiseaseType, TreatmentType
 )
 from app.models.tags import Tag, TagCategory
 
@@ -64,6 +64,18 @@ async def create_location(
     return {"id": location.id, "name": location.name}
 
 
+@router.get("/locations/{location_id}")
+async def get_location(
+    location_id: int,
+    db: Session = Depends(get_db),
+):
+    """Récupère une localisation par ID"""
+    location = SettingsService.get_location(db, location_id)
+    if not location:
+        raise HTTPException(status_code=404, detail="Localisation non trouvée")
+    return {"id": location.id, "name": location.name}
+
+
 @router.put("/locations/{location_id}")
 async def update_location(
     location_id: int,
@@ -108,6 +120,18 @@ async def create_purchase_place(
 ):
     """Crée un nouveau lieu d'achat"""
     place = SettingsService.create_purchase_place(db, data.name)
+    return {"id": place.id, "name": place.name}
+
+
+@router.get("/purchase-places/{place_id}")
+async def get_purchase_place(
+    place_id: int,
+    db: Session = Depends(get_db),
+):
+    """Récupère un lieu d'achat par ID"""
+    place = SettingsService.get_purchase_place(db, place_id)
+    if not place:
+        raise HTTPException(status_code=404, detail="Lieu d'achat non trouvé")
     return {"id": place.id, "name": place.name}
 
 
@@ -327,3 +351,46 @@ async def delete_tag(
     success = SettingsService.delete_tag(db, tag_id)
     if not success:
         raise HTTPException(status_code=404, detail="Tag non trouvé")
+
+
+# ===== DISEASES (2 endpoints) =====
+
+@router.get("/diseases", response_model=List[dict])
+async def list_diseases(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db),
+):
+    """Récupère tous les types de maladies"""
+    diseases = SettingsService.get_disease_types(db)
+    return [{"id": d.id, "name": d.name} for d in diseases]
+
+
+@router.post("/diseases", status_code=201)
+async def create_disease(
+    data: NameSchema,
+    db: Session = Depends(get_db),
+):
+    """Crée un nouveau type de maladie"""
+    disease = db.query(DiseaseType).filter(DiseaseType.name == data.name).first()
+    if disease:
+        raise HTTPException(status_code=400, detail="Cette maladie existe déjà")
+    
+    disease = DiseaseType(name=data.name)
+    db.add(disease)
+    db.commit()
+    db.refresh(disease)
+    return {"id": disease.id, "name": disease.name}
+
+
+# ===== TREATMENTS (1 endpoint) =====
+
+@router.get("/treatments", response_model=List[dict])
+async def list_treatments(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db),
+):
+    """Récupère tous les types de traitement"""
+    treatments = SettingsService.get_treatment_types(db)
+    return [{"id": t.id, "name": t.name} for t in treatments]
