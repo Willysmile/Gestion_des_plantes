@@ -12,7 +12,7 @@ import PropagationForm from '../components/propagation/PropagationForm';
 const PropagationDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: propagation, loading: propLoading, error: propError } = useGetPropagation(id);
+  const { propagation, loading: propLoading, error: propError } = useGetPropagation(id);
   const { data: events, loading: eventsLoading } = useGetPropagationEvents(id);
   const { update, loading: updateLoading } = useUpdatePropagation();
   const { delete: deleteProp, loading: deleteLoading } = useDeletePropagation();

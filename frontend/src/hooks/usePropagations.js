@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '../config';
 
@@ -55,6 +55,13 @@ export const useGetPropagation = (propagationId) => {
       setError(err.response?.data?.detail || err.message);
     } finally {
       setLoading(false);
+    }
+  }, [propagationId]);
+
+  // Auto-fetch when propagationId changes
+  useEffect(() => {
+    if (propagationId) {
+      fetch();
     }
   }, [propagationId]);
 
