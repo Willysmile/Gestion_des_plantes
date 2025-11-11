@@ -5,6 +5,7 @@ from app.models.photo import Photo as PhotoModel
 from app.models.lookup import Unit, Location, PurchasePlace, WateringFrequency, LightRequirement, FertilizerType, DiseaseType, TreatmentType, PlantHealthStatus
 from app.models.histories import WateringHistory, FertilizingHistory, RepottingHistory, DiseaseHistory, PlantHistory
 from app.models.audit import AuditLog
+from app.models.propagation import PlantPropagation, PropagationEvent
 
 __all__ = [
     "Base", "BaseModel",
@@ -13,4 +14,5 @@ __all__ = [
     "WateringHistory", "FertilizingHistory", "RepottingHistory", "DiseaseHistory", "PlantHistory",
     "Tag", "TagCategory",
     "AuditLog",
+    "PlantPropagation", "PropagationEvent",
 ]
