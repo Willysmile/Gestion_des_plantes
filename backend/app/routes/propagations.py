@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional
 from datetime import date
 from sqlalchemy.orm import Session
+import logging
 
 from app.utils.db import get_db
-from app.models import PlantPropagation, PropagationEvent, Plant
+from app.models import PlantPropagation, PropagationEvent, Plant, PhotoModel
+from app.models.lookup import PlantSeasonalWatering, PlantSeasonalFertilizing
 from app.schemas.propagation import (
     PlantPropagationCreate, PlantPropagationUpdate, PlantPropagationResponse,
     PropagationEventCreate, PropagationEventUpdate, PropagationEventResponse,
@@ -15,6 +17,7 @@ from app.services.propagation_service import (
     PropagationValidationService, PropagationEstimatorService, PropagationAnalyticsService
 )
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/propagations", tags=["propagations"])
 
 
@@ -242,12 +245,55 @@ def convert_to_plant(
     if not child:
         raise HTTPException(status_code=404, detail="Child plant not found")
     
+    # Check if parent plant exists
+    parent = db.query(Plant).filter(Plant.id == propagation.parent_plant_id).first()
+    if not parent:
+        raise HTTPException(status_code=404, detail="Parent plant not found")
+    
     # Validate no cycle
     valid, error = PropagationValidationService.validate_no_cycle(
         db, propagation.parent_plant_id, conversion.child_plant_id
     )
     if not valid:
         raise HTTPException(status_code=400, detail=error)
+    
+    # Inherit parent settings if requested
+    if conversion.inherit_parent_settings:
+        child.watering_frequency_id = parent.watering_frequency_id
+        child.light_requirement_id = parent.light_requirement_id
+        child.preferred_watering_method_id = parent.preferred_watering_method_id
+        child.preferred_water_type_id = parent.preferred_water_type_id
+        child.temperature_min = parent.temperature_min
+        child.temperature_max = parent.temperature_max
+        child.humidity_level = parent.humidity_level
+        child.soil_type = parent.soil_type
+        child.soil_ideal_ph = parent.soil_ideal_ph
+        child.difficulty_level = parent.difficulty_level
+        child.location_id = parent.location_id
+        
+        # Copy seasonal watering settings
+        parent_seasonal_watering = db.query(PlantSeasonalWatering).filter(
+            PlantSeasonalWatering.plant_id == parent.id
+        ).all()
+        for season_watering in parent_seasonal_watering:
+            new_season_watering = PlantSeasonalWatering(
+                plant_id=child.id,
+                season_id=season_watering.season_id,
+                watering_frequency_id=season_watering.watering_frequency_id
+            )
+            db.add(new_season_watering)
+        
+        # Copy seasonal fertilizing settings
+        parent_seasonal_fertilizing = db.query(PlantSeasonalFertilizing).filter(
+            PlantSeasonalFertilizing.plant_id == parent.id
+        ).all()
+        for season_fert in parent_seasonal_fertilizing:
+            new_season_fert = PlantSeasonalFertilizing(
+                plant_id=child.id,
+                season_id=season_fert.season_id,
+                fertilizer_frequency_id=season_fert.fertilizer_frequency_id
+            )
+            db.add(new_season_fert)
     
     # Update propagation
     propagation.child_plant_id = conversion.child_plant_id

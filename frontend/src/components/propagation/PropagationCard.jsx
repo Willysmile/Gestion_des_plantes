@@ -26,24 +26,25 @@ const PropagationCard = ({ propagation, parentPlantName, statusColor }) => {
     0
   );
 
-  // Déterminer les transitions valides selon l'état actuel
-  const getNextValidStatus = () => {
-    const statusFlow = {
-      'pending': 'rooting',
-      'rooting': 'rooted',
-      'rooted': 'growing',
-      'growing': 'ready-to-pot',
-      'ready-to-pot': 'potted',
-      'potted': 'transplanted',
-      'transplanted': 'established',
-      'established': null,
-      'failed': null,
-      'abandoned': null,
-    };
-    return statusFlow[propagation.status] || null;
+  // Transitions valides selon le backend (PropagationValidationService)
+  const VALID_TRANSITIONS = {
+    'pending': ['rooting', 'failed', 'abandoned'],
+    'rooting': ['rooted', 'failed', 'abandoned'],
+    'rooted': ['growing', 'ready-to-pot', 'failed', 'abandoned'],
+    'growing': ['ready-to-pot', 'failed', 'abandoned'],
+    'ready-to-pot': ['potted', 'failed', 'abandoned'],
+    'potted': ['transplanted', 'established', 'failed', 'abandoned'],
+    'transplanted': ['established', 'failed', 'abandoned'],
+    'established': ['failed', 'abandoned'],
+    'failed': [],
+    'abandoned': [],
   };
 
-  const nextStatus = getNextValidStatus();
+  const getValidNextStatuses = () => {
+    return VALID_TRANSITIONS[propagation.status] || [];
+  };
+
+  const validNextStatuses = getValidNextStatuses();
 
   return (
     <div className="bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer" onClick={() => navigate(`/propagations/${propagation.id}`)}>
@@ -127,18 +128,86 @@ const PropagationCard = ({ propagation, parentPlantName, statusColor }) => {
         )}
 
         {/* Quick Status Change */}
-        {nextStatus && (
-          <div className="flex gap-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleStatusChange(nextStatus);
-              }}
-              className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 text-sm font-medium rounded hover:bg-blue-200 transition"
-            >
-              → {nextStatus}
-            </button>
-            {!['established', 'failed', 'abandoned'].includes(propagation.status) && (
+        {validNextStatuses.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {validNextStatuses.includes('rooting') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange('rooting');
+                }}
+                className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 text-sm font-medium rounded hover:bg-blue-200 transition"
+              >
+                → Enracinement
+              </button>
+            )}
+            {validNextStatuses.includes('rooted') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange('rooted');
+                }}
+                className="flex-1 px-3 py-2 bg-green-100 text-green-700 text-sm font-medium rounded hover:bg-green-200 transition"
+              >
+                → Enracinée
+              </button>
+            )}
+            {validNextStatuses.includes('growing') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange('growing');
+                }}
+                className="flex-1 px-3 py-2 bg-emerald-100 text-emerald-700 text-sm font-medium rounded hover:bg-emerald-200 transition"
+              >
+                → En croissance
+              </button>
+            )}
+            {validNextStatuses.includes('ready-to-pot') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange('ready-to-pot');
+                }}
+                className="flex-1 px-3 py-2 bg-yellow-100 text-yellow-700 text-sm font-medium rounded hover:bg-yellow-200 transition"
+              >
+                → Prête à rempoter
+              </button>
+            )}
+            {validNextStatuses.includes('potted') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange('potted');
+                }}
+                className="flex-1 px-3 py-2 bg-orange-100 text-orange-700 text-sm font-medium rounded hover:bg-orange-200 transition"
+              >
+                → Rempotée
+              </button>
+            )}
+            {validNextStatuses.includes('transplanted') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange('transplanted');
+                }}
+                className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 text-sm font-medium rounded hover:bg-purple-200 transition"
+              >
+                → Transplantée
+              </button>
+            )}
+            {validNextStatuses.includes('established') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange('established');
+                }}
+                className="flex-1 px-3 py-2 bg-green-200 text-green-800 text-sm font-medium rounded hover:bg-green-300 transition"
+              >
+                → Établie
+              </button>
+            )}
+            {validNextStatuses.includes('failed') && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -146,7 +215,18 @@ const PropagationCard = ({ propagation, parentPlantName, statusColor }) => {
                 }}
                 className="flex-1 px-3 py-2 bg-red-100 text-red-700 text-sm font-medium rounded hover:bg-red-200 transition"
               >
-                Échoué
+                Échouée
+              </button>
+            )}
+            {validNextStatuses.includes('abandoned') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange('abandoned');
+                }}
+                className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-300 transition"
+              >
+                Abandonnée
               </button>
             )}
           </div>

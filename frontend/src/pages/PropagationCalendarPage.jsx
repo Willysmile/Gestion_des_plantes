@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGetCalendarEvents } from '../hooks/usePropagations';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const PropagationCalendarPage = () => {
@@ -94,40 +95,43 @@ const PropagationCalendarPage = () => {
             </div>
 
             {/* Calendar Days */}
-            <div className="grid grid-cols-7">
+            <div className="grid grid-cols-7 gap-2">
               {calendarDays.map(day => {
                 const isCurrentMonth = isSameMonth(day, currentDate);
                 const isSelected = selectedDay && isSameDay(day, selectedDay);
                 const dayEvents = getEventsForDay(day);
+                const canConvert = dayEvents.some(event => ['ready-to-pot', 'potted', 'growing', 'established'].includes(event.status));
 
                 return (
                   <div
                     key={format(day, 'yyyy-MM-dd')}
                     onClick={() => setSelectedDay(day)}
-                    className={`min-h-32 p-2 border cursor-pointer transition ${
-                      isCurrentMonth ? 'bg-white hover:bg-gray-50' : 'bg-gray-50'
-                    } ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+                    className={`min-h-32 p-3 rounded-lg border transition cursor-pointer ${
+                      isSelected ? 'ring-2 ring-green-500 bg-green-50' : isCurrentMonth ? 'bg-white hover:bg-gray-50 shadow-sm' : 'bg-gray-50'
+                    }`}
                   >
-                    <p className={`font-semibold mb-1 ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}`}>
-                      {format(day, 'd')}
-                    </p>
-                    <div className="space-y-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className={`font-semibold ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}`}>{format(day, 'd')}</p>
+                      <span className="text-xs text-gray-500">{dayEvents.length} evt</span>
+                    </div>
+                    <div className="space-y-1 text-xs">
                       {dayEvents.slice(0, 2).map(event => (
                         <div
                           key={event.id}
-                          className={`text-xs p-1 rounded truncate ${
-                            statusColors[event.status] || 'bg-gray-100 text-gray-700'
-                          }`}
+                          className={`px-2 py-1 rounded ${statusColors[event.status] || 'bg-gray-100 text-gray-700'}`}
                         >
                           {event.parent_plant_name}
                         </div>
                       ))}
-                      {dayEvents.length > 2 && (
-                        <p className="text-xs text-gray-500 font-semibold">
-                          +{dayEvents.length - 2} plus
-                        </p>
-                      )}
                     </div>
+                    {dayEvents.length > 2 && (
+                      <p className="text-xs font-semibold text-gray-500 mt-2">+{dayEvents.length - 2} autres</p>
+                    )}
+                    {canConvert && (
+                      <div className="mt-2 px-2 py-1 text-xs font-semibold text-white bg-emerald-500 rounded-full text-center">
+                        Convertible
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -148,26 +152,53 @@ const PropagationCalendarPage = () => {
                   getEventsForDay(selectedDay).map(event => (
                     <div
                       key={event.id}
-                      className={`p-4 rounded-lg border-l-4 cursor-pointer hover:shadow-md transition ${
-                        statusColors[event.status] || 'bg-gray-100'
+                      className={`p-4 rounded-lg border-l-4 cursor-pointer hover:shadow-lg transition ${
+                        statusColors[event.status] || 'bg-gray-100 border-gray-300'
                       }`}
+                      onClick={() => navigate(`/propagations/${event.id}`)}
                     >
-                      <p className="font-semibold text-gray-900">
-                        {event.parent_plant_name}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {event.source_type} - {event.method}
-                      </p>
-                      <div className="mt-2 text-sm space-y-1">
-                        <p>
-                          <span className="font-semibold">État:</span> {event.status}
-                        </p>
-                        <p>
-                          <span className="font-semibold">Durée:</span> {event.days_since_propagation}j / {event.expected_duration_days}j
-                        </p>
-                        <p>
-                          <span className="font-semibold">Succès:</span> {event.success_rate_estimate}%
-                        </p>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {event.parent_plant_name}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {event.source_type} · {event.method}
+                          </p>
+                        </div>
+                        <span className="text-xs text-green-600 font-bold">
+                          {event.status}
+                        </span>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-gray-600">
+                        <div className="rounded-lg bg-white/60 p-2">
+                          <p className="font-semibold">Durée</p>
+                          <p>{event.days_since_propagation}j / {event.expected_duration_days}j</p>
+                        </div>
+                        <div className="rounded-lg bg-white/60 p-2">
+                          <p className="font-semibold">Succès estimé</p>
+                          <p>{event.success_rate_estimate}%</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          className="flex-1 px-3 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/propagations/${event.id}`);
+                          }}
+                        >
+                          Voir la propagation
+                        </button>
+                        <button
+                          className="flex-1 px-3 py-2 text-xs font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/propagations/${event.id}`);
+                          }}
+                        >
+                          Convertir en plante
+                        </button>
                       </div>
                       {event.is_overdue && (
                         <p className="text-xs text-red-600 font-semibold mt-2">

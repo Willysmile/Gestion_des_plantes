@@ -277,6 +277,29 @@ export const useGetOverduePropagations = () => {
   return { overdue, loading, error, fetch };
 };
 
+// Hook for converting a propagation to a plant
+export const useConvertPropagation = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const convert = useCallback(async (propagationId, data) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.post(`/propagations/${propagationId}/convert`, data);
+      return response.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.detail || err.message;
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { convert, loading, error };
+};
+
 // Hook for getting calendar events
 export const useGetCalendarEvents = (year, month) => {
   const [events, setEvents] = useState([]);
@@ -297,5 +320,13 @@ export const useGetCalendarEvents = (year, month) => {
     }
   }, [year, month]);
 
-  return { events, loading, error, fetch };
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
+
+  const refresh = useCallback(() => {
+    fetch();
+  }, [fetch]);
+
+  return { events, loading, error, refresh };
 };

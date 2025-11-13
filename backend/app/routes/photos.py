@@ -148,23 +148,15 @@ async def get_photo_file(
     plant_id: int,
     filename: str,
     thumb: bool = Query(False),
-    db: Session = Depends(get_db)
 ):
-    """Servir le fichier photo JPG"""
-    # Vérifier que la photo existe en DB
-    photo = db.query(PhotoModel).filter(
-        PhotoModel.plant_id == plant_id,
-        PhotoModel.filename == filename
-    ).first()
-    
-    if not photo:
-        raise HTTPException(status_code=404, detail="Photo non trouvée")
-    
+    """Servir le fichier photo"""
     # Construire le chemin du fichier - les photos sont dans /data/photos/{plant_id}/
     file_path = settings.PHOTOS_DIR / str(plant_id) / filename
     
+    logger.info(f"Photo request: plant={plant_id}, file={filename}, path={file_path}, exists={file_path.exists()}")
+    
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Fichier non trouvé")
+        raise HTTPException(status_code=404, detail=f"Fichier non trouvé: {file_path}")
     
     # Détecter le type MIME selon l'extension
     media_type = "image/jpeg"

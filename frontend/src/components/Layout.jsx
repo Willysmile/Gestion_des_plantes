@@ -69,12 +69,32 @@ function LayoutContent() {
                   <div className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-extrabold shadow-lg drop-shadow-lg" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3)'}}>{inCareCount}</div>
                 </div>
               </Link>
-              <Link 
-                to="/propagations"
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-              >
-                Propagations
-              </Link>
+              <div className="flex gap-1 bg-blue-50 rounded-lg p-1">
+                <Link 
+                  to="/propagations"
+                  className="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition text-sm font-medium"
+                >
+                  Tableau
+                </Link>
+                <Link 
+                  to="/propagations/calendar"
+                  className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 transition text-sm font-medium"
+                >
+                  Calendrier
+                </Link>
+                <Link 
+                  to="/propagations/genealogy"
+                  className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 transition text-sm font-medium"
+                >
+                  Généalogie
+                </Link>
+                <Link 
+                  to="/propagations/statistics"
+                  className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 transition text-sm font-medium"
+                >
+                  Stats
+                </Link>
+              </div>
               <Link 
                 to="/plants/new"
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"

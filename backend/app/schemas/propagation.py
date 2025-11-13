@@ -107,6 +107,7 @@ class PropagationConversionRequest(BaseModel):
     """Schema for converting a propagation to an established plant."""
     child_plant_id: int = Field(..., description="ID of the plant to link as child")
     success_date: Optional[date] = None
+    inherit_parent_settings: bool = Field(default=True, description="Copy parent plant settings to child")
 
 
 class PropagationStatsResponse(BaseModel):
