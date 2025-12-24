@@ -38,6 +38,9 @@ class Photo(Base):
     # Whether this is the main/primary photo for the plant
     is_primary = Column(Boolean, default=False, index=True)
     
+    # Order for display (lower = first)
+    photo_order = Column(Integer, default=0, nullable=False, index=True)
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

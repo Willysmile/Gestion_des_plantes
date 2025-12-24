@@ -88,7 +88,7 @@ async def get_photos(
     
     photos = db.query(PhotoModel).filter(
         PhotoModel.plant_id == plant_id
-    ).order_by(desc(PhotoModel.created_at)).all()
+    ).order_by(PhotoModel.photo_order.asc(), PhotoModel.created_at.asc()).all()
     
     return photos
 
@@ -139,6 +139,45 @@ async def set_primary_photo(
     logger.info(f"Photo {photo_id} désignée comme principale pour la plante {plant_id}")
     
     return photo
+
+
+@router.patch("/{plant_id}/photos/reorder", status_code=200)
+async def reorder_photos(
+    plant_id: int = PathParam(..., gt=0),
+    photo_orders: list[dict] = None,
+    db: Session = Depends(get_db)
+):
+    """Réordonne les photos d'une plante. Body: [{id: 1, order: 0}, {id: 2, order: 1}, ...]"""
+    # Vérifier que la plante existe
+    plant = db.query(Plant).filter(Plant.id == plant_id).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plante non trouvée")
+    
+    if not photo_orders:
+        raise HTTPException(status_code=400, detail="photo_orders requis")
+    
+    # Mettre à jour l'ordre de chaque photo
+    for item in photo_orders:
+        photo_id = item.get('id')
+        new_order = item.get('order')
+        
+        if photo_id is None or new_order is None:
+            continue
+        
+        photo = db.query(PhotoModel).filter(
+            PhotoModel.id == photo_id,
+            PhotoModel.plant_id == plant_id
+        ).first()
+        
+        if photo:
+            photo.photo_order = new_order
+            db.add(photo)
+    
+    db.commit()
+    
+    logger.info(f"{len(photo_orders)} photos réordonnées pour la plante {plant_id}")
+    
+    return {"message": "Photos réordonnées avec succès"}
 
 
 # ===== ROUTES DE SERVEUR DE FICHIERS =====

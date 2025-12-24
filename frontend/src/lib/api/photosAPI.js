@@ -131,6 +131,29 @@ export const setPrimaryPhoto = async (plantId, photoId) => {
 }
 
 /**
+ * Reorder photos for a plant
+ * @param {number} plantId - Plant ID
+ * @param {Array<{id: number, order: number}>} photoOrders - Array of {id, order}
+ * @returns {Promise<boolean>}
+ */
+export const reorderPhotos = async (plantId, photoOrders) => {
+  try {
+    await api.patch(`/plants/${plantId}/photos/reorder`, photoOrders)
+
+    return {
+      success: true,
+      error: null,
+    }
+  } catch (error) {
+    console.error('Error reordering photos:', error)
+    return {
+      success: false,
+      error: error.response?.data?.detail || error.message,
+    }
+  }
+}
+
+/**
  * Get photo file URL for different versions
  * @param {number} plantId - Plant ID
  * @param {string} filename - Filename (e.g., 'photo_1.webp' or 'photo_1_medium.webp')
@@ -178,6 +201,7 @@ export default {
   getPhotos,
   deletePhoto,
   setPrimaryPhoto,
+  reorderPhotos,
   getPhotoUrl,
   validateImageFile,
 }
